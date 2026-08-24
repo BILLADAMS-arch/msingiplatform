@@ -89,6 +89,14 @@ SUPABASE_STORAGE_BUCKET="learning-resources"
 ANTHROPIC_API_KEY=""   # only needed once Msingi AI (a later phase) is built
 ```
 
+Append `?sslmode=no-verify` to both connection strings, not `sslmode=require`. Newer
+versions of `pg`/`pg-connection-string` treat `require` (and `prefer`/`verify-ca`) as
+aliases for `verify-full`, which checks the certificate chain against your local CA
+store — Supabase's isn't in it, so `drizzle-kit migrate` and the app's `pg.Pool` both
+fail with `self-signed certificate in certificate chain`. `no-verify` keeps the
+connection encrypted without that check (`psql` uses standard libpq semantics, where
+plain `require` already means this — the `no-verify` value is `pg`-specific).
+
 ### 3. Install, migrate, seed
 
 ```bash
