@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Shell } from "@/components/shell";
 import { Pill } from "@/components/ui";
-import { BookMarked, XCircle, CheckCircle2 } from "lucide-react";
+import { BookMarked, XCircle, CheckCircle2, Sparkles } from "lucide-react";
 
 type Mistake = { id: string; question: string; topic: string; chosen: string; correct?: string; explanation: string; date: string };
 
@@ -34,7 +35,12 @@ export default function MistakesPage() {
               <p className="text-sm text-[--coral] mt-1"><XCircle size={14} className="inline mr-1" />Your answer: {m.chosen}</p>
               <p className="text-sm text-[--green]"><CheckCircle2 size={14} className="inline mr-1" />Correct: {m.correct}</p>
               <p className="text-xs text-[--ink-soft] mt-1">{m.explanation}</p>
-              <button onClick={() => markMastered(m.id)} className="tap mt-3 text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--green-soft)", color: "var(--green)" }}>Mark as Mastered</button>
+              <div className="flex items-center gap-2 mt-3">
+                <button onClick={() => markMastered(m.id)} className="tap text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--green-soft)", color: "var(--green)" }}>Mark as Mastered</button>
+                <Link href={`/ai?mistakeId=${m.id}`} className="tap flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--amber-soft)", color: "var(--gold-deep)" }}>
+                  <Sparkles size={12} /> Ask Msingi AI
+                </Link>
+              </div>
             </div>
           ))}
         </div>

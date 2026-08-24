@@ -6,7 +6,7 @@ import { Pill } from "@/components/ui";
 import { ChevronRight } from "lucide-react";
 
 type Lesson = {
-  id: string; title: string;
+  id: string; title: string; topicName: string;
   sections: { kind: string; heading: string; body: string; note: string | null }[];
   quickCheck: { question: string; options: string[]; correctIndex: number; explanation: string } | null;
 };
@@ -28,8 +28,9 @@ export default function LessonPage() {
   const atQuickCheck = idx === lesson.sections.length;
 
   async function finish() {
+    if (!lesson) return;
     await fetch(`/api/lessons/${lessonId}/complete`, { method: "POST" });
-    router.push(`/practice?topic=Fractions`);
+    router.push(`/practice?topic=${encodeURIComponent(lesson.topicName)}`);
   }
 
   if (!atQuickCheck) {

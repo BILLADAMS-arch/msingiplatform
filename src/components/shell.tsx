@@ -2,15 +2,22 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Home, BookOpen, Dumbbell, LineChart, FlaskConical, Flame, Star } from "lucide-react";
+import { Home, BookOpen, Dumbbell, LineChart, FlaskConical, Library, Sparkles, Flame, Star } from "lucide-react";
 import { Pill } from "./ui";
 
-const NAV = [
+const MOBILE_NAV = [
   { href: "/dashboard", icon: <Home size={18} />, label: "Home" },
   { href: "/learn", icon: <BookOpen size={18} />, label: "Learn" },
   { href: "/practice", icon: <Dumbbell size={18} />, label: "Practice" },
   { href: "/playground", icon: <FlaskConical size={18} />, label: "Playground" },
   { href: "/progress", icon: <LineChart size={18} />, label: "Progress" },
+];
+
+const DESKTOP_NAV = [
+  ...MOBILE_NAV.slice(0, 3),
+  { href: "/library", icon: <Library size={18} />, label: "Library" },
+  { href: "/ai", icon: <Sparkles size={18} />, label: "Msingi AI" },
+  ...MOBILE_NAV.slice(3),
 ];
 
 export function Shell({ children, name, xp, streak }: { children: React.ReactNode; name?: string; xp?: number; streak?: number }) {
@@ -25,7 +32,7 @@ export function Shell({ children, name, xp, streak }: { children: React.ReactNod
             <span className="disp font-bold hidden sm:inline">Msingi</span>
           </Link>
           <div className="hidden md:flex items-center gap-1">
-            {NAV.map((n) => (
+            {DESKTOP_NAV.map((n) => (
               <Link key={n.href} href={n.href} className={`tap flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium ${pathname.startsWith(n.href) ? "text-[--gold-deep]" : "text-[--ink-soft]"}`}>
                 {n.icon}{n.label}
               </Link>
@@ -42,7 +49,7 @@ export function Shell({ children, name, xp, streak }: { children: React.ReactNod
       </div>
       <div className="max-w-6xl mx-auto px-5 py-6">{children}</div>
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around py-2 z-20" style={{ borderColor: "var(--slate)" }}>
-        {NAV.map((n) => (
+        {MOBILE_NAV.map((n) => (
           <Link key={n.href} href={n.href} className={`tap flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium ${pathname.startsWith(n.href) ? "text-[--gold-deep]" : "text-[--ink-soft]"}`}>
             {n.icon}{n.label}
           </Link>

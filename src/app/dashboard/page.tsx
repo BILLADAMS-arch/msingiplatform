@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Shell } from "@/components/shell";
 import { StatCard, FoundationBar } from "@/components/ui";
-import { Flame, Star, Layers, Target, Trophy, Sparkles } from "lucide-react";
+import { Flame, Star, Layers, Target, Trophy, Sparkles, Zap, CheckCircle2 } from "lucide-react";
 
 type ProgressResponse = {
   profile: { name: string; xp: number; streak: number; goal: string | null } | null;
@@ -14,10 +14,38 @@ type ProgressResponse = {
   openMistakeCount: number;
 };
 
+type Challenge = { targetCount: number; correctStreak: number; completed: boolean };
+type ContinueLearning = { subjectName: string; topicName: string; lessonId: string; masteryPct: number } | null;
+
 export default function DashboardPage() {
   const [data, setData] = useState<ProgressResponse | null>(null);
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [continueLearning, setContinueLearning] = useState<ContinueLearning>(null);
+  const [continueLoaded, setContinueLoaded] = useState(false);
 
   useEffect(() => { fetch("/api/progress/me").then((r) => r.json()).then(setData); }, []);
+  useEffect(() => { fetch("/api/challenges/today").then((r) => r.json()).then(setChallenge); }, []);
+
+  // Picks a real "continue where you left off" topic across every subject in
+  // the learner's grade — no subject/topic is hardcoded, so this works
+  // however many subjects the admin CMS has added.
+  useEffect(() => {
+    fetch("/api/profile").then((r) => r.json()).then(async (p) => {
+      if (!p.gradeName) { setContinueLoaded(true); return; }
+      const subjRes = await fetch(`/api/curriculum/subjects?grade=${encodeURIComponent(p.gradeName)}`).then((r) => r.json());
+      const subjects: { id: string; name: string }[] = subjRes.subjects ?? [];
+      const perSubject = await Promise.all(subjects.map(async (s) => {
+        const roadmap = await fetch(`/api/curriculum/roadmap?subjectId=${s.id}`).then((r) => r.json());
+        return (roadmap.roadmap ?? []).map((t: { name: string; lessonId: string | null; masteryPct: number }) => ({ ...t, subjectName: s.name }));
+      }));
+      const topics = perSubject.flat().filter((t) => t.lessonId);
+      const inProgress = topics.filter((t) => t.masteryPct > 0 && t.masteryPct < 70).sort((a, b) => a.masteryPct - b.masteryPct);
+      const notStarted = topics.filter((t) => t.masteryPct === 0);
+      const pick = inProgress[0] ?? notStarted[0] ?? null;
+      setContinueLearning(pick ? { subjectName: pick.subjectName, topicName: pick.name, lessonId: pick.lessonId, masteryPct: pick.masteryPct } : null);
+      setContinueLoaded(true);
+    });
+  }, []);
 
   const weakTopics = data ? Object.entries(data.topicMastery).filter(([, v]) => v > 0 && v < 60) : [];
   const overallProgress = data && Object.values(data.subjectMastery).length
@@ -50,16 +78,43 @@ export default function DashboardPage() {
                 <h3 className="disp font-bold">Continue Learning</h3>
                 <Link href="/learn" className="text-xs font-semibold text-[--gold-deep]">See all</Link>
               </div>
-              <div className="flex items-center justify-between bg-[--stone-2] rounded-xl p-4">
-                <div>
-                  <div className="text-xs text-[--ink-soft] mb-0.5">Mathematics</div>
-                  <div className="font-semibold">Fractions</div>
-                  <div className="w-40 mt-2"><FoundationBar pct={data.topicMastery["Fractions"] || 0} /></div>
-                  <div className="text-xs text-[--ink-soft] mt-1">{data.topicMastery["Fractions"] || 0}% mastery</div>
+              {!continueLoaded ? (
+                <p className="text-sm text-[--ink-soft]">Loading…</p>
+              ) : continueLearning ? (
+                <div className="flex items-center justify-between bg-[--stone-2] rounded-xl p-4">
+                  <div>
+                    <div className="text-xs text-[--ink-soft] mb-0.5">{continueLearning.subjectName}</div>
+                    <div className="font-semibold">{continueLearning.topicName}</div>
+                    <div className="w-40 mt-2"><FoundationBar pct={continueLearning.masteryPct} /></div>
+                    <div className="text-xs text-[--ink-soft] mt-1">{continueLearning.masteryPct}% mastery</div>
+                  </div>
+                  <Link href={`/learn/lesson/${continueLearning.lessonId}`} className="tap px-4 py-2 rounded-full text-sm font-semibold text-white" style={{ background: "var(--gold-deep)" }}>Continue</Link>
                 </div>
-                <Link href="/learn" className="tap px-4 py-2 rounded-full text-sm font-semibold text-white" style={{ background: "var(--gold-deep)" }}>Continue</Link>
-              </div>
+              ) : (
+                <p className="text-sm text-[--ink-soft]">You&apos;re all caught up — no lessons waiting right now.</p>
+              )}
             </div>
+
+            {challenge && (
+              <div className="brick rounded-2xl p-5 border" style={{ borderColor: "var(--gold-deep)", background: "var(--amber-soft)" }}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="disp font-bold flex items-center gap-2"><Zap size={16} className="text-[--gold-deep]" /> Today&apos;s Challenge</h3>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white text-[--gold-deep]">+100 XP</span>
+                </div>
+                {challenge.completed ? (
+                  <p className="text-sm font-medium flex items-center gap-2 text-[--green]"><CheckCircle2 size={16} /> Challenge complete — nice work! Come back tomorrow for a new one.</p>
+                ) : (
+                  <>
+                    <p className="text-sm text-[--ink-soft] mb-2">Can you answer {challenge.targetCount} practice questions in a row without a mistake?</p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1"><FoundationBar pct={(challenge.correctStreak / challenge.targetCount) * 100} tone="gold" /></div>
+                      <span className="text-xs font-semibold whitespace-nowrap">{challenge.correctStreak}/{challenge.targetCount}</span>
+                    </div>
+                    <Link href="/practice" className="tap inline-block mt-3 px-4 py-2 rounded-full text-sm font-semibold text-white" style={{ background: "var(--gold-deep)" }}>Take the Challenge</Link>
+                  </>
+                )}
+              </div>
+            )}
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>

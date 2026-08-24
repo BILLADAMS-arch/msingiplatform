@@ -8,7 +8,7 @@ import { db } from "./index";
 import {
   grades, subjects, strands, subStrands, topics, lessons, lessonSections,
   quickChecks, questions, questionOptions, tests, testQuestions,
-  achievements, playgroundActivities,
+  achievements, playgroundActivities, flashcards, resources,
 } from "./schema";
 
 const GRADE_GROUPS: Record<string, string[]> = {
@@ -79,6 +79,33 @@ const ACHIEVEMENTS_CATALOG = [
   { code: "mathmaster", icon: "🧠", label: "Mathematics Master" },
   { code: "bigimprove", icon: "🚀", label: "Big Improvement" },
   { code: "first100", icon: "💯", label: "First 100%" },
+  { code: "topicmaster", icon: "🏆", label: "Topic Master" },
+];
+
+const FLASHCARDS_FRACTIONS = [
+  { front: "Numerator", back: "The top number of a fraction — it shows how many parts you have." },
+  { front: "Denominator", back: "The bottom number of a fraction — it shows how many equal parts the whole is divided into." },
+  { front: "Common denominator", back: "A shared multiple of two or more denominators, used so fractions can be added or subtracted." },
+  { front: "Equivalent fractions", back: "Fractions that represent the same value even though they use different numbers, e.g. 1/2 = 2/4 = 3/6." },
+  { front: "Simplifying a fraction", back: "Dividing the numerator and denominator by their greatest common factor to write the fraction in its lowest terms." },
+  { front: "Mixed number", back: "A whole number combined with a fraction, e.g. 1 3/4." },
+  { front: "Improper fraction", back: "A fraction where the numerator is greater than or equal to the denominator, e.g. 7/4." },
+  { front: "Reciprocal", back: "A fraction flipped upside down — the reciprocal of 2/3 is 3/2. Multiplying a number by its reciprocal gives 1." },
+];
+
+const LIBRARY_RESOURCES_FRACTIONS: { title: string; type: "summary" | "notes" | "worksheet"; difficulty: "easy" | "medium" | "hard"; bodyText: string }[] = [
+  {
+    title: "Fractions Cheat Sheet", type: "summary", difficulty: "easy",
+    bodyText: "FRACTIONS — QUICK REFERENCE\n\n1. Adding/subtracting: denominators must match first. Convert using a common denominator, then add or subtract the numerators only.\n2. Multiplying: multiply numerators together and denominators together, then simplify.\n3. Dividing: multiply by the reciprocal of the second fraction.\n4. Simplifying: divide numerator and denominator by their greatest common factor.\n5. Equivalent fractions: multiply (or divide) the numerator and denominator by the same number.",
+  },
+  {
+    title: "Worked Examples: Adding & Subtracting Fractions", type: "notes", difficulty: "medium",
+    bodyText: "EXAMPLE 1\n1/3 + 1/6\nCommon denominator is 6.\n1/3 = 2/6\n2/6 + 1/6 = 3/6 = 1/2\n\nEXAMPLE 2\n3/4 − 1/3\nCommon denominator is 12.\n3/4 = 9/12, 1/3 = 4/12\n9/12 − 4/12 = 5/12\n\nEXAMPLE 3\n2/5 + 3/10\nCommon denominator is 10.\n2/5 = 4/10\n4/10 + 3/10 = 7/10",
+  },
+  {
+    title: "Fractions Revision Worksheet", type: "worksheet", difficulty: "medium",
+    bodyText: "Try these on your own, then check with the Practice section:\n\n1. 1/4 + 1/8 = ?\n2. 5/6 − 1/2 = ?\n3. Simplify 12/18.\n4. Write two fractions equivalent to 3/5.\n5. 2/3 of 18 is?\n\nWhen you're ready, head to Practice → Fractions to try similar questions with instant feedback.",
+  },
 ];
 
 const PLAYGROUND_TEASERS = [
@@ -178,6 +205,21 @@ async function main() {
   // 8. Playground teasers (Phase 6 — activities disabled until built)
   await db.insert(playgroundActivities).values(PLAYGROUND_TEASERS.map((p) => ({ ...p, enabled: false })));
   console.log(`  ${PLAYGROUND_TEASERS.length} playground activity placeholders`);
+
+  // 9. Flashcards (Fractions vocabulary deck)
+  await db.insert(flashcards).values(
+    FLASHCARDS_FRACTIONS.map((c, i) => ({ topicId: topicIdByName["Fractions"], front: c.front, back: c.back, order: i })),
+  );
+  console.log(`  ${FLASHCARDS_FRACTIONS.length} flashcards (Fractions)`);
+
+  // 10. Library resources (Fractions)
+  await db.insert(resources).values(
+    LIBRARY_RESOURCES_FRACTIONS.map((r) => ({
+      title: r.title, type: r.type, difficulty: r.difficulty, bodyText: r.bodyText,
+      gradeId: gradeIdByName["Grade 7"], subjectId: g7MathId, topicId: topicIdByName["Fractions"],
+    })),
+  );
+  console.log(`  ${LIBRARY_RESOURCES_FRACTIONS.length} library resources (Fractions)`);
 
   console.log("Seed complete.");
   process.exit(0);

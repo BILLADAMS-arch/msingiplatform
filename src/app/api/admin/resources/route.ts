@@ -1,9 +1,27 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db";
-import { resources } from "@/db/schema";
+import { resources, subjects } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
 import { uploadResourceFile } from "@/lib/supabase/storage";
+
+// GET /api/admin/resources — every resource, including unpublished drafts
+// (the student-facing GET /api/resources filters those out).
+export async function GET() {
+  const guard = await requireRole(["ADMIN"]);
+  if ("error" in guard) return guard.error;
+
+  const rows = await db.select({ resource: resources, subjectName: subjects.name })
+    .from(resources).innerJoin(subjects, eq(subjects.id, resources.subjectId)).orderBy(desc(resources.id));
+
+  return NextResponse.json({
+    resources: rows.map((r) => ({
+      id: r.resource.id, title: r.resource.title, type: r.resource.type, published: r.resource.published,
+      fileUrl: r.resource.fileUrl, subjectName: r.subjectName,
+    })),
+  });
+}
 
 const metaSchema = z.object({
   title: z.string().min(1).max(160),

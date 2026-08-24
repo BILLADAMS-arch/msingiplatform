@@ -7,6 +7,7 @@ import { Clock, AlertCircle, ChevronLeft, ChevronRight, Dumbbell } from "lucide-
 
 type TQuestion = { id: string; prompt: string; topicId: string; options: { id: string; label: string }[] };
 type StartResp = { attemptId: string; test: { id: string; title: string; timeLimitSeconds: number | null; passingThreshold: number }; questions: TQuestion[] };
+type TestMeta = { title: string; type: string; passingThreshold: number; timeLimitSeconds: number | null; questionCount: number; topics: string[] };
 type SubmitResult = {
   score: number; correct: number; total: number; timeTaken: string;
   byTopic: Record<string, { correct: number; total: number }>;
@@ -19,12 +20,15 @@ export default function TestPage() {
   const { testId } = useParams<{ testId: string }>();
   const router = useRouter();
   const [stage, setStage] = useState<Stage>("intro");
+  const [meta, setMeta] = useState<TestMeta | null>(null);
   const [session, setSession] = useState<StartResp | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [idx, setIdx] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [remediationStep, setRemediationStep] = useState(0);
+
+  useEffect(() => { fetch(`/api/tests/${testId}`).then((r) => r.json()).then(setMeta); }, [testId]);
 
   useEffect(() => {
     if (stage !== "taking") return;
@@ -55,9 +59,17 @@ export default function TestPage() {
     return (
       <Shell>
         <div className="fade-in max-w-md mx-auto text-center space-y-5 py-10">
-          <div className="disp text-2xl font-bold">Ready for a test?</div>
-          <p className="text-sm text-[--ink-soft]">A Standard Test covers Fractions, Ratios and Percentages — 10 questions, timed. Your answers are graded on submit; nothing is revealed until then.</p>
-          <button onClick={begin} className="tap px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--ink)" }}>Start Test</button>
+          <div className="disp text-2xl font-bold">{meta?.title ?? "Ready for a test?"}</div>
+          {!meta ? (
+            <p className="text-sm text-[--ink-soft]">Loading…</p>
+          ) : (
+            <p className="text-sm text-[--ink-soft]">
+              Covers {meta.topics.join(", ")} — {meta.questionCount} question{meta.questionCount === 1 ? "" : "s"}
+              {meta.timeLimitSeconds ? `, ${Math.round(meta.timeLimitSeconds / 60)} min` : ", untimed"}.
+              Your answers are graded on submit; nothing is revealed until then.
+            </p>
+          )}
+          <button disabled={!meta} onClick={begin} className="tap px-6 py-3 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>Start Test</button>
         </div>
       </Shell>
     );
@@ -154,7 +166,7 @@ export default function TestPage() {
 
   if (stage === "remediation" && result) {
     const weakTopics = Object.entries(result.byTopic).filter(([, v]) => v.correct / v.total < 0.6).sort((a, b) => a[1].correct / a[1].total - b[1].correct / b[1].total).map(([t]) => t);
-    const topic = weakTopics[0] || "Fractions";
+    const topic = weakTopics[0] || Object.keys(result.byTopic)[0];
     return (
       <Shell>
         <div className="fade-in max-w-xl mx-auto text-center space-y-5 py-10">

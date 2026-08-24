@@ -16,6 +16,7 @@ export const testTypeEnum = pgEnum("test_type", ["quick", "standard", "revision"
 export const resourceTypeEnum = pgEnum("resource_type", [
   "notes", "worksheet", "past_paper", "marking_scheme", "video", "summary", "flashcard_set",
 ]);
+export const flashcardStatusEnum = pgEnum("flashcard_status", ["new", "easy", "difficult", "review_later"]);
 
 /* ---------------------------------------------------------------------- */
 /* Identity                                                                */
@@ -40,6 +41,8 @@ export const profiles = pgTable("profiles", {
   xp: integer("xp").notNull().default(0),
   streak: integer("streak").notNull().default(1),
   lastActiveAt: timestamp("last_active_at"),
+  questionsAnswered: integer("questions_answered").notNull().default(0),
+  questionsCorrect: integer("questions_correct").notNull().default(0),
   leaderboardOptOut: boolean("leaderboard_opt_out").notNull().default(false),
   onboarded: boolean("onboarded").notNull().default(false),
 });
@@ -233,6 +236,7 @@ export const resources = pgTable("resources", {
   difficulty: difficultyEnum("difficulty"),
   fileUrl: text("file_url"),
   bodyText: text("body_text"),
+  published: boolean("published").notNull().default(true),
 });
 
 export const bookmarks = pgTable("bookmarks", {
@@ -250,6 +254,38 @@ export const playgroundActivities = pgTable("playground_activities", {
   config: jsonb("config"),
   enabled: boolean("enabled").notNull().default(true),
 });
+
+/* ---------------------------------------------------------------------- */
+/* Flashcards                                                                */
+/* ---------------------------------------------------------------------- */
+export const flashcards = pgTable("flashcards", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  topicId: uuid("topic_id").notNull().references(() => topics.id, { onDelete: "cascade" }),
+  front: text("front").notNull(),
+  back: text("back").notNull(),
+  order: integer("order").notNull().default(0),
+});
+
+export const flashcardProgress = pgTable("flashcard_progress", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  flashcardId: uuid("flashcard_id").notNull().references(() => flashcards.id, { onDelete: "cascade" }),
+  status: flashcardStatusEnum("status").notNull().default("new"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => [unique().on(t.userId, t.flashcardId)]);
+
+/* ---------------------------------------------------------------------- */
+/* Daily challenges                                                         */
+/* ---------------------------------------------------------------------- */
+export const dailyChallengeProgress = pgTable("daily_challenge_progress", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  date: varchar("date", { length: 10 }).notNull(), // UTC "YYYY-MM-DD"
+  targetCount: integer("target_count").notNull().default(10),
+  correctStreak: integer("correct_streak").notNull().default(0),
+  completed: boolean("completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
+}, (t) => [unique().on(t.userId, t.date)]);
 
 /* ---------------------------------------------------------------------- */
 /* Classes (teacher), notifications, AI                                     */

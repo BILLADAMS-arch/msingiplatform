@@ -15,6 +15,20 @@
       "when": 1787562318854,
       "tag": "0001_zippy_molecule_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787566333354,
+      "tag": "0002_lean_tattoo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787571644281,
+      "tag": "0003_brief_nicolaos",
+      "breakpoints": true
     }
   ]
 }

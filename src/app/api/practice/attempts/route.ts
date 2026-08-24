@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db";
-import { questions, questionOptions, mistakes, profiles, topicProgress } from "@/db/schema";
+import { questions, questionOptions, mistakes, topicProgress, dailyChallengeProgress } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
+import { awardXp, touchStreak, unlockAchievement, recordQuestionAnswered } from "@/lib/gamification";
 
 const bodySchema = z.object({ questionId: z.string().uuid(), chosenOptionId: z.string().uuid() });
 
@@ -38,9 +39,16 @@ export async function POST(req: Request) {
   } else {
     await db.insert(topicProgress).values({ userId, topicId: question.topicId, masteryPct: clamp(nextMastery, 0, 100), attemptsCount: 1 });
   }
+  if (nextMastery >= 90) await unlockAchievement(userId, "topicmaster");
 
-  const [profile] = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1);
-  if (profile) await db.update(profiles).set({ xp: profile.xp + (isCorrect ? 10 : 2), lastActiveAt: new Date() }).where(eq(profiles.userId, userId));
+  await awardXp(userId, isCorrect ? 10 : 2);
+  const streak = await touchStreak(userId);
+  if (streak >= 7) await unlockAchievement(userId, "streak7");
+
+  const { answered } = await recordQuestionAnswered(userId, isCorrect);
+  if (answered >= 100) await unlockAchievement(userId, "q100");
+
+  await advanceDailyChallenge(userId, isCorrect);
 
   return NextResponse.json({
     isCorrect,
@@ -50,3 +58,25 @@ export async function POST(req: Request) {
 }
 
 function clamp(n: number, min: number, max: number) { return Math.max(min, Math.min(max, n)); }
+
+/** Advances (or resets) today's "answer N in a row" daily challenge. Awards +100 XP once, on completion. */
+async function advanceDailyChallenge(userId: string, isCorrect: boolean) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [existing] = await db.select().from(dailyChallengeProgress)
+    .where(and(eq(dailyChallengeProgress.userId, userId), eq(dailyChallengeProgress.date, today))).limit(1);
+
+  if (!existing) {
+    await db.insert(dailyChallengeProgress).values({ userId, date: today, correctStreak: isCorrect ? 1 : 0 });
+    return;
+  }
+  if (existing.completed) return;
+
+  const nextCorrectStreak = isCorrect ? existing.correctStreak + 1 : 0;
+  const justCompleted = nextCorrectStreak >= existing.targetCount;
+  await db.update(dailyChallengeProgress).set({
+    correctStreak: nextCorrectStreak,
+    completed: justCompleted,
+    completedAt: justCompleted ? new Date() : null,
+  }).where(eq(dailyChallengeProgress.id, existing.id));
+  if (justCompleted) await awardXp(userId, 100);
+}

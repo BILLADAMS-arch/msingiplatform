@@ -32,15 +32,69 @@ real rows in Postgres, graded server-side.
 - **Mistake Book, Progress dashboard, achievements** — all reading real Postgres data,
   no localStorage.
 
+## What's implemented (Phase 2 — Engagement)
+
+- **Streaks** are real: `touchStreak()` (`src/lib/gamification.ts`) compares calendar
+  days between activity and increments/resets accordingly, called from every activity
+  endpoint (lesson complete, practice, test submit).
+- **Achievements**: all 7 catalog entries have real unlock logic (7-day streak, 100
+  questions answered, perfect score, Mathematics mastery ≥80%, any topic mastery ≥90%,
+  big score improvement, first 100%) — `unlockAchievement()` in the same file.
+- **Daily Challenges**: "answer N practice questions in a row without a mistake,"
+  resets automatically by UTC date, +100 XP on completion — `daily_challenge_progress`
+  table, `GET /api/challenges/today`, a dashboard card.
+- **Flashcards**: real spaced-review UI (`/flashcards?topic=`) — flip, Easy/Difficult/
+  Review Later, Shuffle — backed by `flashcards`/`flashcard_progress` tables.
+- **Library**: `/library` page with grade/subject/topic/type/difficulty filters and
+  bookmarks (the previously-unused `bookmarks` table), on top of Supabase Storage.
+
+## What's implemented (Admin CMS)
+
+A real content-management console at `/admin` (ADMIN role only) — Users (role changes,
+kept in sync between `public.users` and the Supabase Auth user's `app_metadata`),
+Curriculum (Subjects/Strands/Sub-strands/Topics, tree-browser CRUD), Lessons (sections +
+quick check editor, publish/draft), Questions (editor + a JSON bulk-import), Tests
+(metadata + a question-picker with reordering, publish/draft), Resources (list/publish/
+delete on top of the existing upload endpoint), Playground activities (catalog CRUD),
+and a light Analytics view (user/content counts, most-difficult-topics, most-popular-
+subjects). Curriculum content no longer requires touching application code or the seed
+script — verified by authoring a full lesson → questions → test for the previously-empty
+"Algebra" topic through the CMS API and confirming a student session could see, complete,
+and score it through the ordinary student UI.
+
+Grades are intentionally read-only (fixed CBC structure); question types are scoped to
+`multiple_choice`/`true_false` (the only types the student UI can render — see
+"Not yet built"); there's no content versioning, CSV import, or admin Settings page.
+
+## What's implemented (real content, Msingi AI)
+
+- **De-hardcoded student UI**: `/learn` and `/tests` no longer assume "Mathematics" —
+  `/learn` has a real subject picker (any subject the CMS has content for), `/tests`
+  lists tests across every subject in the learner's grade, the lesson → practice handoff
+  uses the lesson's actual topic, and the test intro screen shows each test's real
+  title/topics/question count/timing instead of fixed copy. The dashboard's "Continue
+  Learning" card picks a real in-progress-or-next topic across all of a learner's
+  subjects (weakest topic in progress, falling back to the first not-yet-started one).
+- **Msingi AI** (spec §34) — a tutor chat at `/ai`, streamed, backed by the Groq API
+  (`groq-sdk`, model `openai/gpt-oss-120b`) rather than Anthropic — a deliberate choice
+  made when building this feature, not the original spec's default. System prompt
+  (`src/lib/ai/tutor.ts`) instructs it to explain/hint/give examples rather than hand
+  over answers outright. Conversations persist in the previously-unused
+  `aiConversations`/`aiMessages` tables. The one grounded entry point: an "Ask Msingi AI"
+  button on each Mistake Book card feeds the tutor the *actual* question/chosen/correct/
+  explanation for that mistake, so "why is my answer wrong" is answered from real data,
+  not guessed. Needs `GROQ_API_KEY` in `.env` (console.groq.com) — verified live:
+  streamed responses, mistake-grounded answers, and persisted history across reloads.
+
 ## Not yet built
 
-Teacher/Parent/Admin dashboards, resource library search/UI, interactive Playground
-activities, and Msingi AI are scaffolded in the schema (see `src/db/schema.ts` —
-`classes`, `playgroundActivities`, `aiConversations` etc. already exist as tables) but
-don't have UI or full API routes yet. Resources are a partial exception: uploads go to
-Supabase Storage via `POST /api/admin/resources` (teacher/admin) and
-`GET /api/resources` lists them (any signed-in user) — there's no library page/search UI
-yet. See "Suggested next steps" below for the recommended build order.
+Teacher/Parent dashboards and interactive Playground activities are scaffolded in the
+schema (see `src/db/schema.ts` — `classes`, `playgroundActivities` already exist as
+tables) but don't have UI or full API routes yet. Also missing: a Profile page, password
+reset, global search, a notifications UI, leaderboards, progress charts, adaptive
+practice/testing, and student-facing question types beyond multiple-choice/true-false
+(the schema's `question_type` enum has 7 values; only 2 have rendering support in
+Practice/Tests). See "Suggested next steps" below.
 
 ## One deviation from the original architecture plan
 
@@ -86,7 +140,7 @@ NEXT_PUBLIC_SUPABASE_URL="https://[project-ref].supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY=""
 SUPABASE_SERVICE_ROLE_KEY=""   # server-only — never expose to the client
 SUPABASE_STORAGE_BUCKET="learning-resources"
-ANTHROPIC_API_KEY=""   # only needed once Msingi AI (a later phase) is built
+GROQ_API_KEY=""   # powers Msingi AI — get one at console.groq.com
 ```
 
 Append `?sslmode=no-verify` to both connection strings, not `sslmode=require`. Newer
@@ -131,12 +185,13 @@ npm run build && npm run start
 ```
 src/
   db/
-    schema.ts        # Drizzle schema — single source of truth for all 30 tables
+    schema.ts        # Drizzle schema — single source of truth for all 33 tables
     index.ts          # DB client (pg Pool, pooled Supabase connection)
     seed.ts            # Seeds grades/subjects/curriculum/questions/achievements
   proxy.ts             # Role-based route protection (Next 16's renamed middleware.ts)
   lib/
     api-guard.ts       # requireRole() helper for API routes
+    gamification.ts     # touchStreak/awardXp/unlockAchievement/recordQuestionAnswered
     supabase/
       client.ts         # Browser client (login/register/sign-out)
       server.ts          # Server client bound to cookies (Route Handlers, RSC)
@@ -144,20 +199,30 @@ src/
       middleware.ts        # updateSession() used by proxy.ts
       storage.ts            # Resource file upload/public URL/delete helpers
   app/
-    api/               # All backend routes: auth, curriculum, lessons, practice, tests,
-                          progress, mistakes, profile, resources, admin/resources
-    (pages)            # register, login, dashboard, learn, practice, tests, progress,
-                          mistakes, playground
+    api/               # Student-facing routes: auth, curriculum, lessons, practice,
+                          tests, progress, mistakes, profile, resources, challenges,
+                          flashcards
+    api/admin/         # Admin CMS routes: users, subjects/strands/sub-strands/topics,
+                          lessons, questions(+import), tests, resources, playground, stats
+    (student pages)    # register, login, dashboard, learn, practice, tests, progress,
+                          mistakes, playground, flashcards, library
+    admin/             # Admin console pages (ADMIN role only), mirrors api/admin/
   components/
     ui.tsx             # Pill, FoundationBar, StatCard, TopicChip
-    shell.tsx           # Authenticated app shell + nav
+    shell.tsx           # Authenticated student app shell + nav
+    admin-shell.tsx      # Admin console shell + nav
+    admin/               # Shared admin form components (e.g. question-form.tsx)
 ```
 
 ## Suggested next steps
 
-- **Teacher**: classes, assignments, resource upload, class analytics
+- **Content breadth**: the student UI no longer hardcodes "Mathematics," but the *data*
+  still mostly does — only Grade 7 Mathematics has real strands/topics/lessons/questions.
+  Use the Admin CMS to add a second subject or grade so more of the platform (Library,
+  Flashcards, Playground catalog) has content to point at beyond Fractions/Algebra.
+- **Msingi Playground**: the interactive Math/Science/Computer/Language activities
+  themselves — the admin catalog for them already exists.
+- **Teacher**: classes, assignments, class analytics (resource upload already exists)
 - **Parent**: read-only child summaries — privacy-scoped, no raw answer-level data
-- **Admin CMS**: full curriculum/question/test CRUD + publishing workflow
-- **Msingi AI tutor**: server-side only, via the Anthropic API, plus adaptive
-  practice/testing logic
-- **Notifications, opt-in leaderboards, search indexing**
+- **Adaptive practice/testing logic**, Profile page, password reset, search,
+  notifications UI, leaderboards, progress charts

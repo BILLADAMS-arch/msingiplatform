@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { lessons, profiles, topicProgress } from "@/db/schema";
+import { lessons, topicProgress } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
+import { awardXp, touchStreak, unlockAchievement } from "@/lib/gamification";
 
 // POST — records that the signed-in student finished a lesson: awards XP and
 // nudges topic mastery up slightly (real practice/tests move mastery further).
@@ -25,12 +26,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ lesson
     await db.insert(topicProgress).values({ userId, topicId: lesson.topicId, masteryPct: 15, attemptsCount: 0 });
   }
 
-  await db.update(profiles).set({ xp: (await currentXp(userId)) + 30, lastActiveAt: new Date() }).where(eq(profiles.userId, userId));
+  await awardXp(userId, 30);
+  const streak = await touchStreak(userId);
+  if (streak >= 7) await unlockAchievement(userId, "streak7");
 
   return NextResponse.json({ ok: true, xpAwarded: 30 });
-}
-
-async function currentXp(userId: string) {
-  const [p] = await db.select({ xp: profiles.xp }).from(profiles).where(eq(profiles.userId, userId)).limit(1);
-  return p?.xp ?? 0;
 }

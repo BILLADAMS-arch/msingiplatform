@@ -10,7 +10,28 @@ type PracticeQuestion = { attemptKey: string; id: string; prompt: string; diffic
 function PracticeInner() {
   const params = useSearchParams();
   const router = useRouter();
-  const topic = params.get("topic") || "Fractions";
+  const requestedTopic = params.get("topic");
+  const [defaultTopic, setDefaultTopic] = useState<string | null>(null);
+  const topic = requestedTopic ?? defaultTopic;
+
+  // No ?topic= given (e.g. landed here from the nav bar directly) — pick a
+  // real one: the learner's weakest topic in progress, or their first
+  // available topic, rather than defaulting to any specific subject.
+  useEffect(() => {
+    if (requestedTopic) return;
+    fetch("/api/progress/me").then((r) => r.json()).then(async (p) => {
+      const weakest = Object.entries(p.topicMastery as Record<string, number>).filter(([, v]) => v > 0 && v < 70).sort((a, b) => a[1] - b[1])[0];
+      if (weakest) { setDefaultTopic(weakest[0]); return; }
+      const profile = await fetch("/api/profile").then((r) => r.json());
+      if (!profile.gradeName) return;
+      const subjRes = await fetch(`/api/curriculum/subjects?grade=${encodeURIComponent(profile.gradeName)}`).then((r) => r.json());
+      const firstSubject = subjRes.subjects?.[0];
+      if (!firstSubject) return;
+      const roadmap = await fetch(`/api/curriculum/roadmap?subjectId=${firstSubject.id}`).then((r) => r.json());
+      const firstTopic = roadmap.roadmap?.find((t: { lessonId: string | null }) => t.lessonId);
+      if (firstTopic) setDefaultTopic(firstTopic.name);
+    });
+  }, [requestedTopic]);
 
   const [started, setStarted] = useState(false);
   const [count, setCount] = useState(10);
@@ -22,6 +43,7 @@ function PracticeInner() {
   const [correctCount, setCorrectCount] = useState(0);
 
   async function start() {
+    if (!topic) return;
     setStarted(true);
     const res = await fetch(`/api/practice?topic=${encodeURIComponent(topic)}&count=${count}`).then((r) => r.json());
     setQuestions(res.questions);
@@ -46,14 +68,23 @@ function PracticeInner() {
       <Shell>
         <div className="fade-in max-w-md mx-auto text-center space-y-6 py-10">
           <Dumbbell size={36} className="mx-auto text-[--gold-deep]" />
-          <h1 className="disp text-2xl font-bold">Practise {topic}</h1>
-          <p className="text-sm text-[--ink-soft]">Choose how many questions you'd like to try.</p>
-          <div className="flex justify-center gap-2 flex-wrap">
-            {[5, 10, 20].map((c) => (
-              <button key={c} onClick={() => setCount(c)} className={`tap px-4 py-2 rounded-full border text-sm font-semibold ${count === c ? "text-white" : ""}`} style={{ borderColor: count === c ? "var(--gold-deep)" : "var(--slate)", background: count === c ? "var(--gold-deep)" : "white" }}>{c} questions</button>
-            ))}
-          </div>
-          <button onClick={start} className="tap px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--ink)" }}>Start Practice</button>
+          {!topic ? (
+            <>
+              <h1 className="disp text-2xl font-bold">Practice</h1>
+              <p className="text-sm text-[--ink-soft]">Finding something for you to practise…</p>
+            </>
+          ) : (
+            <>
+              <h1 className="disp text-2xl font-bold">Practise {topic}</h1>
+              <p className="text-sm text-[--ink-soft]">Choose how many questions you'd like to try.</p>
+              <div className="flex justify-center gap-2 flex-wrap">
+                {[5, 10, 20].map((c) => (
+                  <button key={c} onClick={() => setCount(c)} className={`tap px-4 py-2 rounded-full border text-sm font-semibold ${count === c ? "text-white" : ""}`} style={{ borderColor: count === c ? "var(--gold-deep)" : "var(--slate)", background: count === c ? "var(--gold-deep)" : "white" }}>{c} questions</button>
+                ))}
+              </div>
+              <button onClick={start} className="tap px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--ink)" }}>Start Practice</button>
+            </>
+          )}
         </div>
       </Shell>
     );

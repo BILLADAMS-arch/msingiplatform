@@ -3,11 +3,11 @@ import { z } from "zod";
 import { db } from "@/db";
 import {
   testAttempts, testQuestions, questions, questionOptions, testAnswers,
-  topics, tests, topicProgress, subjectProgress,
-  mistakes, profiles, achievements, userAchievements,
+  topics, tests, subjects, topicProgress, subjectProgress, mistakes,
 } from "@/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
+import { awardXp, touchStreak, unlockAchievement, recordQuestionAnswered } from "@/lib/gamification";
 
 const bodySchema = z.object({
   answers: z.array(z.object({ questionId: z.string().uuid(), chosenOptionId: z.string().uuid().nullable() })),
@@ -72,12 +72,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
   }
 
   // Update topic mastery from this attempt's per-topic accuracy.
+  let unlockedCount = 0;
   for (const [topicName, v] of Object.entries(byTopic)) {
     const topicId = topicRows.find((t) => t.name === topicName)!.id;
     const pct = Math.round((v.correct / v.total) * 100);
     const [existing] = await db.select().from(topicProgress).where(and(eq(topicProgress.userId, userId), eq(topicProgress.topicId, topicId))).limit(1);
     if (existing) await db.update(topicProgress).set({ masteryPct: pct, attemptsCount: existing.attemptsCount + v.total, updatedAt: new Date() }).where(eq(topicProgress.id, existing.id));
     else await db.insert(topicProgress).values({ userId, topicId, masteryPct: pct, attemptsCount: v.total });
+    if (pct >= 90 && await unlockAchievement(userId, "topicmaster")) unlockedCount++;
   }
 
   // Update subject mastery (average with previous, same rule as the prototype).
@@ -88,34 +90,37 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
     const nextMastery = existingSubj ? Math.round((existingSubj.masteryPct + score) / 2) : score;
     if (existingSubj) await db.update(subjectProgress).set({ masteryPct: nextMastery, updatedAt: new Date() }).where(eq(subjectProgress.id, existingSubj.id));
     else await db.insert(subjectProgress).values({ userId, subjectId, masteryPct: nextMastery });
+
+    const [subjectRow] = await db.select().from(subjects).where(eq(subjects.id, subjectId)).limit(1);
+    if (subjectRow?.name === "Mathematics" && nextMastery >= 80 && await unlockAchievement(userId, "mathmaster")) unlockedCount++;
   }
 
-  // XP + achievements.
-  const [profile] = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1);
+  // XP, streak and running question counters.
   const gainedXp = correctCount * 10 + (score >= 80 ? 50 : 0);
-  if (profile) await db.update(profiles).set({ xp: profile.xp + gainedXp, lastActiveAt: new Date() }).where(eq(profiles.userId, userId));
+  await awardXp(userId, gainedXp);
+  const streak = await touchStreak(userId);
+  if (streak >= 7 && await unlockAchievement(userId, "streak7")) unlockedCount++;
+
+  let questionsAnswered = 0;
+  for (const q of qRows) {
+    const isCorrect = !missed.some((m) => m.questionId === q.id);
+    ({ answered: questionsAnswered } = await recordQuestionAnswered(userId, isCorrect));
+  }
+  if (questionsAnswered >= 100 && await unlockAchievement(userId, "q100")) unlockedCount++;
 
   const priorAttempts = await db.select().from(testAttempts).where(and(eq(testAttempts.userId, userId), eq(testAttempts.testId, attempt.testId)));
   const priorScores = priorAttempts.filter((a) => a.id !== attemptId && a.score !== null).map((a) => a.score as number);
   const previousScore = priorScores.length ? priorScores[priorScores.length - 1] : null;
   const improvement = previousScore !== null ? score - previousScore : 0;
 
-  const allQuestionsAnswered = await db.select().from(mistakes).where(eq(mistakes.userId, userId));
-  const catalog = await db.select().from(achievements);
-  const unlocked = await db.select().from(userAchievements).where(eq(userAchievements.userId, userId));
-  const unlockedCodes = new Set(unlocked.map((u) => u.achievementId));
-
-  const toUnlock: string[] = [];
-  const findCode = (code: string) => catalog.find((c) => c.code === code);
-  if (score === 100) { const a = findCode("perfect"); if (a && !unlockedCodes.has(a.id)) toUnlock.push(a.id); }
-  if (score === 100) { const a = findCode("first100"); if (a && !unlockedCodes.has(a.id)) toUnlock.push(a.id); }
-  if (improvement >= 25) { const a = findCode("bigimprove"); if (a && !unlockedCodes.has(a.id)) toUnlock.push(a.id); }
-  for (const achievementId of toUnlock) await db.insert(userAchievements).values({ userId, achievementId }).onConflictDoNothing();
+  if (score === 100 && await unlockAchievement(userId, "perfect")) unlockedCount++;
+  if (score === 100 && await unlockAchievement(userId, "first100")) unlockedCount++;
+  if (improvement >= 25 && await unlockAchievement(userId, "bigimprove")) unlockedCount++;
 
   return NextResponse.json({
     score, correct: correctCount, total: qRows.length, timeTaken: formatTime(timeTakenSeconds),
     byTopic, previousScore, improvement: previousScore !== null ? improvement : null,
-    xpAwarded: gainedXp, achievementsUnlocked: toUnlock.length,
+    xpAwarded: gainedXp, achievementsUnlocked: unlockedCount,
   });
 }
 
