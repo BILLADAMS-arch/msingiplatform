@@ -109,12 +109,13 @@ const LIBRARY_RESOURCES_FRACTIONS: { title: string; type: "summary" | "notes" | 
 ];
 
 const PLAYGROUND_TEASERS = [
-  { area: "mathematics", title: "Fraction Explorer", description: "Visually manipulate fractions." },
+  { area: "mathematics", title: "Fraction Explorer", description: "Visually manipulate fractions.", slug: "fraction-explorer" },
+  { area: "mathematics", title: "Algebra Balance", description: "Solve equations by keeping the balance level.", slug: "algebra-balance" },
   { area: "mathematics", title: "Number Line", description: "Drag values along a number line." },
   { area: "mathematics", title: "Geometry Lab", description: "Manipulate shapes." },
-  { area: "science", title: "Solar System Explorer", description: "Explore the planets." },
+  { area: "science", title: "Solar System Explorer", description: "Explore the planets.", slug: "solar-system" },
   { area: "science", title: "States of Matter", description: "Interact with solids, liquids, gases." },
-  { area: "computer", title: "HTML Playground", description: "Basic HTML exercises." },
+  { area: "computer", title: "HTML Playground", description: "Basic HTML exercises.", slug: "html-playground" },
 ];
 
 async function main() {
@@ -202,9 +203,11 @@ async function main() {
   await db.insert(achievements).values(ACHIEVEMENTS_CATALOG);
   console.log(`  ${ACHIEVEMENTS_CATALOG.length} achievements`);
 
-  // 8. Playground teasers (Phase 6 — activities disabled until built)
-  await db.insert(playgroundActivities).values(PLAYGROUND_TEASERS.map((p) => ({ ...p, enabled: false })));
-  console.log(`  ${PLAYGROUND_TEASERS.length} playground activity placeholders`);
+  // 8. Playground catalog — all shown to students; only those with a `slug`
+  // (see src/components/playground/registry.ts) are actually clickable, the
+  // rest render as honest "Coming soon" cards.
+  await db.insert(playgroundActivities).values(PLAYGROUND_TEASERS.map((p) => ({ ...p, enabled: true })));
+  console.log(`  ${PLAYGROUND_TEASERS.length} playground activities`);
 
   // 9. Flashcards (Fractions vocabulary deck)
   await db.insert(flashcards).values(

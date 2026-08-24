@@ -253,7 +253,18 @@ export const playgroundActivities = pgTable("playground_activities", {
   description: text("description").notNull(),
   config: jsonb("config"),
   enabled: boolean("enabled").notNull().default(true),
+  // Maps this catalog row to a real built-in component (developer-set via
+  // seed data only, not exposed in the admin form — see playground registry
+  // in src/app/playground/[slug]/page.tsx). Null = catalog entry only.
+  slug: varchar("slug", { length: 60 }).unique(),
 });
+
+export const playgroundActivityProgress = pgTable("playground_activity_progress", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  activityId: uuid("activity_id").notNull().references(() => playgroundActivities.id, { onDelete: "cascade" }),
+  firstUsedAt: timestamp("first_used_at").defaultNow().notNull(),
+}, (t) => [unique().on(t.userId, t.activityId)]);
 
 /* ---------------------------------------------------------------------- */
 /* Flashcards                                                                */
@@ -301,6 +312,14 @@ export const classMembers = pgTable("class_members", {
   classId: uuid("class_id").notNull().references(() => classes.id, { onDelete: "cascade" }),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
 }, (t) => [unique().on(t.classId, t.userId)]);
+
+export const assignments = pgTable("assignments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  classId: uuid("class_id").notNull().references(() => classes.id, { onDelete: "cascade" }),
+  testId: uuid("test_id").notNull().references(() => tests.id, { onDelete: "cascade" }),
+  dueAt: timestamp("due_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 export const notifications = pgTable("notifications", {
   id: uuid("id").defaultRandom().primaryKey(),

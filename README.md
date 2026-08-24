@@ -86,15 +86,54 @@ Grades are intentionally read-only (fixed CBC structure); question types are sco
   not guessed. Needs `GROQ_API_KEY` in `.env` (console.groq.com) — verified live:
   streamed responses, mistake-grounded answers, and persisted history across reloads.
 
+## What's implemented (Msingi Playground)
+
+4 genuinely interactive activities at `/playground` (spec §24–27), not placeholders —
+**Fraction Explorer** (Math — ties to the seeded Fractions topic), **Algebra Balance**
+(Math — ties to the Algebra topic authored through the Admin CMS), **Solar System
+Explorer** (Science — real astronomy facts), and **HTML Playground** (Computer — live
+code editor + sandboxed `<iframe sandbox="allow-scripts">` preview, deliberately without
+`allow-same-origin` so student-typed code can't reach Msingi's own cookies or APIs).
+`playgroundActivities` gained a `slug` column (developer-set only, via seed data) mapping
+a catalog row to a real component in `src/components/playground/registry.ts` — an
+activity only becomes clickable when both `enabled` and a recognized `slug` are true, so
+the catalog can honestly list not-yet-built ideas (Number Line, Geometry Lab, States of
+Matter, all of Language) as "Coming soon" without ever linking to nothing. Spec §29 lists
+Playground as an XP source — a new `playgroundActivityProgress` table + `awardXp()`
+(`src/lib/gamification.ts`) grants +15 XP once per activity, verified live to fire
+exactly once.
+
+## What's implemented (Teacher & Parent dashboards)
+
+**Teacher** (`/teacher`, TEACHER/ADMIN): create classes, manage rosters by student
+email, assign an existing published test to a class (new `assignments` table — closes a
+gap in the spec's own §40 entity list, never added until now) with per-student
+completion tracking, and a class performance view (average mastery, most-difficult
+topics, students improving vs needing support — all computed from real
+`subjectProgress`/`topicProgress`/`testAttempts` data). Also fixed a real pre-existing
+bug: `POST /api/admin/resources` already declared `requireRole(["TEACHER","ADMIN"])` but
+`src/proxy.ts`'s `/api/admin` rule blocked TEACHER before the route ever ran — a
+higher-priority `/api/admin/resources` proxy rule now makes that reachable, verified
+live (a TEACHER request now reaches the handler instead of being blocked at 403).
+
+**Parent** (`/parent`, PARENT/ADMIN): link a child by email, see a strictly read-only,
+aggregate-only summary (mastery, streak, XP, recent test scores) — deliberately never
+`mistakes`/`testAnswers` (question/answer detail), matching the spec's explicit privacy
+instruction. Ownership is enforced server-side, verified live: an unrelated parent
+account gets a 403 trying to view a child they haven't linked.
+
+Neither area has a consent/approval step (a teacher or parent can link any existing
+STUDENT account by email alone) — a real product needs one; flagged as a follow-up
+rather than built now.
+
 ## Not yet built
 
-Teacher/Parent dashboards and interactive Playground activities are scaffolded in the
-schema (see `src/db/schema.ts` — `classes`, `playgroundActivities` already exist as
-tables) but don't have UI or full API routes yet. Also missing: a Profile page, password
-reset, global search, a notifications UI, leaderboards, progress charts, adaptive
-practice/testing, and student-facing question types beyond multiple-choice/true-false
-(the schema's `question_type` enum has 7 values; only 2 have rendering support in
-Practice/Tests). See "Suggested next steps" below.
+A Profile page, password reset, global search, a notifications UI, leaderboards,
+progress charts, adaptive practice/testing, student-facing question types beyond
+multiple-choice/true-false (the schema's `question_type` enum has 7 values; only 2
+render), Number Line/Geometry Lab/States of Matter/Language Playground, CSV import for
+the Admin CMS, and consent flows for teacher/parent account linking. See "Suggested next
+steps" below.
 
 ## One deviation from the original architecture plan
 
@@ -201,17 +240,22 @@ src/
   app/
     api/               # Student-facing routes: auth, curriculum, lessons, practice,
                           tests, progress, mistakes, profile, resources, challenges,
-                          flashcards
+                          flashcards, playground, ai
     api/admin/         # Admin CMS routes: users, subjects/strands/sub-strands/topics,
                           lessons, questions(+import), tests, resources, playground, stats
+    api/teacher/       # Classes, roster, assignments, class dashboard (TEACHER/ADMIN)
+    api/parent/        # Linked children + read-only progress (PARENT/ADMIN)
     (student pages)    # register, login, dashboard, learn, practice, tests, progress,
-                          mistakes, playground, flashcards, library
+                          mistakes, playground/[slug], flashcards, library, ai
     admin/             # Admin console pages (ADMIN role only), mirrors api/admin/
+    teacher/           # Class list + class detail (roster/performance/assignments)
+    parent/            # Linked-children progress dashboard
   components/
     ui.tsx             # Pill, FoundationBar, StatCard, TopicChip
     shell.tsx           # Authenticated student app shell + nav
     admin-shell.tsx      # Admin console shell + nav
     admin/               # Shared admin form components (e.g. question-form.tsx)
+    playground/          # The 4 real activities + registry.ts (slug -> component)
 ```
 
 ## Suggested next steps
@@ -220,9 +264,10 @@ src/
   still mostly does — only Grade 7 Mathematics has real strands/topics/lessons/questions.
   Use the Admin CMS to add a second subject or grade so more of the platform (Library,
   Flashcards, Playground catalog) has content to point at beyond Fractions/Algebra.
-- **Msingi Playground**: the interactive Math/Science/Computer/Language activities
-  themselves — the admin catalog for them already exists.
-- **Teacher**: classes, assignments, class analytics (resource upload already exists)
-- **Parent**: read-only child summaries — privacy-scoped, no raw answer-level data
+- **Msingi Playground**: 4 activities are real (see above) — Number Line, Geometry Lab,
+  States of Matter, and all of Language Playground are still catalog-only.
+- **Consent flows** for teacher-adds-student and parent-links-child (currently
+  email-only, no approval step — see "What's implemented (Teacher & Parent
+  dashboards)").
 - **Adaptive practice/testing logic**, Profile page, password reset, search,
   notifications UI, leaderboards, progress charts

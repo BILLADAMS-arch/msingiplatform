@@ -8,6 +8,11 @@ const ROLE_PREFIXES: Record<string, Role[]> = {
   "/api/teacher": ["TEACHER", "ADMIN"],
   "/parent": ["PARENT", "ADMIN"],
   "/api/parent": ["PARENT", "ADMIN"],
+  // More specific than "/api/admin" below, and checked first (lookup is
+  // first-match-by-insertion-order) — the resources route itself already
+  // declares requireRole(["TEACHER","ADMIN"]); this is what actually makes
+  // that reachable instead of being blocked by the general admin-only rule.
+  "/api/admin/resources": ["TEACHER", "ADMIN"],
   "/admin": ["ADMIN"],
   "/api/admin": ["ADMIN"],
   "/dashboard": ["STUDENT", "TEACHER", "PARENT", "ADMIN"],
