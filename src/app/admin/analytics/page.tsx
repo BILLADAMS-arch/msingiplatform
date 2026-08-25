@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { AdminShell } from "@/components/admin-shell";
 import { StatCard } from "@/components/ui";
+import { BarChart } from "@/components/charts";
 import { Users, BookOpen, HelpCircle, ClipboardCheck, Library } from "lucide-react";
 
 type Stats = {
@@ -30,14 +31,7 @@ export default function AdminAnalyticsPage() {
         <div className="bg-white rounded-2xl border p-5" style={{ borderColor: "var(--slate)" }}>
           <h3 className="disp font-bold mb-3">Most Difficult Topics</h3>
           {stats.difficultTopics.length === 0 ? <p className="text-sm text-[--ink-soft]">No student progress data yet.</p> : (
-            <div className="space-y-2">
-              {stats.difficultTopics.map((t) => (
-                <div key={t.name} className="flex items-center justify-between text-sm border-b last:border-0 py-1.5" style={{ borderColor: "var(--stone-2)" }}>
-                  <span>{t.name} <span className="text-xs text-[--ink-soft]">({t.students} students)</span></span>
-                  <span className="font-semibold" style={{ color: t.avgMastery < 50 ? "var(--coral)" : "var(--gold-deep)" }}>{t.avgMastery}%</span>
-                </div>
-              ))}
-            </div>
+            <BarChart tone="coral" data={stats.difficultTopics.map((t) => ({ label: t.name, value: t.avgMastery }))} />
           )}
         </div>
 

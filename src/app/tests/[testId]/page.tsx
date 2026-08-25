@@ -5,7 +5,7 @@ import { Shell } from "@/components/shell";
 import { FoundationBar, Pill, TopicChip } from "@/components/ui";
 import { Clock, AlertCircle, ChevronLeft, ChevronRight, Dumbbell } from "lucide-react";
 
-type TQuestion = { id: string; prompt: string; topicId: string; options: { id: string; label: string }[] };
+type TQuestion = { id: string; type: string; prompt: string; topicId: string; options: { id: string; label: string }[] };
 type StartResp = { attemptId: string; test: { id: string; title: string; timeLimitSeconds: number | null; passingThreshold: number }; questions: TQuestion[] };
 type TestMeta = { title: string; type: string; passingThreshold: number; timeLimitSeconds: number | null; questionCount: number; topics: string[] };
 type SubmitResult = {
@@ -45,7 +45,12 @@ export default function TestPage() {
   async function submit() {
     if (!session) return;
     const payload = {
-      answers: session.questions.map((q) => ({ questionId: q.id, chosenOptionId: answers[q.id] ?? null })),
+      answers: session.questions.map((q) => {
+        const value = answers[q.id];
+        if (q.type === "numerical") return { questionId: q.id, answerNumeric: value !== undefined ? Number(value) : null };
+        if (q.type === "short_answer") return { questionId: q.id, answerText: value ?? null };
+        return { questionId: q.id, chosenOptionId: value ?? null };
+      }),
       timeTakenSeconds: seconds,
     };
     const res = await fetch(`/api/tests/attempts/${session.attemptId}`, {
@@ -96,6 +101,16 @@ export default function TestPage() {
           </div>
           <div className="brick bg-white rounded-2xl p-6 border" style={{ borderColor: "var(--slate)" }}>
             <p className="font-medium mb-4 pr-4">{q.prompt}</p>
+            {q.type === "short_answer" || q.type === "numerical" ? (
+              <input
+                type={q.type === "numerical" ? "number" : "text"}
+                value={answers[q.id] ?? ""}
+                onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                placeholder={q.type === "numerical" ? "Enter a number" : "Type your answer"}
+                className="w-full border rounded-xl px-4 py-3 text-sm outline-none"
+                style={{ borderColor: answers[q.id] ? "var(--gold-deep)" : "var(--slate)" }}
+              />
+            ) : (
             <div className="grid sm:grid-cols-2 gap-3">
               {q.options.map((opt, i) => (
                 <button key={opt.id} onClick={() => setAnswers((a) => ({ ...a, [q.id]: opt.id }))}
@@ -105,6 +120,7 @@ export default function TestPage() {
                 </button>
               ))}
             </div>
+            )}
           </div>
           <div className="flex justify-between">
             <button disabled={idx === 0} onClick={() => setIdx((i) => i - 1)} className="tap px-4 py-2 text-sm font-medium disabled:opacity-30 flex items-center gap-1"><ChevronLeft size={16} />Previous</button>

@@ -26,6 +26,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ testId
     const q = qRows.find((r) => r.id === tq.questionId)!;
     return {
       id: q.id,
+      type: q.type,
       prompt: q.prompt,
       topicId: q.topicId,
       options: options.filter((o) => o.questionId === q.id).sort((a, b) => a.order - b.order).map((o) => ({ id: o.id, label: o.label })),

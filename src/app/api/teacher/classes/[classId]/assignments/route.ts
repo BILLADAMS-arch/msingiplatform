@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db";
-import { assignments, tests } from "@/db/schema";
+import { assignments, tests, classMembers } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
 import { requireOwnedClass } from "@/lib/teacher-guard";
+import { notify } from "@/lib/notify";
 
 const bodySchema = z.object({ testId: z.string().uuid(), dueAt: z.string().datetime().optional() });
 
@@ -43,5 +44,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ classId
   const [created] = await db.insert(assignments).values({
     classId, testId: parsed.data.testId, dueAt: parsed.data.dueAt ? new Date(parsed.data.dueAt) : undefined,
   }).returning();
+
+  const roster = await db.select({ userId: classMembers.userId }).from(classMembers).where(eq(classMembers.classId, classId));
+  for (const member of roster) {
+    await notify(member.userId, "assignment", { testTitle: test.title, dueAt: created.dueAt, classId });
+  }
+
   return NextResponse.json({ assignment: created }, { status: 201 });
 }

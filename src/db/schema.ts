@@ -1,6 +1,6 @@
 import {
   pgTable, uuid, varchar, text, integer, boolean, timestamp, jsonb,
-  pgEnum, unique, primaryKey,
+  pgEnum, unique, primaryKey, doublePrecision,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -132,6 +132,12 @@ export const questions = pgTable("questions", {
   difficulty: difficultyEnum("difficulty").notNull().default("medium"),
   explanation: text("explanation").notNull(),
   learningObjective: text("learning_objective"),
+  // For type = "short_answer": pipe-separated accepted variants, matched
+  // case-insensitively/trimmed (e.g. "numerator|top number").
+  answerText: text("answer_text"),
+  // For type = "numerical": accepted value +/- tolerance (default 0 = exact).
+  answerNumeric: doublePrecision("answer_numeric"),
+  answerTolerance: doublePrecision("answer_tolerance").default(0),
 });
 
 export const questionOptions = pgTable("question_options", {
@@ -176,6 +182,7 @@ export const testAnswers = pgTable("test_answers", {
   attemptId: uuid("attempt_id").notNull().references(() => testAttempts.id, { onDelete: "cascade" }),
   questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "cascade" }),
   chosenOptionId: uuid("chosen_option_id"),
+  chosenText: text("chosen_text"),
   isCorrect: boolean("is_correct").notNull(),
 });
 
@@ -204,6 +211,9 @@ export const mistakes = pgTable("mistakes", {
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "cascade" }),
   chosenOptionId: uuid("chosen_option_id"),
+  // What the student actually typed, for short_answer/numerical questions —
+  // those have no questionOptions row for chosenOptionId to point at.
+  chosenText: text("chosen_text"),
   topicId: uuid("topic_id").notNull().references(() => topics.id, { onDelete: "cascade" }),
   masteredAt: timestamp("mastered_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

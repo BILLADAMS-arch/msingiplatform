@@ -7,12 +7,15 @@ import { requireRole } from "@/lib/api-guard";
 
 const bodySchema = z.object({
   topicId: z.string().uuid().optional(),
-  type: z.enum(["multiple_choice", "true_false"]).optional(),
+  type: z.enum(["multiple_choice", "true_false", "short_answer", "numerical"]).optional(),
   prompt: z.string().min(1).optional(),
   difficulty: z.enum(["easy", "medium", "hard"]).optional(),
   explanation: z.string().min(1).optional(),
   learningObjective: z.string().optional(),
   options: z.array(z.object({ label: z.string().min(1), isCorrect: z.boolean() })).min(2).optional(),
+  answerText: z.string().optional(),
+  answerNumeric: z.coerce.number().optional(),
+  answerTolerance: z.coerce.number().optional(),
 });
 
 export async function GET(_req: Request, { params }: { params: Promise<{ questionId: string }> }) {
@@ -43,6 +46,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ questi
     for (let i = 0; i < options.length; i++) {
       await db.insert(questionOptions).values({ questionId, label: options[i].label, isCorrect: options[i].isCorrect, order: i });
     }
+  } else if (rest.type === "short_answer" || rest.type === "numerical") {
+    // Switched away from an options-based type — clear stale option rows.
+    await db.delete(questionOptions).where(eq(questionOptions.questionId, questionId));
   }
 
   return NextResponse.json({ ok: true });

@@ -5,8 +5,14 @@ import { questions, questionOptions, mistakes, topicProgress, dailyChallengeProg
 import { eq, and } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
 import { awardXp, touchStreak, unlockAchievement, recordQuestionAnswered } from "@/lib/gamification";
+import { gradeAnswer } from "@/lib/grading";
 
-const bodySchema = z.object({ questionId: z.string().uuid(), chosenOptionId: z.string().uuid() });
+const bodySchema = z.object({
+  questionId: z.string().uuid(),
+  chosenOptionId: z.string().uuid().optional(),
+  answerText: z.string().max(200).optional(),
+  answerNumeric: z.number().optional(),
+});
 
 // POST — grades a single practice answer server-side (the client never has
 // access to the correct option ahead of time) and updates XP/mastery/mistakes.
@@ -17,18 +23,20 @@ export async function POST(req: Request) {
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  const { questionId, chosenOptionId } = parsed.data;
+  const { questionId, chosenOptionId, answerText, answerNumeric } = parsed.data;
 
   const [question] = await db.select().from(questions).where(eq(questions.id, questionId)).limit(1);
   if (!question) return NextResponse.json({ error: "Question not found" }, { status: 404 });
 
   const options = await db.select().from(questionOptions).where(eq(questionOptions.questionId, questionId));
-  const chosen = options.find((o) => o.id === chosenOptionId);
-  const correctOption = options.find((o) => o.isCorrect);
-  const isCorrect = !!chosen?.isCorrect;
+  const { isCorrect, correctLabel } = gradeAnswer(question, options, { chosenOptionId, answerText, answerNumeric });
 
   if (!isCorrect) {
-    await db.insert(mistakes).values({ userId, questionId, chosenOptionId, topicId: question.topicId });
+    await db.insert(mistakes).values({
+      userId, questionId, topicId: question.topicId,
+      chosenOptionId: chosenOptionId ?? null,
+      chosenText: answerText ?? (answerNumeric !== undefined ? String(answerNumeric) : null),
+    });
   }
 
   const [existingProgress] = await db.select().from(topicProgress)
@@ -52,7 +60,8 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     isCorrect,
-    correctOptionId: correctOption?.id,
+    correctOptionId: options.find((o) => o.isCorrect)?.id,
+    correctLabel,
     explanation: question.explanation,
   });
 }

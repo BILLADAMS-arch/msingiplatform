@@ -8,9 +8,15 @@ import {
 import { eq, inArray, and } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
 import { awardXp, touchStreak, unlockAchievement, recordQuestionAnswered } from "@/lib/gamification";
+import { gradeAnswer } from "@/lib/grading";
 
 const bodySchema = z.object({
-  answers: z.array(z.object({ questionId: z.string().uuid(), chosenOptionId: z.string().uuid().nullable() })),
+  answers: z.array(z.object({
+    questionId: z.string().uuid(),
+    chosenOptionId: z.string().uuid().nullable().optional(),
+    answerText: z.string().max(200).nullable().optional(),
+    answerNumeric: z.number().nullable().optional(),
+  })),
   timeTakenSeconds: z.number().int().nonnegative(),
 });
 
@@ -43,7 +49,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
 
   let correctCount = 0;
   const byTopic: Record<string, { correct: number; total: number }> = {};
-  const missed: { questionId: string; topicId: string; chosenOptionId: string | null }[] = [];
+  const missed: { questionId: string; topicId: string; chosenOptionId: string | null; chosenText: string | null }[] = [];
 
   for (const q of qRows) {
     const topicName = topicNameById[q.topicId];
@@ -51,12 +57,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
     byTopic[topicName].total++;
 
     const answer = answers.find((a) => a.questionId === q.id);
-    const correctOption = optionRows.find((o) => o.questionId === q.id && o.isCorrect);
-    const isCorrect = !!answer?.chosenOptionId && answer.chosenOptionId === correctOption?.id;
+    const questionOptions = optionRows.filter((o) => o.questionId === q.id);
+    const { isCorrect } = gradeAnswer(q, questionOptions, {
+      chosenOptionId: answer?.chosenOptionId, answerText: answer?.answerText, answerNumeric: answer?.answerNumeric,
+    });
+    const chosenText = answer?.answerText ?? (answer?.answerNumeric !== undefined && answer?.answerNumeric !== null ? String(answer.answerNumeric) : null);
     if (isCorrect) { correctCount++; byTopic[topicName].correct++; }
-    else missed.push({ questionId: q.id, topicId: q.topicId, chosenOptionId: answer?.chosenOptionId ?? null });
+    else missed.push({ questionId: q.id, topicId: q.topicId, chosenOptionId: answer?.chosenOptionId ?? null, chosenText });
 
-    await db.insert(testAnswers).values({ attemptId, questionId: q.id, chosenOptionId: answer?.chosenOptionId ?? null, isCorrect });
+    await db.insert(testAnswers).values({ attemptId, questionId: q.id, chosenOptionId: answer?.chosenOptionId ?? null, chosenText, isCorrect });
   }
 
   const score = Math.round((correctCount / qRows.length) * 100);
@@ -67,8 +76,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
 
   // Record mistakes (mirrors the prototype's Mistake Book).
   for (const m of missed) {
-    const q = qRows.find((r) => r.id === m.questionId)!;
-    await db.insert(mistakes).values({ userId, questionId: m.questionId, chosenOptionId: m.chosenOptionId, topicId: m.topicId });
+    await db.insert(mistakes).values({ userId, questionId: m.questionId, chosenOptionId: m.chosenOptionId, chosenText: m.chosenText, topicId: m.topicId });
   }
 
   // Update topic mastery from this attempt's per-topic accuracy.

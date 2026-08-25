@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Shell } from "@/components/shell";
 import { StatCard, TopicChip } from "@/components/ui";
+import { BarChart, LineChart } from "@/components/charts";
 import { Layers, Star, Dumbbell, Flame, Trophy } from "lucide-react";
 
 type ProgressResponse = {
@@ -31,6 +32,21 @@ export default function ProgressPage() {
               <StatCard icon={<Star size={18} />} label="Total XP" value={data.profile?.xp ?? 0} tone="gold" />
               <StatCard icon={<Dumbbell size={18} />} label="Achievements" value={data.achievements.unlocked.length} tone="green" />
               <StatCard icon={<Flame size={18} />} label="Streak" value={`${data.profile?.streak ?? 1}d`} tone="coral" />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
+                <h3 className="disp font-bold mb-3">Subject Mastery</h3>
+                {Object.keys(data.subjectMastery).length ? (
+                  <BarChart tone="green" data={Object.entries(data.subjectMastery).map(([label, value]) => ({ label, value }))} />
+                ) : <p className="text-sm text-[--ink-soft]">No subject mastery yet.</p>}
+              </div>
+              <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
+                <h3 className="disp font-bold mb-3">Score Trend</h3>
+                {data.testHistory.length >= 2 ? (
+                  <LineChart data={[...data.testHistory].reverse().map((t) => ({ label: t.testTitle, value: t.score }))} />
+                ) : <p className="text-sm text-[--ink-soft]">Take a few tests to see your score trend.</p>}
+              </div>
             </div>
 
             <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>

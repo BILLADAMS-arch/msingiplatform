@@ -1,28 +1,28 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { Home, BookOpen, Dumbbell, LineChart, FlaskConical, Library, Sparkles, Flame, Star } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Home, BookOpen, Dumbbell, LineChart, FlaskConical, Library, Sparkles, User, Flame, Star, Search } from "lucide-react";
 import { Pill } from "./ui";
+import { NotificationBell } from "./notification-bell";
 
 const MOBILE_NAV = [
   { href: "/dashboard", icon: <Home size={18} />, label: "Home" },
   { href: "/learn", icon: <BookOpen size={18} />, label: "Learn" },
   { href: "/practice", icon: <Dumbbell size={18} />, label: "Practice" },
   { href: "/playground", icon: <FlaskConical size={18} />, label: "Playground" },
-  { href: "/progress", icon: <LineChart size={18} />, label: "Progress" },
+  { href: "/profile", icon: <User size={18} />, label: "Profile" },
 ];
 
 const DESKTOP_NAV = [
   ...MOBILE_NAV.slice(0, 3),
   { href: "/library", icon: <Library size={18} />, label: "Library" },
   { href: "/ai", icon: <Sparkles size={18} />, label: "Msingi AI" },
-  ...MOBILE_NAV.slice(3),
+  { href: "/progress", icon: <LineChart size={18} />, label: "Progress" },
+  { href: "/leaderboard", icon: <Star size={18} />, label: "Leaderboard" },
 ];
 
 export function Shell({ children, name, xp, streak }: { children: React.ReactNode; name?: string; xp?: number; streak?: number }) {
   const pathname = usePathname();
-  const router = useRouter();
   return (
     <div className="msingi min-h-screen pb-20 md:pb-0">
       <div className="sticky top-0 z-20 backdrop-blur border-b" style={{ background: "rgba(246,243,236,0.9)", borderColor: "var(--slate)" }}>
@@ -41,9 +41,13 @@ export function Shell({ children, name, xp, streak }: { children: React.ReactNod
           <div className="flex items-center gap-3">
             {typeof streak === "number" && <Pill tone="coral"><Flame size={12} /> {streak}</Pill>}
             {typeof xp === "number" && <Pill tone="gold"><Star size={12} /> {xp} XP</Pill>}
-            <button onClick={() => { createClient().auth.signOut().then(() => router.push("/")); }} className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: "var(--green)" }} title="Sign out">
+            <Link href="/search" className="w-8 h-8 rounded-full flex items-center justify-center border" style={{ borderColor: "var(--slate)" }} title="Search">
+              <Search size={16} />
+            </Link>
+            <NotificationBell />
+            <Link href="/profile" className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: "var(--green)" }} title="Profile">
               {name?.[0]?.toUpperCase() || "?"}
-            </button>
+            </Link>
           </div>
         </div>
       </div>

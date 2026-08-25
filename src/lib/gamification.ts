@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { profiles, achievements, userAchievements } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import { notify } from "@/lib/notify";
 
 function utcDateString(d: Date) {
   return d.toISOString().slice(0, 10);
@@ -32,6 +33,9 @@ export async function touchStreak(userId: string): Promise<number> {
   }
 
   await db.update(profiles).set({ streak: nextStreak, lastActiveAt: now }).where(eq(profiles.userId, userId));
+  if (nextStreak > 0 && nextStreak % 7 === 0 && nextStreak !== profile.streak) {
+    await notify(userId, "streak_milestone", { days: nextStreak });
+  }
   return nextStreak;
 }
 
@@ -61,5 +65,6 @@ export async function unlockAchievement(userId: string, code: string): Promise<b
   if (existing) return false;
 
   await db.insert(userAchievements).values({ userId, achievementId: achievement.id }).onConflictDoNothing();
+  await notify(userId, "achievement", { code: achievement.code, label: achievement.label, icon: achievement.icon });
   return true;
 }

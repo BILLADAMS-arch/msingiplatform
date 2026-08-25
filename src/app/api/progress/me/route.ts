@@ -30,7 +30,7 @@ export async function GET() {
   const openMistakeCount = (await db.select().from(mistakes).where(eq(mistakes.userId, userId))).filter((m) => !m.masteredAt).length;
 
   return NextResponse.json({
-    profile: profile ? { name: profile.name, xp: profile.xp, streak: profile.streak, goal: profile.goal } : null,
+    profile: profile ? { name: profile.name, xp: profile.xp, streak: profile.streak, goal: profile.goal, leaderboardOptOut: profile.leaderboardOptOut } : null,
     topicMastery: Object.fromEntries(topicRows.map((r) => [r.topic.name, r.progress.masteryPct])),
     subjectMastery: Object.fromEntries(subjectRows.map((r) => [r.subject.name, r.progress.masteryPct])),
     testHistory: attempts.filter((a) => a.attempt.submittedAt).map((a) => ({

@@ -9,6 +9,8 @@ const patchSchema = z.object({
   gradeName: z.string().optional(),
   goal: z.string().optional(),
   onboarded: z.boolean().optional(),
+  name: z.string().min(1).max(120).optional(),
+  leaderboardOptOut: z.boolean().optional(),
 });
 
 // PATCH — completes onboarding (grade + goal) for the signed-in user.
@@ -19,7 +21,7 @@ export async function PATCH(req: Request) {
 
   const parsed = patchSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  const { gradeName, goal, onboarded } = parsed.data;
+  const { gradeName, goal, onboarded, name, leaderboardOptOut } = parsed.data;
 
   let gradeId: string | undefined;
   if (gradeName) {
@@ -32,6 +34,8 @@ export async function PATCH(req: Request) {
     ...(gradeId ? { gradeId } : {}),
     ...(goal ? { goal } : {}),
     ...(onboarded !== undefined ? { onboarded } : {}),
+    ...(name ? { name } : {}),
+    ...(leaderboardOptOut !== undefined ? { leaderboardOptOut } : {}),
   }).where(eq(profiles.userId, user.id));
 
   return NextResponse.json({ ok: true });

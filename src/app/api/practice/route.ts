@@ -1,16 +1,27 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { topics, questions, questionOptions } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { topics, questions, questionOptions, topicProgress } from "@/db/schema";
+import { eq, inArray, and } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
-import { sql } from "drizzle-orm";
+
+type Difficulty = "easy" | "medium" | "hard";
+
+// Adaptive weighting: bias which difficulty tier shows up more often based on
+// the learner's current mastery of this topic — not a full IRT-style engine,
+// just a real, honest nudge toward "more of what they need right now."
+function weightsForMastery(mastery: number): Record<Difficulty, number> {
+  if (mastery < 40) return { easy: 3, medium: 2, hard: 1 };
+  if (mastery < 75) return { easy: 1, medium: 3, hard: 2 };
+  return { easy: 1, medium: 2, hard: 3 };
+}
 
 // GET /api/practice?topic=Fractions&count=10
-// Returns questions WITHOUT which option is correct — that's only revealed
-// after the student answers, via POST below.
+// Returns questions WITHOUT which option/answer is correct — that's only
+// revealed after the student answers, via POST below.
 export async function GET(req: Request) {
   const guard = await requireRole(["STUDENT"]);
   if ("error" in guard) return guard.error;
+  const userId = guard.session.user.id;
 
   const url = new URL(req.url);
   const topicName = url.searchParams.get("topic");
@@ -23,9 +34,16 @@ export async function GET(req: Request) {
   const pool = await db.select().from(questions).where(eq(questions.topicId, topic.id));
   if (pool.length === 0) return NextResponse.json({ questions: [] });
 
-  // Sample with replacement up to `count`, shuffled server-side.
-  const shuffled = [...pool].sort(() => Math.random() - 0.5);
-  const picked = Array.from({ length: count }, (_, i) => shuffled[i % shuffled.length]);
+  const [progress] = await db.select().from(topicProgress)
+    .where(and(eq(topicProgress.userId, userId), eq(topicProgress.topicId, topic.id))).limit(1);
+  const weights = weightsForMastery(progress?.masteryPct ?? 0);
+
+  const weighted = pool.flatMap((q) => Array(weights[q.difficulty] ?? 1).fill(q));
+  const shuffled = [...weighted].sort(() => Math.random() - 0.5);
+  const seen = new Set<string>();
+  const ordered: typeof pool = [];
+  for (const q of shuffled) { if (!seen.has(q.id)) { seen.add(q.id); ordered.push(q); } }
+  const picked = Array.from({ length: count }, (_, i) => ordered[i % ordered.length]);
 
   const questionIds = picked.map((q) => q.id);
   const options = await db.select().from(questionOptions).where(inArray(questionOptions.questionId, questionIds));
@@ -34,6 +52,7 @@ export async function GET(req: Request) {
     // Give repeated picks unique client-side keys.
     attemptKey: `${q.id}-${i}`,
     id: q.id,
+    type: q.type,
     prompt: q.prompt,
     difficulty: q.difficulty,
     options: options.filter((o) => o.questionId === q.id).sort((a, b) => a.order - b.order).map((o) => ({ id: o.id, label: o.label })),

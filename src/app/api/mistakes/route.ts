@@ -20,12 +20,13 @@ export async function GET() {
 
   const result = rows.map((r) => {
     const opts = options.filter((o) => o.questionId === r.question.id);
+    const usesOptions = r.question.type === "multiple_choice" || r.question.type === "true_false";
     return {
       id: r.mistake.id,
       question: r.question.prompt,
       topic: r.topic.name,
-      chosen: opts.find((o) => o.id === r.mistake.chosenOptionId)?.label ?? "(no answer)",
-      correct: opts.find((o) => o.isCorrect)?.label,
+      chosen: usesOptions ? (opts.find((o) => o.id === r.mistake.chosenOptionId)?.label ?? "(no answer)") : (r.mistake.chosenText ?? "(no answer)"),
+      correct: usesOptions ? opts.find((o) => o.isCorrect)?.label : (r.question.answerText?.split("|")[0] ?? r.question.answerNumeric?.toString()),
       explanation: r.question.explanation,
       date: r.mistake.createdAt,
     };

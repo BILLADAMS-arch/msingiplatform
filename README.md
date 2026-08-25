@@ -126,13 +126,67 @@ Neither area has a consent/approval step (a teacher or parent can link any exist
 STUDENT account by email alone) — a real product needs one; flagged as a follow-up
 rather than built now.
 
+## What's implemented (content breadth, question types, adaptive practice)
+
+A second real subject — **Grade 7 Integrated Science → Human Nutrition → Classes of
+Nutrients**, authored end-to-end through the Admin CMS (strand → sub-strand → 2 topics →
+a full lesson with sections/quick-check → 8 real questions → a published test) — proving
+the CMS produces real, working, student-visible content for more than just Mathematics.
+Practice questions are also now genuinely adaptive: `GET /api/practice` weights which
+difficulty tier appears more often based on the learner's current mastery of that topic
+(weak → mostly easy, strong → mostly hard) — a real nudge, not a full IRT engine, and
+explicitly scoped that way.
+
+Two more question types are fully wired end-to-end — authoring (Admin question editor),
+grading (`src/lib/grading.ts`, shared by Practice and Tests), student UI (text/number
+input instead of option buttons), and the Mistake Book (`mistakes`/`test_answers` gained
+a `chosen_text` column since these types have no option row to point at):
+- **short_answer** — matched case-insensitively/trimmed against `|`-separated accepted
+  variants.
+- **numerical** — matched against a target value ± tolerance.
+
+`matching`/`ordering` (2 of the schema's 7 `question_type` values) remain unbuilt — real
+UI investment with lower value than the two above, deferred rather than faked.
+
+## What's implemented (Profile, notifications, leaderboard, charts, search)
+
+- **Profile** (`/profile`): edit name/goal, change password (`supabase.auth.updateUser`),
+  leaderboard opt-out toggle, achievement shelf, sign out. Header avatar now links here
+  instead of signing out directly.
+- **Password reset**: `/forgot-password` → `supabase.auth.resetPasswordForEmail` →
+  emailed link → `/reset-password` → `updateUser({ password })`. Needs the redirect URL
+  allow-listed in the Supabase project's Auth settings for non-localhost deployments.
+- **Notifications**: the `notifications` table is no longer just scaffolding —
+  `src/lib/notify.ts` writes real rows at real trigger points (achievement unlocked,
+  every 7-day streak milestone, a new class assignment), surfaced via a bell in the
+  header (`src/components/notification-bell.tsx`) with unread badge + mark-read/mark-all.
+- **Leaderboard** (`/leaderboard`): all-time XP ranking within the learner's own grade,
+  respecting `leaderboardOptOut`, display name only (no email, no per-question data).
+  Explicitly **not** time-windowed (weekly/monthly) — that needs XP-history tracking the
+  schema doesn't have; an honest all-time ranking instead of a fake "weekly" label.
+- **Charts** (`src/components/charts.tsx`): a bar chart and line chart, pure inline SVG,
+  no charting dependency — Subject Mastery + Score Trend on `/progress`, Most Difficult
+  Topics on `/admin/analytics`.
+- **Global search** (`/search`): lessons, topics, published resources/tests, and
+  flashcards by title. Deliberately excludes `questions` — searching question text would
+  let students search up test/practice content.
+
+## What's implemented (Msingi Playground — all 4 domains)
+
+All 8 catalog activities are now real (`playgroundActivities.slug` maps every one to a
+built component) — **Number Line**, **Geometry Lab** (live area/perimeter), and
+**States of Matter** (Math/Science) join the earlier 4, plus a first Language Playground
+activity, **Vocabulary Challenge** — an English/Kiswahili word-unscramble game using
+real CBC Kiswahili subject-area vocabulary (msamiati, sarufi, methali, nahau, ufahamu)
+as content, not placeholders. Every catalog row is real now — nothing left in "Coming
+soon."
+
 ## Not yet built
 
-A Profile page, password reset, global search, a notifications UI, leaderboards,
-progress charts, adaptive practice/testing, student-facing question types beyond
-multiple-choice/true-false (the schema's `question_type` enum has 7 values; only 2
-render), Number Line/Geometry Lab/States of Matter/Language Playground, CSV import for
-the Admin CMS, and consent flows for teacher/parent account linking. See "Suggested next
+Matching/ordering question types, CSV import and content versioning for the Admin CMS,
+consent/approval flows for teacher-adds-student and parent-links-child (currently
+email-only), a teacher-specific test/challenge authoring surface distinct from the Admin
+CMS, and a full accessibility (ARIA/keyboard-nav/contrast) audit. See "Suggested next
 steps" below.
 
 ## One deviation from the original architecture plan
@@ -260,14 +314,16 @@ src/
 
 ## Suggested next steps
 
-- **Content breadth**: the student UI no longer hardcodes "Mathematics," but the *data*
-  still mostly does — only Grade 7 Mathematics has real strands/topics/lessons/questions.
-  Use the Admin CMS to add a second subject or grade so more of the platform (Library,
-  Flashcards, Playground catalog) has content to point at beyond Fractions/Algebra.
-- **Msingi Playground**: 4 activities are real (see above) — Number Line, Geometry Lab,
-  States of Matter, and all of Language Playground are still catalog-only.
+- **Content breadth, continued**: Grade 7 Mathematics and a slice of Integrated Science
+  are real; English, Kiswahili, Social Studies, Pre-Technical Studies, Agriculture, ICT,
+  and Business Studies are still bare subject rows. The CMS pattern used for both real
+  subjects (author strand → sub-strand → topics → lesson → questions → test, then
+  publish) is the template — it's now proven to work, just needs repeating.
+- **Matching/ordering question types**, a teacher-specific content-authoring surface,
+  CSV import + content versioning for the Admin CMS.
 - **Consent flows** for teacher-adds-student and parent-links-child (currently
-  email-only, no approval step — see "What's implemented (Teacher & Parent
-  dashboards)").
-- **Adaptive practice/testing logic**, Profile page, password reset, search,
-  notifications UI, leaderboards, progress charts
+  email-only, no approval step).
+- **Weekly/monthly leaderboard windows** (needs XP-history tracking; the current
+  leaderboard is an honest all-time ranking instead).
+- **Accessibility audit** (ARIA labels, keyboard navigation, contrast) — not yet done at
+  any stage of this build.

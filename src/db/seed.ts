@@ -111,11 +111,12 @@ const LIBRARY_RESOURCES_FRACTIONS: { title: string; type: "summary" | "notes" | 
 const PLAYGROUND_TEASERS = [
   { area: "mathematics", title: "Fraction Explorer", description: "Visually manipulate fractions.", slug: "fraction-explorer" },
   { area: "mathematics", title: "Algebra Balance", description: "Solve equations by keeping the balance level.", slug: "algebra-balance" },
-  { area: "mathematics", title: "Number Line", description: "Drag values along a number line." },
-  { area: "mathematics", title: "Geometry Lab", description: "Manipulate shapes." },
+  { area: "mathematics", title: "Number Line", description: "Find numbers on a number line.", slug: "number-line" },
+  { area: "mathematics", title: "Geometry Lab", description: "Manipulate shapes and see area/perimeter update live.", slug: "geometry-lab" },
   { area: "science", title: "Solar System Explorer", description: "Explore the planets.", slug: "solar-system" },
-  { area: "science", title: "States of Matter", description: "Interact with solids, liquids, gases." },
+  { area: "science", title: "States of Matter", description: "Watch how particles behave as solids, liquids, and gases.", slug: "states-of-matter" },
   { area: "computer", title: "HTML Playground", description: "Basic HTML exercises.", slug: "html-playground" },
+  { area: "language", title: "Vocabulary Challenge", description: "Unscramble English and Kiswahili vocabulary words.", slug: "vocabulary-challenge" },
 ];
 
 async function main() {

@@ -5,7 +5,7 @@ import { Shell } from "@/components/shell";
 import { FoundationBar, Pill } from "@/components/ui";
 import { Dumbbell, Trophy } from "lucide-react";
 
-type PracticeQuestion = { attemptKey: string; id: string; prompt: string; difficulty: string; options: { id: string; label: string }[] };
+type PracticeQuestion = { attemptKey: string; id: string; type: string; prompt: string; difficulty: string; options: { id: string; label: string }[] };
 
 function PracticeInner() {
   const params = useSearchParams();
@@ -38,8 +38,9 @@ function PracticeInner() {
   const [questions, setQuestions] = useState<PracticeQuestion[] | null>(null);
   const [qIdx, setQIdx] = useState(0);
   const [chosen, setChosen] = useState<string | null>(null);
+  const [freeText, setFreeText] = useState("");
   const [checking, setChecking] = useState(false);
-  const [result, setResult] = useState<{ isCorrect: boolean; correctOptionId: string; explanation: string } | null>(null);
+  const [result, setResult] = useState<{ isCorrect: boolean; correctOptionId?: string; correctLabel: string; explanation: string } | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
 
   async function start() {
@@ -50,18 +51,25 @@ function PracticeInner() {
   }
 
   async function submit() {
-    if (!questions || !chosen) return;
+    if (!questions) return;
     const q = questions[qIdx];
+    const isNumerical = q.type === "numerical";
+    const isShortAnswer = q.type === "short_answer";
+    if (isNumerical || isShortAnswer) { if (!freeText.trim()) return; } else if (!chosen) return;
+
     const res = await fetch("/api/practice/attempts", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ questionId: q.id, chosenOptionId: chosen }),
+      body: JSON.stringify({
+        questionId: q.id,
+        ...(isNumerical ? { answerNumeric: Number(freeText) } : isShortAnswer ? { answerText: freeText } : { chosenOptionId: chosen }),
+      }),
     }).then((r) => r.json());
     setResult(res);
     setChecking(true);
     if (res.isCorrect) setCorrectCount((c) => c + 1);
   }
 
-  function next() { setChecking(false); setChosen(null); setResult(null); setQIdx((i) => i + 1); }
+  function next() { setChecking(false); setChosen(null); setFreeText(""); setResult(null); setQIdx((i) => i + 1); }
 
   if (!started) {
     return (
@@ -116,25 +124,40 @@ function PracticeInner() {
         <FoundationBar pct={(qIdx / questions.length) * 100} />
         <div className="brick bg-white rounded-2xl p-6 border" style={{ borderColor: "var(--slate)" }}>
           <p className="font-medium mb-4">{q.prompt}</p>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {q.options.map((opt, i) => {
-              let style: React.CSSProperties = { borderColor: "var(--slate)", background: "white" };
-              if (checking && result) {
-                if (opt.id === result.correctOptionId) style = { borderColor: "var(--green)", background: "var(--green-soft)" };
-                else if (opt.id === chosen) style = { borderColor: "var(--coral)", background: "var(--coral-soft)" };
-              }
-              return (
-                <button key={opt.id} disabled={checking} onClick={() => setChosen(opt.id)} className="tap border rounded-xl px-4 py-3 text-sm font-medium text-left" style={{ ...style, outline: chosen === opt.id && !checking ? "2px solid var(--gold-deep)" : "none" }}>
-                  {String.fromCharCode(65 + i)}. {opt.label}
-                </button>
-              );
-            })}
-          </div>
+
+          {q.type === "short_answer" || q.type === "numerical" ? (
+            <input
+              type={q.type === "numerical" ? "number" : "text"}
+              value={freeText}
+              disabled={checking}
+              onChange={(e) => setFreeText(e.target.value)}
+              placeholder={q.type === "numerical" ? "Enter a number" : "Type your answer"}
+              className="w-full border rounded-xl px-4 py-3 text-sm outline-none disabled:opacity-60"
+              style={{ borderColor: checking ? (result?.isCorrect ? "var(--green)" : "var(--coral)") : "var(--slate)" }}
+            />
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-3">
+              {q.options.map((opt, i) => {
+                let style: React.CSSProperties = { borderColor: "var(--slate)", background: "white" };
+                if (checking && result) {
+                  if (opt.id === result.correctOptionId) style = { borderColor: "var(--green)", background: "var(--green-soft)" };
+                  else if (opt.id === chosen) style = { borderColor: "var(--coral)", background: "var(--coral-soft)" };
+                }
+                return (
+                  <button key={opt.id} disabled={checking} onClick={() => setChosen(opt.id)} className="tap border rounded-xl px-4 py-3 text-sm font-medium text-left" style={{ ...style, outline: chosen === opt.id && !checking ? "2px solid var(--gold-deep)" : "none" }}>
+                    {String.fromCharCode(65 + i)}. {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {!checking ? (
-            <button disabled={!chosen} onClick={submit} className="tap mt-5 px-6 py-2.5 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>Check Answer</button>
+            <button disabled={q.type === "short_answer" || q.type === "numerical" ? !freeText.trim() : !chosen} onClick={submit} className="tap mt-5 px-6 py-2.5 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>Check Answer</button>
           ) : (
             <div className="mt-5 fade-in">
               <p className={`font-semibold mb-1 ${result?.isCorrect ? "text-[--green]" : "text-[--coral]"}`}>{result?.isCorrect ? "Correct! 🎉" : "Not quite. Let's understand why."}</p>
+              {!result?.isCorrect && result?.correctLabel && <p className="text-sm mb-1">Correct answer: <b>{result.correctLabel}</b></p>}
               <p className="text-sm text-[--ink-soft]">{result?.explanation}</p>
               <button onClick={next} className="tap mt-4 px-6 py-2.5 rounded-full font-semibold text-white" style={{ background: "var(--gold-deep)" }}>Next</button>
             </div>
