@@ -25,7 +25,7 @@ function ChildCard({ child }: { child: Child }) {
           <div className="text-xs text-[--ink-soft]">{progress.gradeName ?? "—"}</div>
         </div>
         <div className="flex gap-2">
-          <Pill tone="coral"><Flame size={12} /> {progress.streak}</Pill>
+          <Pill tone="gold"><Flame size={12} /> {progress.streak}</Pill>
           <Pill tone="gold"><Star size={12} /> {progress.xp} XP</Pill>
         </div>
       </div>
@@ -85,13 +85,13 @@ export default function ParentPage() {
   return (
     <Shell variant="parent">
       <div className="fade-in space-y-6">
-        <h1 className="disp text-2xl font-bold">My Children</h1>
+        <h1 className="disp text-3xl font-bold">My Children</h1>
 
         <div>
           <div className="flex items-center gap-2">
             <input value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && linkChild()}
               placeholder="Child's account email" className="flex-1 border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
-            <button disabled={linking || !email.trim()} onClick={linkChild} className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>
+            <button disabled={linking || !email.trim()} onClick={linkChild} className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
               <Plus size={14} /> Link
             </button>
           </div>

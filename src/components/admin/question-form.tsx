@@ -107,7 +107,7 @@ export function QuestionForm({ initial, onSubmit, submitLabel }: { initial?: Par
             ))}
           </div>
           {draft.options.length < 6 && (
-            <button onClick={() => setDraft({ ...draft, options: [...draft.options, { label: "", isCorrect: false }] })} className="tap flex items-center gap-1 text-xs font-semibold text-[--gold-deep] mt-2">
+            <button onClick={() => setDraft({ ...draft, options: [...draft.options, { label: "", isCorrect: false }] })} className="tap flex items-center gap-1 text-xs font-semibold text-[--primary] mt-2">
               <Plus size={14} /> Add option
             </button>
           )}
@@ -139,7 +139,7 @@ export function QuestionForm({ initial, onSubmit, submitLabel }: { initial?: Par
         <textarea value={draft.explanation} onChange={(e) => setDraft({ ...draft, explanation: e.target.value })} rows={2} className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
       </div>
 
-      <button disabled={!canSubmit} onClick={() => onSubmit(draft)} className="tap px-6 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>
+      <button disabled={!canSubmit} onClick={() => onSubmit(draft)} className="tap px-6 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
         {submitLabel}
       </button>
     </div>

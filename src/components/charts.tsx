@@ -1,6 +1,6 @@
 "use client";
 
-const TONE_COLOR = { gold: "var(--gold-deep)", green: "var(--green)", coral: "var(--coral)" } as const;
+const TONE_COLOR = { gold: "var(--gold-deep)", green: "var(--green)", coral: "var(--coral)", blue: "var(--primary)" } as const;
 
 /** A simple horizontal bar chart — pure SVG/CSS, no charting library. */
 export function BarChart({ data, tone = "gold" }: { data: { label: string; value: number }[]; tone?: keyof typeof TONE_COLOR }) {
@@ -47,5 +47,24 @@ export function LineChart({ data, tone = "gold" }: { data: { label: string; valu
         </circle>
       ))}
     </svg>
+  );
+}
+
+/** A circular progress ring for headline scores — pure SVG, no charting library. */
+export function ScoreRing({ pct, size = 132, stroke = 10, tone = "blue", children }: {
+  pct: number; size?: number; stroke?: number; tone?: keyof typeof TONE_COLOR; children?: React.ReactNode;
+}) {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const offset = c - (Math.max(0, Math.min(100, pct)) / 100) * c;
+  return (
+    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--stone-2)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={TONE_COLOR[tone]} strokeWidth={stroke}
+          strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round" style={{ transition: "stroke-dashoffset 700ms ease" }} />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">{children}</div>
+    </div>
   );
 }

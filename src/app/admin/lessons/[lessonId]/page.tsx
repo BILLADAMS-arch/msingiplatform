@@ -82,7 +82,7 @@ export default function EditLessonPage() {
         <div className="bg-white rounded-2xl border p-5 space-y-4" style={{ borderColor: "var(--slate)" }}>
           <div className="flex items-center justify-between">
             <h3 className="disp font-bold">Sections</h3>
-            <button onClick={() => setSections((ss) => [...ss, { ...BLANK_SECTION }])} className="tap flex items-center gap-1 text-xs font-semibold text-[--gold-deep]"><Plus size={14} /> Add section</button>
+            <button onClick={() => setSections((ss) => [...ss, { ...BLANK_SECTION }])} className="tap flex items-center gap-1 text-xs font-semibold text-[--primary]"><Plus size={14} /> Add section</button>
           </div>
           {sections.map((s, i) => (
             <div key={i} className="border rounded-xl p-4 space-y-2" style={{ borderColor: "var(--stone-2)" }}>
@@ -108,7 +108,7 @@ export default function EditLessonPage() {
             {quickCheck ? (
               <button onClick={() => setQuickCheck(null)} className="tap text-xs font-semibold text-[--coral]">Remove</button>
             ) : (
-              <button onClick={() => setQuickCheck({ ...BLANK_QUICK_CHECK, options: [...BLANK_QUICK_CHECK.options] })} className="tap flex items-center gap-1 text-xs font-semibold text-[--gold-deep]"><Plus size={14} /> Add quick check</button>
+              <button onClick={() => setQuickCheck({ ...BLANK_QUICK_CHECK, options: [...BLANK_QUICK_CHECK.options] })} className="tap flex items-center gap-1 text-xs font-semibold text-[--primary]"><Plus size={14} /> Add quick check</button>
             )}
           </div>
           {quickCheck && (
@@ -128,7 +128,7 @@ export default function EditLessonPage() {
 
         <div className="flex items-center justify-between">
           <button onClick={remove} className="tap text-sm font-semibold text-[--coral]">Delete lesson</button>
-          <button disabled={saving} onClick={save} className="tap px-6 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-50" style={{ background: "var(--ink)" }}>
+          <button disabled={saving} onClick={save} className="tap px-6 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-50" style={{ background: "var(--primary)" }}>
             {saving ? "Saving…" : "Save changes"}
           </button>
         </div>

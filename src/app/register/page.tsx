@@ -44,7 +44,7 @@ export default function RegisterPage() {
     <div className="msingi min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-md fade-in">
         <div className="flex gap-1.5 mb-8">
-          {steps.map((_, i) => <div key={i} className="h-1.5 flex-1 rounded-full" style={{ background: i <= step ? "var(--gold-deep)" : "var(--stone-2)" }} />)}
+          {steps.map((_, i) => <div key={i} className="h-1.5 flex-1 rounded-full" style={{ background: i <= step ? "var(--primary)" : "var(--stone-2)" }} />)}
         </div>
         <h2 className="disp text-2xl font-bold mb-5">{steps[step].title}</h2>
 
@@ -61,7 +61,7 @@ export default function RegisterPage() {
             {GRADES.map((g) => (
               <button key={g} onClick={() => setForm({ ...form, gradeName: g })}
                 className={`tap border rounded-xl px-4 py-3 text-sm font-medium text-left ${form.gradeName === g ? "text-white" : ""}`}
-                style={{ borderColor: form.gradeName === g ? "var(--gold-deep)" : "var(--slate)", background: form.gradeName === g ? "var(--gold-deep)" : "white" }}>
+                style={{ borderColor: form.gradeName === g ? "var(--primary)" : "var(--slate)", background: form.gradeName === g ? "var(--primary)" : "white" }}>
                 {g}
               </button>
             ))}
@@ -73,7 +73,7 @@ export default function RegisterPage() {
             {GOALS.map((g) => (
               <button key={g} onClick={() => setForm({ ...form, goal: g })}
                 className={`tap border rounded-xl px-4 py-3 text-sm font-medium text-left ${form.goal === g ? "text-white" : ""}`}
-                style={{ borderColor: form.goal === g ? "var(--gold-deep)" : "var(--slate)", background: form.goal === g ? "var(--gold-deep)" : "white" }}>
+                style={{ borderColor: form.goal === g ? "var(--primary)" : "var(--slate)", background: form.goal === g ? "var(--primary)" : "white" }}>
                 {g}
               </button>
             ))}
@@ -85,11 +85,11 @@ export default function RegisterPage() {
         <div className="flex justify-between mt-8">
           <button disabled={step === 0} onClick={() => setStep((s) => s - 1)} className="tap px-4 py-2 text-sm font-medium disabled:opacity-30">Back</button>
           <button disabled={!steps[step].canNext || loading} onClick={() => (isLast ? submit() : setStep((s) => s + 1))}
-            className="tap px-6 py-2.5 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>
+            className="tap px-6 py-2.5 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
             {loading ? "Creating account…" : isLast ? "Get started" : "Next"}
           </button>
         </div>
-        <p className="text-center text-sm text-[--ink-soft] mt-6">Already have an account? <a href="/login" className="font-semibold text-[--gold-deep]">Log in</a></p>
+        <p className="text-center text-sm text-[--ink-soft] mt-6">Already have an account? <a href="/login" className="font-semibold text-[--primary]">Log in</a></p>
       </div>
     </div>
   );

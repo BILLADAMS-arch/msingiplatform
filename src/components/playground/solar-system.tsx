@@ -44,7 +44,7 @@ export function SolarSystem({ onFirstUse }: { onFirstUse: () => void }) {
             <div className="msingi-orbit-spin" style={{ animationDuration: `${p.duration}s`, animationPlayState: playing ? "running" : "paused" }}>
               <button onClick={() => selectPlanet(p)} title={p.name}
                 className="tap absolute rounded-full"
-                style={{ width: 14, height: 14, background: p.color, top: 0, left: "50%", transform: "translate(-50%,-50%)", boxShadow: selected?.name === p.name ? "0 0 0 3px var(--gold-deep)" : "none" }} />
+                style={{ width: 14, height: 14, background: p.color, top: 0, left: "50%", transform: "translate(-50%,-50%)", boxShadow: selected?.name === p.name ? "0 0 0 3px var(--primary)" : "none" }} />
             </div>
           </div>
         ))}

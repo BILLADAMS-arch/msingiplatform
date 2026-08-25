@@ -38,15 +38,15 @@ export default function LessonPage() {
     return (
       <Shell>
         <div className="fade-in max-w-2xl mx-auto space-y-6">
-          <h1 className="disp text-2xl font-bold">{lesson.title}</h1>
-          <div className="flex gap-1.5">{lesson.sections.map((_, i) => <div key={i} className="h-1.5 flex-1 rounded-full" style={{ background: i <= idx ? "var(--gold-deep)" : "var(--stone-2)" }} />)}</div>
+          <h1 className="disp text-3xl font-bold">{lesson.title}</h1>
+          <div className="flex gap-1.5">{lesson.sections.map((_, i) => <div key={i} className="h-1.5 flex-1 rounded-full" style={{ background: i <= idx ? "var(--primary)" : "var(--stone-2)" }} />)}</div>
           <div className="brick bg-white rounded-2xl p-6 border" style={{ borderColor: "var(--slate)" }}>
             <Pill tone={TONE[s.kind] || "gold"}>{s.heading}</Pill>
             <p className="mt-3 text-[15px] leading-relaxed">{s.body}</p>
             {s.note && <p className="mt-2 text-sm text-[--ink-soft] italic">{s.note}</p>}
           </div>
           <div className="flex justify-end">
-            <button onClick={() => setIdx((i) => i + 1)} className="tap px-6 py-2.5 rounded-full font-semibold text-white flex items-center gap-1" style={{ background: "var(--ink)" }}>
+            <button onClick={() => setIdx((i) => i + 1)} className="tap px-6 py-2.5 rounded-full font-semibold text-white flex items-center gap-1" style={{ background: "var(--primary)" }}>
               {idx === lesson.sections.length - 1 ? "Quick Check" : "Next"} <ChevronRight size={16} />
             </button>
           </div>
@@ -62,7 +62,7 @@ export default function LessonPage() {
   return (
     <Shell>
       <div className="fade-in max-w-2xl mx-auto space-y-6">
-        <h1 className="disp text-2xl font-bold">Quick Check</h1>
+        <h1 className="disp text-3xl font-bold">Quick Check</h1>
         <div className="brick bg-white rounded-2xl p-6 border" style={{ borderColor: "var(--slate)" }}>
           <p className="font-medium mb-4">{qc.question}</p>
           <div className="grid grid-cols-2 gap-3">
@@ -73,19 +73,19 @@ export default function LessonPage() {
                 else if (i === chosen) style = { borderColor: "var(--coral)", background: "var(--coral-soft)" };
               }
               return (
-                <button key={i} disabled={checking} onClick={() => setChosen(i)} className="tap border rounded-xl px-4 py-3 text-sm font-medium text-left" style={{ ...style, outline: chosen === i && !checking ? "2px solid var(--gold-deep)" : "none" }}>
+                <button key={i} disabled={checking} onClick={() => setChosen(i)} className="tap border rounded-xl px-4 py-3 text-sm font-medium text-left" style={{ ...style, outline: chosen === i && !checking ? "2px solid var(--primary)" : "none" }}>
                   {String.fromCharCode(65 + i)}. {opt}
                 </button>
               );
             })}
           </div>
           {!checking ? (
-            <button disabled={chosen === null} onClick={() => setChecking(true)} className="tap mt-5 px-6 py-2.5 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>Check Answer</button>
+            <button disabled={chosen === null} onClick={() => setChecking(true)} className="tap mt-5 px-6 py-2.5 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>Check Answer</button>
           ) : (
             <div className="mt-5 fade-in">
               <p className={`font-semibold mb-1 ${correct ? "text-[--green]" : "text-[--coral]"}`}>{correct ? "Correct! 🎉" : "Not quite. Let's understand why."}</p>
               <p className="text-sm text-[--ink-soft]">{qc.explanation}</p>
-              <button onClick={finish} className="tap mt-4 px-6 py-2.5 rounded-full font-semibold text-white" style={{ background: "var(--gold-deep)" }}>Continue to Practice</button>
+              <button onClick={finish} className="tap mt-4 px-6 py-2.5 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Continue to Practice</button>
             </div>
           )}
         </div>

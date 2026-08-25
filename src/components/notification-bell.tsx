@@ -52,7 +52,7 @@ export function NotificationBell() {
         <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white rounded-2xl border shadow-lg z-30" style={{ borderColor: "var(--slate)" }}>
           <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--stone-2)" }}>
             <span className="font-semibold text-sm">Notifications</span>
-            {unreadCount > 0 && <button onClick={markAllRead} className="text-xs font-semibold text-[--gold-deep]">Mark all read</button>}
+            {unreadCount > 0 && <button onClick={markAllRead} className="text-xs font-semibold text-[--primary]">Mark all read</button>}
           </div>
           {!notifications || notifications.length === 0 ? (
             <p className="text-sm text-[--ink-soft] px-4 py-6 text-center">Nothing yet.</p>
@@ -60,7 +60,7 @@ export function NotificationBell() {
             notifications.map((n) => {
               const { icon, text } = describe(n);
               return (
-                <button key={n.id} onClick={() => !n.readAt && markRead(n.id)} className="tap w-full text-left flex items-start gap-2 px-4 py-3 border-b last:border-0" style={{ borderColor: "var(--stone-2)", background: n.readAt ? "white" : "var(--amber-soft)" }}>
+                <button key={n.id} onClick={() => !n.readAt && markRead(n.id)} className="tap w-full text-left flex items-start gap-2 px-4 py-3 border-b last:border-0" style={{ borderColor: "var(--stone-2)", background: n.readAt ? "white" : "var(--primary-soft)" }}>
                   <span>{icon}</span>
                   <span className="text-xs">{text}</span>
                 </button>

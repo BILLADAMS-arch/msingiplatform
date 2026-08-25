@@ -24,14 +24,14 @@ export default function ProgressPage() {
   return (
     <Shell name={data?.profile?.name} xp={data?.profile?.xp} streak={data?.profile?.streak}>
       <div className="fade-in space-y-6">
-        <h1 className="disp text-2xl font-bold">My Progress</h1>
+        <h1 className="disp text-3xl font-bold">My Progress</h1>
         {!data ? <p className="text-sm text-[--ink-soft]">Loading…</p> : (
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <StatCard icon={<Layers size={18} />} label="Level" value={levelForXP(data.profile?.xp ?? 0)} tone="gold" />
               <StatCard icon={<Star size={18} />} label="Total XP" value={data.profile?.xp ?? 0} tone="gold" />
-              <StatCard icon={<Dumbbell size={18} />} label="Achievements" value={data.achievements.unlocked.length} tone="green" />
-              <StatCard icon={<Flame size={18} />} label="Streak" value={`${data.profile?.streak ?? 1}d`} tone="coral" />
+              <StatCard icon={<Dumbbell size={18} />} label="Achievements" value={data.achievements.unlocked.length} tone="gold" />
+              <StatCard icon={<Flame size={18} />} label="Streak" value={`${data.profile?.streak ?? 1}d`} tone="gold" />
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -44,7 +44,7 @@ export default function ProgressPage() {
               <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
                 <h3 className="disp font-bold mb-3">Score Trend</h3>
                 {data.testHistory.length >= 2 ? (
-                  <LineChart data={[...data.testHistory].reverse().map((t) => ({ label: t.testTitle, value: t.score }))} />
+                  <LineChart tone="blue" data={[...data.testHistory].reverse().map((t) => ({ label: t.testTitle, value: t.score }))} />
                 ) : <p className="text-sm text-[--ink-soft]">Take a few tests to see your score trend.</p>}
               </div>
             </div>

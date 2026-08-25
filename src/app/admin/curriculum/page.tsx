@@ -131,7 +131,7 @@ export default function AdminCurriculumPage() {
         <div className="flex items-center gap-2 mt-4 pt-4 border-t" style={{ borderColor: "var(--stone-2)" }}>
           <input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()}
             placeholder={`New ${SINGLE_KEY[level]} name`} className="flex-1 border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
-          <button onClick={add} className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--ink)" }}>
+          <button onClick={add} className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--primary)" }}>
             <Plus size={14} /> Add
           </button>
         </div>

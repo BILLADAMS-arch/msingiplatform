@@ -2,40 +2,56 @@
 @import "tailwindcss";
 
 :root {
-  --stone: #F5F7FC;
-  --stone-2: #EAEEF8;
-  --ink: #101B4A;
-  --ink-soft: #4B5580;
-  --gold: #F5A623;
-  --gold-deep: #A66C00;
-  --green: #128A3E;
-  --green-soft: #E1F5E8;
-  --coral: #E31B23;
-  --coral-soft: #FBE3E2;
-  --amber-soft: #FDF0DC;
-  --slate: #CBD2E6;
-  --card: #FFFFFF;
+  /* Backgrounds */
+  --stone: #F7FAFF;       /* --color-bg: app background, a barely-blue white */
+  --stone-2: #EEF5FF;     /* --color-bg-secondary: feature/highlight sections, used sparingly */
+  --card: #FFFFFF;        /* --color-surface: cards sit above --stone */
+
+  /* Brand */
+  --primary: #155EEF;        /* --color-primary: buttons, links, active nav, progress, selection */
+  --primary-deep: #0F4CC4;   /* accessible-contrast variant of --primary for small text on white */
+  --primary-soft: #E7EFFE;   /* light tint for primary-toned chips/badges */
+  --ink: #0B1F44;            /* --color-primary-dark: headings, logo, nav text, hero text */
+
+  /* Text */
+  --ink-soft: #667085;    /* --color-text-secondary */
+  --muted: #98A2B3;       /* --color-muted */
+  --text: #172033;        /* --color-text: primary body text, used where --ink is too heavy */
+
+  /* Borders */
+  --slate: #E7EEF8;
+
+  /* Success / growth */
+  --green: #16A34A;
+  --green-soft: #E7F7ED;
+
+  /* Gold / achievement — reserve for XP, streaks, achievements, rewards */
+  --gold: #F59E0B;
+  --gold-deep: #B45309;   /* accessible-contrast variant of --gold for small text on white */
+  --amber-soft: #FEF3E2;
+
+  /* Error */
+  --coral: #EF4444;
+  --coral-soft: #FEECEC;
+
+  /* Warning — topics needing attention, medium performance, incomplete */
+  --warning: #F97316;
+  --warning-soft: #FFF1E7;
 }
 
 .msingi {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  color: var(--ink);
+  color: var(--text);
   background: var(--stone);
   font-weight: 500;
 }
-.msingi .disp { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 800; }
+.msingi .disp { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 800; color: var(--ink); }
 .msingi .mono { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 600; }
 .msingi button { font-weight: 600; }
+.msingi h1, .msingi h2, .msingi h3 { color: var(--ink); }
 
-.brick { position: relative; }
-.brick::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(180deg, rgba(198, 138, 62, 0.10), rgba(198, 138, 62, 0) 40%);
-  pointer-events: none;
-}
+.brick { position: relative; transition: transform .18s ease, box-shadow .18s ease; }
+.brick:hover { transform: translateY(-2px); }
 
 .tap { transition: transform .12s ease, box-shadow .12s ease; }
 .tap:active { transform: scale(0.97); }

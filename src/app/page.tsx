@@ -13,7 +13,7 @@ export default function Landing() {
         </div>
         <div className="flex items-center gap-3">
           <Link href="/login" className="text-sm font-semibold text-[--ink-soft]">Log in</Link>
-          <Link href="/register" className="tap px-4 py-2 rounded-full text-sm font-semibold text-white" style={{ background: "var(--ink)" }}>Start Learning</Link>
+          <Link href="/register" className="tap px-4 py-2 rounded-full text-sm font-semibold text-white" style={{ background: "var(--primary)" }}>Start Learning</Link>
         </div>
       </div>
 
@@ -23,8 +23,8 @@ export default function Landing() {
           <h1 className="disp text-5xl md:text-6xl font-bold leading-[1.05] mt-5">Learn. Practise.<br />Grow.</h1>
           <p className="text-[--ink-soft] text-lg mt-5 max-w-md">Msingi is your complete CBC learning playground — helping learners understand concepts, practise confidently, test their knowledge and improve every day.</p>
           <div className="flex gap-3 mt-8">
-            <Link href="/register" className="tap px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--gold-deep)" }}>Start Learning</Link>
-            <Link href="/register" className="tap px-6 py-3 rounded-full font-semibold border" style={{ borderColor: "var(--ink)" }}>Explore CBC</Link>
+            <Link href="/register" className="tap px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Start Learning</Link>
+            <Link href="/register" className="tap px-6 py-3 rounded-full font-semibold border" style={{ borderColor: "var(--primary)" }}>Explore CBC</Link>
           </div>
         </div>
         <div className="relative fade-in">
@@ -59,7 +59,7 @@ export default function Landing() {
 
       <div className="text-center py-16 border-t" style={{ borderColor: "var(--slate)" }}>
         <div className="disp text-3xl font-bold mb-2">Every learner needs a strong foundation.</div>
-        <Link href="/register" className="tap inline-block mt-6 px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--ink)" }}>Start Learning</Link>
+        <Link href="/register" className="tap inline-block mt-6 px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Start Learning</Link>
       </div>
     </div>
   );

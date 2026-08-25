@@ -40,7 +40,7 @@ export default function PlaygroundActivityPage() {
         ) : (
           <>
             <div>
-              <h1 className="disp text-2xl font-bold">{activity.title}</h1>
+              <h1 className="disp text-3xl font-bold">{activity.title}</h1>
               <p className="text-sm text-[--ink-soft] mt-1">{activity.description}</p>
             </div>
             <div className="brick bg-[--stone-2] rounded-2xl p-5">

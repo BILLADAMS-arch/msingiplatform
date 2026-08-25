@@ -80,7 +80,7 @@ export default function AdminResourcesPage() {
         </select>
         <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="w-full text-sm" />
         {error && <p className="text-sm text-[--coral]">{error}</p>}
-        <button disabled={uploading || !file || !title.trim()} onClick={upload} className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>
+        <button disabled={uploading || !file || !title.trim()} onClick={upload} className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
           {uploading ? "Uploading…" : "Upload"}
         </button>
       </div>

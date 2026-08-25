@@ -46,7 +46,7 @@ export function Shell({ children, name, xp, streak, variant = "student" }: { chi
   const { mobile, desktop, home } = NAV_BY_VARIANT[variant];
   return (
     <div className="msingi min-h-screen pb-20 md:pb-0">
-      <div className="sticky top-0 z-20 backdrop-blur border-b" style={{ background: "rgba(246,243,236,0.9)", borderColor: "var(--slate)" }}>
+      <div className="sticky top-0 z-20 backdrop-blur border-b" style={{ background: "rgba(247,250,255,0.85)", borderColor: "var(--slate)" }}>
         <div className="max-w-6xl mx-auto px-5 py-3 flex items-center justify-between">
           <Link href={home} className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -55,13 +55,13 @@ export function Shell({ children, name, xp, streak, variant = "student" }: { chi
           </Link>
           <div className="hidden md:flex items-center gap-1">
             {desktop.map((n) => (
-              <Link key={n.href} href={n.href} className={`tap flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium ${pathname.startsWith(n.href) ? "text-[--gold-deep]" : "text-[--ink-soft]"}`}>
+              <Link key={n.href} href={n.href} className={`tap flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium ${pathname.startsWith(n.href) ? "text-[--primary]" : "text-[--ink-soft]"}`}>
                 {n.icon}{n.label}
               </Link>
             ))}
           </div>
           <div className="flex items-center gap-3">
-            {typeof streak === "number" && <Pill tone="coral"><Flame size={12} /> {streak}</Pill>}
+            {typeof streak === "number" && <Pill tone="gold"><Flame size={12} /> {streak}</Pill>}
             {typeof xp === "number" && <Pill tone="gold"><Star size={12} /> {xp} XP</Pill>}
             <Link href="/search" className="w-8 h-8 rounded-full flex items-center justify-center border" style={{ borderColor: "var(--slate)" }} title="Search">
               <Search size={16} />
@@ -76,7 +76,7 @@ export function Shell({ children, name, xp, streak, variant = "student" }: { chi
       <div className="max-w-6xl mx-auto px-5 py-6">{children}</div>
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around py-2 z-20" style={{ borderColor: "var(--slate)" }}>
         {mobile.map((n) => (
-          <Link key={n.href} href={n.href} className={`tap flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium ${pathname.startsWith(n.href) ? "text-[--gold-deep]" : "text-[--ink-soft]"}`}>
+          <Link key={n.href} href={n.href} className={`tap flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium ${pathname.startsWith(n.href) ? "text-[--primary]" : "text-[--ink-soft]"}`}>
             {n.icon}{n.label}
           </Link>
         ))}

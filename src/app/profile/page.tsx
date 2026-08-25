@@ -92,7 +92,7 @@ export default function ProfilePage() {
   return (
     <Shell variant={shellVariant} name={isStudent ? data?.profile?.name : name} xp={isStudent ? data?.profile?.xp : undefined} streak={isStudent ? data?.profile?.streak : undefined}>
       <div className="fade-in max-w-2xl mx-auto space-y-6">
-        <h1 className="disp text-2xl font-bold">My Profile</h1>
+        <h1 className="disp text-3xl font-bold">My Profile</h1>
 
         {!role ? <p className="text-sm text-[--ink-soft]">Loading…</p> : (
           <>
@@ -113,8 +113,8 @@ export default function ProfilePage() {
               <>
                 <div className="grid grid-cols-3 gap-3">
                   <StatCard icon={<Star size={18} />} label="XP" value={data.profile?.xp ?? 0} tone="gold" />
-                  <StatCard icon={<Flame size={18} />} label="Streak" value={`${data.profile?.streak ?? 1}d`} tone="coral" />
-                  <StatCard icon={<Trophy size={18} />} label="Achievements" value={data.achievements.unlocked.length} tone="green" />
+                  <StatCard icon={<Flame size={18} />} label="Streak" value={`${data.profile?.streak ?? 1}d`} tone="gold" />
+                  <StatCard icon={<Trophy size={18} />} label="Achievements" value={data.achievements.unlocked.length} tone="gold" />
                 </div>
 
                 <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
@@ -154,7 +154,7 @@ export default function ProfilePage() {
                   </label>
                 </>
               )}
-              <button disabled={savingProfile} onClick={saveProfile} className="tap px-5 py-2 rounded-full text-sm font-semibold text-white disabled:opacity-50" style={{ background: "var(--ink)" }}>
+              <button disabled={savingProfile} onClick={saveProfile} className="tap px-5 py-2 rounded-full text-sm font-semibold text-white disabled:opacity-50" style={{ background: "var(--primary)" }}>
                 {savingProfile ? "Saving…" : "Save changes"}
               </button>
               {saved && <span className="text-xs text-[--green] ml-3">Saved.</span>}
@@ -167,7 +167,7 @@ export default function ProfilePage() {
               <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password"
                 className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
               {passwordStatus && <p className="text-sm text-[--ink-soft]">{passwordStatus}</p>}
-              <button disabled={changingPassword || !newPassword} onClick={changePassword} className="tap px-5 py-2 rounded-full text-sm font-semibold text-white disabled:opacity-50" style={{ background: "var(--ink)" }}>
+              <button disabled={changingPassword || !newPassword} onClick={changePassword} className="tap px-5 py-2 rounded-full text-sm font-semibold text-white disabled:opacity-50" style={{ background: "var(--primary)" }}>
                 {changingPassword ? "Updating…" : "Update Password"}
               </button>
             </div>

@@ -29,9 +29,9 @@ export default function AdminUsersPage() {
   return (
     <AdminShell title="Users">
       <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <button onClick={() => setFilter("")} className={`tap px-3 py-1.5 rounded-full text-xs font-semibold border ${!filter ? "text-white" : ""}`} style={{ borderColor: "var(--ink)", background: !filter ? "var(--ink)" : "white" }}>All</button>
+        <button onClick={() => setFilter("")} className={`tap px-3 py-1.5 rounded-full text-xs font-semibold border ${!filter ? "text-white" : ""}`} style={{ borderColor: "var(--primary)", background: !filter ? "var(--primary)" : "white" }}>All</button>
         {ROLES.map((r) => (
-          <button key={r} onClick={() => setFilter(r)} className={`tap px-3 py-1.5 rounded-full text-xs font-semibold border ${filter === r ? "text-white" : ""}`} style={{ borderColor: "var(--ink)", background: filter === r ? "var(--ink)" : "white" }}>{r}</button>
+          <button key={r} onClick={() => setFilter(r)} className={`tap px-3 py-1.5 rounded-full text-xs font-semibold border ${filter === r ? "text-white" : ""}`} style={{ borderColor: "var(--primary)", background: filter === r ? "var(--primary)" : "white" }}>{r}</button>
         ))}
       </div>
 

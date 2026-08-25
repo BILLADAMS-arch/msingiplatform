@@ -61,40 +61,42 @@ export default function PlaygroundPage() {
 
   return (
     <Shell>
-      <div className="fade-in space-y-8">
+      <div className="fade-in space-y-6">
         <PlaygroundHero />
 
         <div>
-          <h1 className="disp text-2xl font-bold">Msingi Playground</h1>
+          <h1 className="disp text-3xl font-bold">Msingi Playground</h1>
           <p className="text-sm text-[--ink-soft]">A digital laboratory for hands-on learning — explore, don&apos;t just read.</p>
         </div>
 
-        {!activities ? (
-          <p className="text-sm text-[--ink-soft]">Loading…</p>
-        ) : (
-          byArea.map(({ area, items }) => (
-            <div key={area}>
-              <h3 className="disp font-bold mb-3">{AREA_ICON[area]} {AREA_LABEL[area] ?? area}</h3>
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {items.map((it) => {
-                  const built = it.slug && PLAYGROUND_REGISTRY[it.slug];
-                  const card = (
-                    <div className={`brick bg-white rounded-2xl p-5 border relative h-full ${built ? "" : "opacity-70"}`} style={{ borderColor: "var(--slate)" }}>
-                      <div className="font-semibold text-sm">{it.title}</div>
-                      <div className="text-xs text-[--ink-soft] mt-1">{it.description}</div>
-                      <div className="mt-2"><Pill tone={built ? "green" : "gold"}>{built ? "Try it" : "Coming soon"}</Pill></div>
-                    </div>
-                  );
-                  return built ? (
-                    <Link key={it.id} href={`/playground/${it.slug}`} className="tap">{card}</Link>
-                  ) : (
-                    <div key={it.id} className="cursor-not-allowed">{card}</div>
-                  );
-                })}
+        <div className="rounded-3xl p-4 sm:p-6 space-y-8" style={{ background: "var(--stone-2)" }}>
+          {!activities ? (
+            <p className="text-sm text-[--ink-soft]">Loading…</p>
+          ) : (
+            byArea.map(({ area, items }) => (
+              <div key={area}>
+                <h3 className="disp font-bold mb-3">{AREA_ICON[area]} {AREA_LABEL[area] ?? area}</h3>
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {items.map((it) => {
+                    const built = it.slug && PLAYGROUND_REGISTRY[it.slug];
+                    const card = (
+                      <div className={`brick bg-white rounded-2xl p-5 border relative h-full ${built ? "" : "opacity-70"}`} style={{ borderColor: "var(--slate)" }}>
+                        <div className="font-semibold text-sm">{it.title}</div>
+                        <div className="text-xs text-[--ink-soft] mt-1">{it.description}</div>
+                        <div className="mt-2"><Pill tone={built ? "green" : "gold"}>{built ? "Try it" : "Coming soon"}</Pill></div>
+                      </div>
+                    );
+                    return built ? (
+                      <Link key={it.id} href={`/playground/${it.slug}`} className="tap">{card}</Link>
+                    ) : (
+                      <div key={it.id} className="cursor-not-allowed">{card}</div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
     </Shell>
   );

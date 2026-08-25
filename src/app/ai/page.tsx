@@ -69,8 +69,8 @@ function AiInner() {
     <Shell>
       <div className="fade-in max-w-2xl mx-auto flex flex-col" style={{ height: "calc(100vh - 140px)" }}>
         <div className="flex items-center gap-2 mb-4">
-          <Sparkles size={20} className="text-[--gold-deep]" />
-          <h1 className="disp text-2xl font-bold">Msingi AI</h1>
+          <Sparkles size={20} className="text-[--primary]" />
+          <h1 className="disp text-3xl font-bold">Msingi AI</h1>
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-3 pb-4">
@@ -90,7 +90,7 @@ function AiInner() {
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className="max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap"
-                    style={{ background: m.role === "user" ? "var(--ink)" : "white", color: m.role === "user" ? "white" : "var(--ink)", border: m.role === "assistant" ? "1px solid var(--slate)" : "none" }}>
+                    style={{ background: m.role === "user" ? "var(--primary)" : "white", color: m.role === "user" ? "white" : "var(--ink)", border: m.role === "assistant" ? "1px solid var(--slate)" : "none" }}>
                     {m.content}
                   </div>
                 </div>
@@ -112,7 +112,7 @@ function AiInner() {
           <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !sending && send()}
             placeholder="Ask Msingi AI…" disabled={sending}
             className="flex-1 border rounded-full px-4 py-2.5 text-sm outline-none disabled:opacity-60" style={{ borderColor: "var(--slate)" }} />
-          <button onClick={() => send()} disabled={sending || !input.trim()} className="tap w-11 h-11 rounded-full flex items-center justify-center text-white disabled:opacity-40" style={{ background: "var(--gold-deep)" }}>
+          <button onClick={() => send()} disabled={sending || !input.trim()} className="tap w-11 h-11 rounded-full flex items-center justify-center text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
             <Send size={16} />
           </button>
         </div>

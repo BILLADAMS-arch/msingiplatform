@@ -25,7 +25,7 @@ export function NumberLine({ onFirstUse }: { onFirstUse: () => void }) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="disp text-xl font-bold">Find <span style={{ color: "var(--gold-deep)" }}>{target}</span> on the number line</div>
+        <div className="disp text-xl font-bold">Find <span style={{ color: "var(--primary)" }}>{target}</span> on the number line</div>
         {guess !== null && <div className={`text-sm font-semibold mt-1 ${correct ? "text-[--green]" : "text-[--coral]"}`}>{correct ? "Correct! 🎉" : `You placed ${guess} — try again.`}</div>}
       </div>
 

@@ -27,7 +27,7 @@ export default function MistakesPage() {
         </div>
       ) : (
         <div className="fade-in space-y-4">
-          <h1 className="disp text-2xl font-bold">My Mistakes</h1>
+          <h1 className="disp text-3xl font-bold">My Mistakes</h1>
           {mistakes.map((m) => (
             <div key={m.id} className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
               <Pill tone="coral">{m.topic}</Pill>
@@ -37,7 +37,7 @@ export default function MistakesPage() {
               <p className="text-xs text-[--ink-soft] mt-1">{m.explanation}</p>
               <div className="flex items-center gap-2 mt-3">
                 <button onClick={() => markMastered(m.id)} className="tap text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--green-soft)", color: "var(--green)" }}>Mark as Mastered</button>
-                <Link href={`/ai?mistakeId=${m.id}`} className="tap flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--amber-soft)", color: "var(--gold-deep)" }}>
+                <Link href={`/ai?mistakeId=${m.id}`} className="tap flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--primary-soft)", color: "var(--primary-deep)" }}>
                   <Sparkles size={12} /> Ask Msingi AI
                 </Link>
               </div>

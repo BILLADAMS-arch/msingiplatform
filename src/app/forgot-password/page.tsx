@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-full.png" alt="Msingi" className="h-16 object-contain" />
         </div>
-        <h1 className="disp text-2xl font-bold text-center">Reset your password</h1>
+        <h1 className="disp text-3xl font-bold text-center">Reset your password</h1>
         {sent ? (
           <p className="text-sm text-[--ink-soft] text-center">If an account exists for {email}, we&apos;ve sent a password reset link — check your inbox.</p>
         ) : (
@@ -34,12 +34,12 @@ export default function ForgotPasswordPage() {
             <p className="text-sm text-[--ink-soft] text-center">Enter your account email and we&apos;ll send you a reset link.</p>
             <input type="email" required placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" style={{ borderColor: "var(--slate)" }} />
             {error && <p className="text-sm text-[--coral]">{error}</p>}
-            <button disabled={loading} type="submit" className="tap w-full px-6 py-3 rounded-full font-semibold text-white disabled:opacity-50" style={{ background: "var(--ink)" }}>
+            <button disabled={loading} type="submit" className="tap w-full px-6 py-3 rounded-full font-semibold text-white disabled:opacity-50" style={{ background: "var(--primary)" }}>
               {loading ? "Sending…" : "Send reset link"}
             </button>
           </form>
         )}
-        <p className="text-center text-sm text-[--ink-soft]"><a href="/login" className="font-semibold text-[--gold-deep]">Back to log in</a></p>
+        <p className="text-center text-sm text-[--ink-soft]"><a href="/login" className="font-semibold text-[--primary]">Back to log in</a></p>
       </div>
     </div>
   );

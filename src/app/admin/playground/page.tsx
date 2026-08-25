@@ -47,7 +47,7 @@ export default function AdminPlaygroundPage() {
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="flex-1 border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
         </div>
         <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
-        <button disabled={!title.trim() || !description.trim()} onClick={create} className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>Add</button>
+        <button disabled={!title.trim() || !description.trim()} onClick={create} className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>Add</button>
       </div>
 
       {!activities ? <p className="text-sm text-[--ink-soft]">Loading…</p> : (

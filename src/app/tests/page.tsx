@@ -24,8 +24,8 @@ export default function TestsPage() {
   return (
     <Shell>
       <div className="fade-in space-y-6 max-w-lg mx-auto text-center py-6">
-        <ClipboardCheck size={36} className="mx-auto text-[--gold-deep]" />
-        <h1 className="disp text-2xl font-bold">Tests</h1>
+        <ClipboardCheck size={36} className="mx-auto text-[--primary]" />
+        <h1 className="disp text-3xl font-bold">Tests</h1>
         {!tests ? (
           <p className="text-sm text-[--ink-soft]">Loading tests…</p>
         ) : tests.length === 0 ? (

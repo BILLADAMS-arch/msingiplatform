@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/shell";
 import { FoundationBar } from "@/components/ui";
+import { subjectAccent } from "@/lib/subject-colors";
 import { CheckCircle2, Target, Lock, Layers } from "lucide-react";
 
 type Subject = { id: string; name: string };
@@ -73,7 +74,7 @@ function LearnInner() {
         </div>
 
         <div>
-          <h1 className="disp text-2xl font-bold">{activeSubject?.name ?? "Learn"}</h1>
+          <h1 className="disp text-3xl font-bold">{activeSubject?.name ?? "Learn"}</h1>
           <p className="text-sm text-[--ink-soft]">{gradeName || "…"} · {overall}% mastery</p>
           <div className="max-w-sm mt-2"><FoundationBar pct={overall} tone="green" /></div>
         </div>
@@ -82,10 +83,11 @@ function LearnInner() {
           <div className="flex flex-wrap gap-2">
             {subjects.map((s) => {
               const active = s.id === activeSubject?.id;
+              const accent = subjectAccent(s.name);
               return (
                 <button key={s.id} onClick={() => router.push(`/learn?subject=${encodeURIComponent(s.name)}`)}
                   className="tap px-4 py-2 rounded-full border text-sm font-semibold"
-                  style={{ borderColor: active ? "var(--gold-deep)" : "var(--slate)", background: active ? "var(--gold-deep)" : "white", color: active ? "white" : "var(--ink)" }}>
+                  style={{ borderColor: active ? accent.color : "var(--slate)", background: active ? accent.color : "white", color: active ? "white" : "var(--ink)" }}>
                   {s.name}
                 </button>
               );
@@ -122,7 +124,7 @@ function LearnInner() {
                   <div key={t.id} className="flex items-center gap-1">
                     <Link href={`/learn/lesson/${t.lessonId}`}
                       className="tap flex items-center gap-2 rounded-xl px-4 py-3 border text-sm font-medium text-white"
-                      style={{ borderColor: "var(--gold-deep)", background: "var(--gold-deep)" }}>
+                      style={{ borderColor: "var(--primary)", background: "var(--primary)" }}>
                       {content}
                     </Link>
                     <Link href={`/flashcards?topic=${encodeURIComponent(t.name)}`} title={`${t.name} flashcards`}

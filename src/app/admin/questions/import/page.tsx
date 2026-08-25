@@ -68,7 +68,7 @@ export default function ImportQuestionsPage() {
           <textarea value={json} onChange={(e) => setJson(e.target.value)} rows={14} className="w-full border rounded-xl px-3 py-2 text-xs font-mono" style={{ borderColor: "var(--slate)" }} />
         </div>
         {error && <p className="text-sm text-[--coral]">{error}</p>}
-        <button disabled={saving || !topicId} onClick={submit} className="tap px-6 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>
+        <button disabled={saving || !topicId} onClick={submit} className="tap px-6 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
           {saving ? "Importing…" : "Import"}
         </button>
       </div>

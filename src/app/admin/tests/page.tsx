@@ -28,7 +28,7 @@ export default function AdminTestsPage() {
   return (
     <AdminShell title="Tests">
       <div className="flex justify-end mb-4">
-        <Link href="/admin/tests/new" className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--ink)" }}>
+        <Link href="/admin/tests/new" className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--primary)" }}>
           <Plus size={14} /> New Test
         </Link>
       </div>
@@ -39,7 +39,7 @@ export default function AdminTestsPage() {
           {tests.map((t) => (
             <div key={t.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b last:border-0" style={{ borderColor: "var(--stone-2)" }}>
               <div className="min-w-0">
-                <Link href={`/admin/tests/${t.id}`} className="tap font-medium text-sm hover:text-[--gold-deep]">{t.title}</Link>
+                <Link href={`/admin/tests/${t.id}`} className="tap font-medium text-sm hover:text-[--primary]">{t.title}</Link>
                 <div className="text-xs text-[--ink-soft]">{t.subjectName} · {t.type}</div>
               </div>
               <div className="flex items-center gap-3 shrink-0">

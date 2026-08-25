@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/shell";
 import { FoundationBar, Pill, TopicChip } from "@/components/ui";
-import { Clock, AlertCircle, ChevronLeft, ChevronRight, Dumbbell } from "lucide-react";
+import { ScoreRing } from "@/components/charts";
+import { Clock, ChevronLeft, ChevronRight, Dumbbell } from "lucide-react";
 
 type TQuestion = { id: string; type: string; prompt: string; topicId: string; options: { id: string; label: string }[] };
 type StartResp = { attemptId: string; test: { id: string; title: string; timeLimitSeconds: number | null; passingThreshold: number }; questions: TQuestion[] };
@@ -74,7 +75,7 @@ export default function TestPage() {
               Your answers are graded on submit; nothing is revealed until then.
             </p>
           )}
-          <button disabled={!meta} onClick={begin} className="tap px-6 py-3 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>Start Test</button>
+          <button disabled={!meta} onClick={begin} className="tap px-6 py-3 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>Start Test</button>
         </div>
       </Shell>
     );
@@ -90,11 +91,11 @@ export default function TestPage() {
             <div className="flex items-center gap-2 text-sm font-semibold"><Clock size={16} /> {mmss}</div>
             <div className="text-sm text-[--ink-soft]">Question {idx + 1} of {session.questions.length}</div>
           </div>
-          <FoundationBar pct={(idx / session.questions.length) * 100} tone="gold" />
+          <FoundationBar pct={(idx / session.questions.length) * 100} />
           <div className="flex gap-1.5 flex-wrap">
             {session.questions.map((qq, i) => (
               <button key={qq.id} onClick={() => setIdx(i)} className="tap w-7 h-7 rounded-lg text-xs font-semibold border"
-                style={{ borderColor: "var(--slate)", background: i === idx ? "var(--ink)" : answers[qq.id] ? "var(--green-soft)" : "white", color: i === idx ? "white" : "var(--ink)" }}>
+                style={{ borderColor: "var(--slate)", background: i === idx ? "var(--primary)" : answers[qq.id] ? "var(--green-soft)" : "white", color: i === idx ? "white" : "var(--ink)" }}>
                 {i + 1}
               </button>
             ))}
@@ -108,14 +109,14 @@ export default function TestPage() {
                 onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
                 placeholder={q.type === "numerical" ? "Enter a number" : "Type your answer"}
                 className="w-full border rounded-xl px-4 py-3 text-sm outline-none"
-                style={{ borderColor: answers[q.id] ? "var(--gold-deep)" : "var(--slate)" }}
+                style={{ borderColor: answers[q.id] ? "var(--primary)" : "var(--slate)" }}
               />
             ) : (
             <div className="grid sm:grid-cols-2 gap-3">
               {q.options.map((opt, i) => (
                 <button key={opt.id} onClick={() => setAnswers((a) => ({ ...a, [q.id]: opt.id }))}
                   className="tap border rounded-xl px-4 py-3 text-sm font-medium text-left"
-                  style={{ borderColor: answers[q.id] === opt.id ? "var(--gold-deep)" : "var(--slate)", background: answers[q.id] === opt.id ? "var(--amber-soft)" : "white" }}>
+                  style={{ borderColor: answers[q.id] === opt.id ? "var(--primary)" : "var(--slate)", background: answers[q.id] === opt.id ? "var(--primary-soft)" : "white" }}>
                   {String.fromCharCode(65 + i)}. {opt.label}
                 </button>
               ))}
@@ -125,7 +126,7 @@ export default function TestPage() {
           <div className="flex justify-between">
             <button disabled={idx === 0} onClick={() => setIdx((i) => i - 1)} className="tap px-4 py-2 text-sm font-medium disabled:opacity-30 flex items-center gap-1"><ChevronLeft size={16} />Previous</button>
             {idx < session.questions.length - 1 ? (
-              <button onClick={() => setIdx((i) => i + 1)} className="tap px-6 py-2.5 rounded-full font-semibold text-white flex items-center gap-1" style={{ background: "var(--ink)" }}>Next <ChevronRight size={16} /></button>
+              <button onClick={() => setIdx((i) => i + 1)} className="tap px-6 py-2.5 rounded-full font-semibold text-white flex items-center gap-1" style={{ background: "var(--primary)" }}>Next <ChevronRight size={16} /></button>
             ) : (
               <button onClick={submit} className="tap px-6 py-2.5 rounded-full font-semibold text-white" style={{ background: "var(--green)" }}>Submit Test</button>
             )}
@@ -142,17 +143,19 @@ export default function TestPage() {
       <Shell>
         <div className="fade-in max-w-2xl mx-auto space-y-6">
           <div className="text-center">
-            <h1 className="disp text-3xl font-bold mb-1">{failed ? "Let's improve this 💪" : "Test Complete 🎉"}</h1>
+            <h1 className="disp text-3xl font-bold mb-1">{failed ? "Let's improve this 💪" : "Great effort! 🎉"}</h1>
             {failed && <p className="text-sm text-[--ink-soft] mb-3">You scored:</p>}
-            <div className="disp text-5xl font-bold mt-2" style={{ color: failed ? "var(--coral)" : "var(--green)" }}>{result.score}%</div>
+            <ScoreRing pct={result.score} tone="blue">
+              <div className="disp text-3xl font-bold" style={{ color: "var(--primary)" }}>{result.score}%</div>
+            </ScoreRing>
             {result.previousScore !== null && (
-              <Pill tone={(result.improvement ?? 0) >= 0 ? "green" : "coral"}>{(result.improvement ?? 0) >= 0 ? "+" : ""}{result.improvement}% vs previous attempt</Pill>
+              <div className="mt-2"><Pill tone={(result.improvement ?? 0) >= 0 ? "green" : "coral"}>{(result.improvement ?? 0) >= 0 ? "+" : ""}{result.improvement}% vs previous attempt</Pill></div>
             )}
           </div>
           <div className="grid grid-cols-3 gap-3 text-center text-sm">
-            <div className="bg-white rounded-xl p-3 border" style={{ borderColor: "var(--slate)" }}><div className="font-bold text-lg">{result.correct}/{result.total}</div><div className="text-[--ink-soft] text-xs">Correct</div></div>
-            <div className="bg-white rounded-xl p-3 border" style={{ borderColor: "var(--slate)" }}><div className="font-bold text-lg">{result.timeTaken}</div><div className="text-[--ink-soft] text-xs">Time taken</div></div>
-            <div className="bg-white rounded-xl p-3 border" style={{ borderColor: "var(--slate)" }}><div className="font-bold text-lg">+{result.xpAwarded}</div><div className="text-[--ink-soft] text-xs">XP earned</div></div>
+            <div className="bg-white rounded-xl p-3 border" style={{ borderColor: "var(--slate)" }}><div className="disp font-bold text-lg" style={{ color: "var(--primary)" }}>{result.correct}/{result.total}</div><div className="text-[--ink-soft] text-xs">Correct</div></div>
+            <div className="bg-white rounded-xl p-3 border" style={{ borderColor: "var(--slate)" }}><div className="disp font-bold text-lg">{result.timeTaken}</div><div className="text-[--ink-soft] text-xs">Time taken</div></div>
+            <div className="bg-white rounded-xl p-3 border" style={{ borderColor: "var(--slate)" }}><div className="disp font-bold text-lg" style={{ color: "var(--gold-deep)" }}>+{result.xpAwarded}</div><div className="text-[--ink-soft] text-xs">XP earned</div></div>
           </div>
           <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
             <h3 className="disp font-bold mb-3">Performance by Topic</h3>
@@ -170,10 +173,10 @@ export default function TestPage() {
               <ol className="text-sm space-y-1 list-decimal list-inside text-[--ink-soft]">
                 <li>Review your weakest topic</li><li>Practise 5 targeted questions</li><li>Review your mistakes</li><li>Complete a mini quiz</li><li>Retake the test</li>
               </ol>
-              <button onClick={() => setStage("remediation")} className="tap mt-4 w-full px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--coral)" }}>Start Revision</button>
+              <button onClick={() => setStage("remediation")} className="tap mt-4 w-full px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Start Revision</button>
             </div>
           ) : (
-            <button onClick={() => router.push("/dashboard")} className="tap w-full px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--green)" }}>Continue</button>
+            <button onClick={() => router.push("/dashboard")} className="tap w-full px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Continue</button>
           )}
         </div>
       </Shell>
@@ -188,19 +191,19 @@ export default function TestPage() {
         <div className="fade-in max-w-xl mx-auto text-center space-y-5 py-10">
           {remediationStep < 2 ? (
             <>
-              <Dumbbell size={36} className="mx-auto text-[--gold-deep]" />
-              <h1 className="disp text-2xl font-bold">Review &amp; Practise: {topic}</h1>
+              <Dumbbell size={36} className="mx-auto text-[--primary]" />
+              <h1 className="disp text-3xl font-bold">Review &amp; Practise: {topic}</h1>
               <p className="text-sm text-[--ink-soft]">Head to Practice for {topic}, then come back here to retake the test.</p>
-              <a href={`/practice?topic=${encodeURIComponent(topic)}`} className="tap inline-block px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--ink)" }}>Go Practise {topic}</a>
+              <a href={`/practice?topic=${encodeURIComponent(topic)}`} className="tap inline-block px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Go Practise {topic}</a>
               <div>
-                <button onClick={() => setRemediationStep(2)} className="text-sm font-semibold text-[--gold-deep] mt-4">I've practised — I'm ready</button>
+                <button onClick={() => setRemediationStep(2)} className="text-sm font-semibold text-[--primary] mt-4">I've practised — I'm ready</button>
               </div>
             </>
           ) : (
             <>
               <div className="disp text-2xl font-bold">You're ready to try again! 🚀</div>
               <p className="text-sm text-[--ink-soft]">Mistakes from this attempt are saved in your Mistake Book too.</p>
-              <button onClick={() => { setStage("intro"); setResult(null); setAnswers({}); setIdx(0); setSeconds(0); setRemediationStep(0); }} className="tap px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--gold-deep)" }}>Retake Test</button>
+              <button onClick={() => { setStage("intro"); setResult(null); setAnswers({}); setIdx(0); setSeconds(0); setRemediationStep(0); }} className="tap px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Retake Test</button>
             </>
           )}
         </div>

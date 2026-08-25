@@ -34,7 +34,7 @@ export function AdminShell({ children, title }: { children: React.ReactNode; tit
             return (
               <Link key={n.href} href={n.href}
                 className={`tap flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium ${active ? "text-white" : "text-[--ink-soft]"}`}
-                style={{ background: active ? "var(--ink)" : "transparent" }}>
+                style={{ background: active ? "var(--primary)" : "transparent" }}>
                 {n.icon}{n.label}
               </Link>
             );
@@ -45,7 +45,7 @@ export function AdminShell({ children, title }: { children: React.ReactNode; tit
         </button>
       </div>
       <div className="flex-1 min-w-0">
-        <div className="sticky top-0 z-20 backdrop-blur border-b md:hidden" style={{ background: "rgba(246,243,236,0.9)", borderColor: "var(--slate)" }}>
+        <div className="sticky top-0 z-20 backdrop-blur border-b md:hidden" style={{ background: "rgba(247,250,255,0.85)", borderColor: "var(--slate)" }}>
           <div className="px-5 py-3 flex items-center gap-2 overflow-x-auto">
             {NAV.map((n) => (
               <Link key={n.href} href={n.href} className="tap whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium border" style={{ borderColor: "var(--slate)" }}>

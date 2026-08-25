@@ -18,13 +18,13 @@ export default function LeaderboardPage() {
       <div className="fade-in max-w-lg mx-auto space-y-5">
         <div className="text-center">
           <Trophy size={32} className="mx-auto text-[--gold-deep] mb-2" />
-          <h1 className="disp text-2xl font-bold">Leaderboard</h1>
+          <h1 className="disp text-3xl font-bold">Leaderboard</h1>
           <p className="text-sm text-[--ink-soft]">Ranked by total XP, within your grade.</p>
         </div>
 
         {data?.optedOut && (
           <div className="text-center text-sm bg-[--stone-2] rounded-xl p-3">
-            You&apos;ve hidden yourself from leaderboards. Change this in your <Link href="/profile" className="font-semibold text-[--gold-deep]">Profile</Link>.
+            You&apos;ve hidden yourself from leaderboards. Change this in your <Link href="/profile" className="font-semibold text-[--primary]">Profile</Link>.
           </div>
         )}
 

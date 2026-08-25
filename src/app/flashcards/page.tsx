@@ -58,7 +58,7 @@ function FlashcardsInner() {
           <Layers size={36} className="mx-auto text-[--ink-soft] mb-3" />
           <h2 className="disp text-xl font-bold mb-1">No flashcards yet</h2>
           <p className="text-sm text-[--ink-soft]">
-            {topic ? <>There isn&apos;t a flashcard set for {topic} yet.</> : <>Open a topic from <a href="/learn" className="font-semibold text-[--gold-deep]">Learn</a> to review its flashcards.</>}
+            {topic ? <>There isn&apos;t a flashcard set for {topic} yet.</> : <>Open a topic from <a href="/learn" className="font-semibold text-[--primary]">Learn</a> to review its flashcards.</>}
           </p>
         </div>
       </Shell>
@@ -69,10 +69,10 @@ function FlashcardsInner() {
     return (
       <Shell>
         <div className="fade-in max-w-md mx-auto text-center space-y-4 py-10">
-          <Layers size={36} className="mx-auto text-[--gold-deep]" />
-          <h1 className="disp text-2xl font-bold">Deck Complete!</h1>
+          <Layers size={36} className="mx-auto text-[--primary]" />
+          <h1 className="disp text-3xl font-bold">Deck Complete!</h1>
           <p className="text-[--ink-soft]">You reviewed all {cards.length} cards for {topic}.</p>
-          <button onClick={reshuffle} className="tap px-6 py-3 rounded-full font-semibold text-white flex items-center gap-2 mx-auto" style={{ background: "var(--gold-deep)" }}>
+          <button onClick={reshuffle} className="tap px-6 py-3 rounded-full font-semibold text-white flex items-center gap-2 mx-auto" style={{ background: "var(--primary)" }}>
             <Shuffle size={16} /> Review Again
           </button>
         </div>
@@ -86,7 +86,7 @@ function FlashcardsInner() {
     <Shell>
       <div className="fade-in max-w-xl mx-auto space-y-5">
         <div className="flex items-center justify-between">
-          <h1 className="disp text-2xl font-bold">Flashcards — {topic}</h1>
+          <h1 className="disp text-3xl font-bold">Flashcards — {topic}</h1>
           <button onClick={reshuffle} className="tap flex items-center gap-1 text-xs font-semibold text-[--ink-soft]"><Shuffle size={14} /> Shuffle</button>
         </div>
         <div className="text-sm text-[--ink-soft]">Card {idx + 1} of {cards.length}</div>

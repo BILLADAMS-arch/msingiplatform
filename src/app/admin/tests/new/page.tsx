@@ -58,7 +58,7 @@ export default function NewTestPage() {
             <input type="number" min={0} max={100} value={passingThreshold} onChange={(e) => setPassingThreshold(Number(e.target.value))} className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
           </div>
         </div>
-        <button disabled={saving || !title.trim() || !subjectId} onClick={create} className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>
+        <button disabled={saving || !title.trim() || !subjectId} onClick={create} className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
           {saving ? "Creating…" : "Create & continue"}
         </button>
       </div>

@@ -66,12 +66,12 @@ export default function ClassDetailPage() {
   return (
     <Shell variant="teacher">
       <div className="fade-in space-y-5">
-        <h1 className="disp text-2xl font-bold">{detail?.class.name ?? "Class"}</h1>
+        <h1 className="disp text-3xl font-bold">{detail?.class.name ?? "Class"}</h1>
 
         <div className="flex gap-1">
           {(["performance", "roster", "assignments"] as Tab[]).map((t) => (
             <button key={t} onClick={() => setTab(t)} className={`tap px-4 py-2 rounded-full text-sm font-semibold capitalize ${tab === t ? "text-white" : ""}`}
-              style={{ background: tab === t ? "var(--ink)" : "white", border: "1px solid var(--slate)" }}>
+              style={{ background: tab === t ? "var(--primary)" : "white", border: "1px solid var(--slate)" }}>
               {t}
             </button>
           ))}
@@ -112,7 +112,7 @@ export default function ClassDetailPage() {
             <div className="flex items-center gap-2">
               <input value={newStudentEmail} onChange={(e) => setNewStudentEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addStudent()}
                 placeholder="Student email" className="flex-1 border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
-              <button onClick={addStudent} className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--ink)" }}><Plus size={14} /> Add</button>
+              <button onClick={addStudent} className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--primary)" }}><Plus size={14} /> Add</button>
             </div>
             {!detail ? <p className="text-sm text-[--ink-soft]">Loading…</p> : detail.roster.length === 0 ? (
               <div className="text-center py-12"><Users size={32} className="mx-auto text-[--ink-soft] mb-2" /><p className="text-sm text-[--ink-soft]">No students yet.</p></div>
@@ -135,7 +135,7 @@ export default function ClassDetailPage() {
               <select value={selectedTestId} onChange={(e) => setSelectedTestId(e.target.value)} className="flex-1 border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }}>
                 {availableTests?.map((t) => <option key={t.id} value={t.id}>{t.subjectName} — {t.title}</option>)}
               </select>
-              <button onClick={createAssignment} className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--ink)" }}><Plus size={14} /> Assign</button>
+              <button onClick={createAssignment} className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--primary)" }}><Plus size={14} /> Assign</button>
             </div>
             {!assignments ? <p className="text-sm text-[--ink-soft]">Loading…</p> : assignments.length === 0 ? (
               <div className="text-center py-12"><ClipboardCheck size={32} className="mx-auto text-[--ink-soft] mb-2" /><p className="text-sm text-[--ink-soft]">No assignments yet.</p></div>
@@ -144,7 +144,7 @@ export default function ClassDetailPage() {
                 {assignments.map((a) => (
                   <button key={a.id} onClick={() => viewCompletion(a)} className="tap w-full text-left flex items-center justify-between px-4 py-3 border-b last:border-0" style={{ borderColor: "var(--stone-2)" }}>
                     <span className="font-medium text-sm">{a.testTitle}</span>
-                    <span className="text-xs text-[--gold-deep] font-semibold">View completion →</span>
+                    <span className="text-xs text-[--primary] font-semibold">View completion →</span>
                   </button>
                 ))}
               </div>

@@ -75,22 +75,22 @@ function PracticeInner() {
     return (
       <Shell>
         <div className="fade-in max-w-md mx-auto text-center space-y-6 py-10">
-          <Dumbbell size={36} className="mx-auto text-[--gold-deep]" />
+          <Dumbbell size={36} className="mx-auto text-[--primary]" />
           {!topic ? (
             <>
-              <h1 className="disp text-2xl font-bold">Practice</h1>
+              <h1 className="disp text-3xl font-bold">Practice</h1>
               <p className="text-sm text-[--ink-soft]">Finding something for you to practise…</p>
             </>
           ) : (
             <>
-              <h1 className="disp text-2xl font-bold">Practise {topic}</h1>
+              <h1 className="disp text-3xl font-bold">Practise {topic}</h1>
               <p className="text-sm text-[--ink-soft]">Choose how many questions you'd like to try.</p>
               <div className="flex justify-center gap-2 flex-wrap">
                 {[5, 10, 20].map((c) => (
-                  <button key={c} onClick={() => setCount(c)} className={`tap px-4 py-2 rounded-full border text-sm font-semibold ${count === c ? "text-white" : ""}`} style={{ borderColor: count === c ? "var(--gold-deep)" : "var(--slate)", background: count === c ? "var(--gold-deep)" : "white" }}>{c} questions</button>
+                  <button key={c} onClick={() => setCount(c)} className={`tap px-4 py-2 rounded-full border text-sm font-semibold ${count === c ? "text-white" : ""}`} style={{ borderColor: count === c ? "var(--primary)" : "var(--slate)", background: count === c ? "var(--primary)" : "white" }}>{c} questions</button>
                 ))}
               </div>
-              <button onClick={start} className="tap px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--ink)" }}>Start Practice</button>
+              <button onClick={start} className="tap px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Start Practice</button>
             </>
           )}
         </div>
@@ -105,9 +105,9 @@ function PracticeInner() {
       <Shell>
         <div className="fade-in max-w-md mx-auto text-center space-y-4 py-10">
           <Trophy size={36} className="mx-auto text-[--gold-deep]" />
-          <h1 className="disp text-2xl font-bold">Practice Complete!</h1>
+          <h1 className="disp text-3xl font-bold">Practice Complete!</h1>
           <p className="text-[--ink-soft]">You got <b>{correctCount}</b> out of <b>{questions.length}</b> correct.</p>
-          <button onClick={() => router.push("/dashboard")} className="tap px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--gold-deep)" }}>Back to Dashboard</button>
+          <button onClick={() => router.push("/dashboard")} className="tap px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Back to Dashboard</button>
         </div>
       </Shell>
     );
@@ -144,7 +144,7 @@ function PracticeInner() {
                   else if (opt.id === chosen) style = { borderColor: "var(--coral)", background: "var(--coral-soft)" };
                 }
                 return (
-                  <button key={opt.id} disabled={checking} onClick={() => setChosen(opt.id)} className="tap border rounded-xl px-4 py-3 text-sm font-medium text-left" style={{ ...style, outline: chosen === opt.id && !checking ? "2px solid var(--gold-deep)" : "none" }}>
+                  <button key={opt.id} disabled={checking} onClick={() => setChosen(opt.id)} className="tap border rounded-xl px-4 py-3 text-sm font-medium text-left" style={{ ...style, outline: chosen === opt.id && !checking ? "2px solid var(--primary)" : "none" }}>
                     {String.fromCharCode(65 + i)}. {opt.label}
                   </button>
                 );
@@ -153,13 +153,13 @@ function PracticeInner() {
           )}
 
           {!checking ? (
-            <button disabled={q.type === "short_answer" || q.type === "numerical" ? !freeText.trim() : !chosen} onClick={submit} className="tap mt-5 px-6 py-2.5 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>Check Answer</button>
+            <button disabled={q.type === "short_answer" || q.type === "numerical" ? !freeText.trim() : !chosen} onClick={submit} className="tap mt-5 px-6 py-2.5 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>Check Answer</button>
           ) : (
             <div className="mt-5 fade-in">
               <p className={`font-semibold mb-1 ${result?.isCorrect ? "text-[--green]" : "text-[--coral]"}`}>{result?.isCorrect ? "Correct! 🎉" : "Not quite. Let's understand why."}</p>
               {!result?.isCorrect && result?.correctLabel && <p className="text-sm mb-1">Correct answer: <b>{result.correctLabel}</b></p>}
               <p className="text-sm text-[--ink-soft]">{result?.explanation}</p>
-              <button onClick={next} className="tap mt-4 px-6 py-2.5 rounded-full font-semibold text-white" style={{ background: "var(--gold-deep)" }}>Next</button>
+              <button onClick={next} className="tap mt-4 px-6 py-2.5 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Next</button>
             </div>
           )}
         </div>

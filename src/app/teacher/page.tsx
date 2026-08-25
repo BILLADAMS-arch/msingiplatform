@@ -26,12 +26,12 @@ export default function TeacherPage() {
   return (
     <Shell variant="teacher">
       <div className="fade-in space-y-6">
-        <h1 className="disp text-2xl font-bold">My Classes</h1>
+        <h1 className="disp text-3xl font-bold">My Classes</h1>
 
         <div className="flex items-center gap-2">
           <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && create()}
             placeholder="New class name, e.g. Grade 7 Blue" className="flex-1 border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
-          <button disabled={creating || !name.trim()} onClick={create} className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>
+          <button disabled={creating || !name.trim()} onClick={create} className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
             <Plus size={14} /> Create
           </button>
         </div>

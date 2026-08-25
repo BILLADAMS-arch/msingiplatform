@@ -34,7 +34,7 @@ export function HtmlPlayground({ onFirstUse }: { onFirstUse: () => void }) {
             </button>
           ))}
         </div>
-        <button onClick={run} className="tap flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-white" style={{ background: "var(--gold-deep)" }}>
+        <button onClick={run} className="tap flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-white" style={{ background: "var(--primary)" }}>
           <Play size={14} /> Run
         </button>
       </div>

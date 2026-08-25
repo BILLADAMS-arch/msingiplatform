@@ -18,7 +18,7 @@ export function GeometryLab({ onFirstUse }: { onFirstUse: () => void }) {
       <div className="flex justify-center gap-2">
         {(["rectangle", "triangle"] as const).map((s) => (
           <button key={s} onClick={() => { setShape(s); touch(); }} className={`tap px-4 py-2 rounded-full border text-sm font-semibold capitalize ${shape === s ? "text-white" : ""}`}
-            style={{ borderColor: shape === s ? "var(--gold-deep)" : "var(--slate)", background: shape === s ? "var(--gold-deep)" : "white" }}>
+            style={{ borderColor: shape === s ? "var(--primary)" : "var(--slate)", background: shape === s ? "var(--primary)" : "white" }}>
             {s}
           </button>
         ))}
@@ -26,9 +26,9 @@ export function GeometryLab({ onFirstUse }: { onFirstUse: () => void }) {
 
       <div className="flex justify-center items-end" style={{ height: 200 }}>
         {shape === "rectangle" ? (
-          <div style={{ width: width * scale, height: height * scale, background: "var(--amber-soft)", border: "2px solid var(--gold-deep)" }} />
+          <div style={{ width: width * scale, height: height * scale, background: "var(--primary-soft)", border: "2px solid var(--primary)" }} />
         ) : (
-          <div style={{ width: 0, height: 0, borderLeft: `${(width * scale) / 2}px solid transparent`, borderRight: `${(width * scale) / 2}px solid transparent`, borderBottom: `${height * scale}px solid var(--amber-soft)` }} />
+          <div style={{ width: 0, height: 0, borderLeft: `${(width * scale) / 2}px solid transparent`, borderRight: `${(width * scale) / 2}px solid transparent`, borderBottom: `${height * scale}px solid var(--primary-soft)` }} />
         )}
       </div>
 

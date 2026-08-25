@@ -113,7 +113,7 @@ export default function EditTestPage() {
               {!bank ? <p className="text-sm text-[--ink-soft]">Loading…</p> : bank.map((q) => (
                 <div key={q.id} className="flex items-center justify-between gap-2 border rounded-lg px-3 py-2" style={{ borderColor: "var(--stone-2)" }}>
                   <span className="text-xs line-clamp-1 flex-1">{q.prompt}</span>
-                  <button onClick={() => addQuestion(q)} disabled={selected.some((s) => s.id === q.id)} className="tap text-[--gold-deep] disabled:opacity-30"><Plus size={14} /></button>
+                  <button onClick={() => addQuestion(q)} disabled={selected.some((s) => s.id === q.id)} className="tap text-[--primary] disabled:opacity-30"><Plus size={14} /></button>
                 </div>
               ))}
               {bank && bank.length === 0 && <p className="text-sm text-[--ink-soft]">No questions for this topic yet.</p>}
@@ -121,7 +121,7 @@ export default function EditTestPage() {
           </div>
         </div>
 
-        <button disabled={saving} onClick={save} className="tap px-6 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-50" style={{ background: "var(--ink)" }}>
+        <button disabled={saving} onClick={save} className="tap px-6 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-50" style={{ background: "var(--primary)" }}>
           {saving ? "Saving…" : "Save changes"}
         </button>
       </div>

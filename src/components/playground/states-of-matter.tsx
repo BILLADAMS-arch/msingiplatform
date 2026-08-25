@@ -38,7 +38,7 @@ export function StatesOfMatter({ onFirstUse }: { onFirstUse: () => void }) {
       <div className="flex justify-center gap-2">
         {(["solid", "liquid", "gas"] as State[]).map((s) => (
           <button key={s} onClick={() => select(s)} className={`tap px-4 py-2 rounded-full border text-sm font-semibold capitalize ${state === s ? "text-white" : ""}`}
-            style={{ borderColor: state === s ? "var(--gold-deep)" : "var(--slate)", background: state === s ? "var(--gold-deep)" : "white" }}>
+            style={{ borderColor: state === s ? "var(--primary)" : "var(--slate)", background: state === s ? "var(--primary)" : "white" }}>
             {s}
           </button>
         ))}
@@ -51,7 +51,7 @@ export function StatesOfMatter({ onFirstUse }: { onFirstUse: () => void }) {
           const dx = UNIT_OFFSETS[i].dx * config.spread, dy = UNIT_OFFSETS[i].dy * config.spread;
           return (
             <div key={`${state}-${i}`} className="absolute rounded-full" style={{
-              width: 10, height: 10, background: "var(--gold-deep)", left: baseX, top: baseY,
+              width: 10, height: 10, background: "var(--primary)", left: baseX, top: baseY,
               animation: `msingi-${state === "solid" ? "jiggle" : "drift"} ${config.speed}s ease-in-out infinite alternate`,
               // @ts-expect-error CSS custom properties aren't in the style type
               "--dx": `${dx}px`, "--dy": `${dy}px`,

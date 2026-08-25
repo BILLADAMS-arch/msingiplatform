@@ -45,7 +45,7 @@ export default function NewLessonPage() {
             className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
         </div>
         <button disabled={saving || !title.trim() || !topicId} onClick={create}
-          className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>
+          className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
           {saving ? "Creating…" : "Create & continue"}
         </button>
       </div>

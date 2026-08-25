@@ -11,7 +11,7 @@ function randomEquation() {
 
 function Block({ label }: { label: string }) {
   return (
-    <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: "var(--ink)" }}>
+    <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: "var(--primary)" }}>
       {label}
     </div>
   );
@@ -45,7 +45,7 @@ export function AlgebraBalance({ onFirstUse }: { onFirstUse: () => void }) {
       </div>
 
       <div className="flex items-end justify-center gap-1">
-        <div className="w-40 h-16 border-b-4 rounded-b-lg" style={{ borderColor: "var(--gold-deep)" }} />
+        <div className="w-40 h-16 border-b-4 rounded-b-lg" style={{ borderColor: "var(--primary)" }} />
       </div>
       <div className="flex items-start justify-center gap-16 -mt-2">
         <div className="flex flex-col items-center gap-2">
@@ -64,7 +64,7 @@ export function AlgebraBalance({ onFirstUse }: { onFirstUse: () => void }) {
       </div>
 
       <div className="flex items-center justify-center gap-3">
-        <button disabled={solved} onClick={subtractOne} className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>
+        <button disabled={solved} onClick={subtractOne} className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
           Remove 1 from both sides
         </button>
         <button onClick={newEquation} className="tap flex items-center gap-1 px-4 py-2.5 rounded-full font-semibold text-sm border" style={{ borderColor: "var(--slate)" }}>

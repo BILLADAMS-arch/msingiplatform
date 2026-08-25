@@ -25,17 +25,17 @@ export default function AdminDashboardPage() {
   return (
     <AdminShell title="Admin Dashboard">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-        <StatCard icon={<Users size={18} />} label="Students" value={stats?.userCounts.STUDENT ?? "—"} tone="green" />
-        <StatCard icon={<GraduationCap size={18} />} label="Teachers" value={stats?.userCounts.TEACHER ?? "—"} tone="gold" />
-        <StatCard icon={<UserCog size={18} />} label="Parents" value={stats?.userCounts.PARENT ?? "—"} tone="gold" />
-        <StatCard icon={<Library size={18} />} label="Resources" value={stats?.contentCounts.resources ?? "—"} tone="coral" />
+        <StatCard icon={<Users size={18} />} label="Students" value={stats?.userCounts.STUDENT ?? "—"} tone="blue" />
+        <StatCard icon={<GraduationCap size={18} />} label="Teachers" value={stats?.userCounts.TEACHER ?? "—"} tone="green" />
+        <StatCard icon={<UserCog size={18} />} label="Parents" value={stats?.userCounts.PARENT ?? "—"} tone="warning" />
+        <StatCard icon={<Library size={18} />} label="Resources" value={stats?.contentCounts.resources ?? "—"} tone="blue" />
       </div>
 
       <h3 className="disp font-bold mb-3">Quick actions</h3>
       <div className="grid sm:grid-cols-2 gap-3">
         {SHORTCUTS.map((s) => (
           <Link key={s.href} href={s.href} className="tap flex items-center gap-3 bg-white rounded-2xl border p-4" style={{ borderColor: "var(--slate)" }}>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "var(--amber-soft)", color: "var(--gold-deep)" }}>{s.icon}</div>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "var(--primary-soft)", color: "var(--primary-deep)" }}>{s.icon}</div>
             <span className="font-medium text-sm">{s.label}</span>
           </Link>
         ))}

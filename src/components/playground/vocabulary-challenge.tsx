@@ -62,7 +62,7 @@ export function VocabularyChallenge({ onFirstUse }: { onFirstUse: () => void }) 
       <div className="flex justify-center gap-2">
         {(["English", "Kiswahili"] as const).map((l) => (
           <button key={l} onClick={() => { setLanguage(l); setIndex(0); setBuilt([]); setStatus("playing"); }} className={`tap px-4 py-2 rounded-full border text-sm font-semibold ${language === l ? "text-white" : ""}`}
-            style={{ borderColor: language === l ? "var(--gold-deep)" : "var(--slate)", background: language === l ? "var(--gold-deep)" : "white" }}>
+            style={{ borderColor: language === l ? "var(--primary)" : "var(--slate)", background: language === l ? "var(--primary)" : "white" }}>
             {l}
           </button>
         ))}
@@ -74,7 +74,7 @@ export function VocabularyChallenge({ onFirstUse }: { onFirstUse: () => void }) 
         {built.length === 0 ? (
           <span className="text-sm text-[--ink-soft] italic">Tap letters below to spell the word…</span>
         ) : built.map((i) => (
-          <div key={i} className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white uppercase" style={{ background: "var(--ink)" }}>{scrambled[i]}</div>
+          <div key={i} className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white uppercase" style={{ background: "var(--primary)" }}>{scrambled[i]}</div>
         ))}
       </div>
 
@@ -90,9 +90,9 @@ export function VocabularyChallenge({ onFirstUse }: { onFirstUse: () => void }) 
       <div className="flex justify-center gap-2">
         <button onClick={backspace} disabled={status !== "playing"} className="tap flex items-center gap-1 px-3 py-2 rounded-full border text-xs font-semibold disabled:opacity-40" style={{ borderColor: "var(--slate)" }}><Delete size={12} /> Back</button>
         {status === "playing" ? (
-          <button disabled={built.length !== current.word.length} onClick={check} className="tap px-5 py-2 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--ink)" }}>Check</button>
+          <button disabled={built.length !== current.word.length} onClick={check} className="tap px-5 py-2 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>Check</button>
         ) : (
-          <button onClick={next} className="tap flex items-center gap-1 px-5 py-2 rounded-full font-semibold text-sm text-white" style={{ background: "var(--gold-deep)" }}><Shuffle size={14} /> Next word</button>
+          <button onClick={next} className="tap flex items-center gap-1 px-5 py-2 rounded-full font-semibold text-sm text-white" style={{ background: "var(--primary)" }}><Shuffle size={14} /> Next word</button>
         )}
       </div>
 

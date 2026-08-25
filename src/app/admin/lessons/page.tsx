@@ -28,7 +28,7 @@ export default function AdminLessonsPage() {
   return (
     <AdminShell title="Lessons">
       <div className="flex justify-end mb-4">
-        <Link href="/admin/lessons/new" className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--ink)" }}>
+        <Link href="/admin/lessons/new" className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--primary)" }}>
           <Plus size={14} /> New Lesson
         </Link>
       </div>
@@ -39,7 +39,7 @@ export default function AdminLessonsPage() {
           {lessons.map((l) => (
             <div key={l.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b last:border-0" style={{ borderColor: "var(--stone-2)" }}>
               <div className="min-w-0">
-                <Link href={`/admin/lessons/${l.id}`} className="tap font-medium text-sm hover:text-[--gold-deep]">{l.title}</Link>
+                <Link href={`/admin/lessons/${l.id}`} className="tap font-medium text-sm hover:text-[--primary]">{l.title}</Link>
                 <div className="text-xs text-[--ink-soft]">{l.subjectName} · {l.topicName}</div>
               </div>
               <div className="flex items-center gap-3 shrink-0">

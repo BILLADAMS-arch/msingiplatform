@@ -38,7 +38,7 @@ function SearchInner() {
         <form onSubmit={submit} className="flex items-center gap-2">
           <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Search lessons, topics, resources, flashcards, tests…"
             className="flex-1 border rounded-full px-4 py-2.5 text-sm outline-none" style={{ borderColor: "var(--slate)" }} />
-          <button type="submit" className="tap w-11 h-11 rounded-full flex items-center justify-center text-white" style={{ background: "var(--ink)" }}><SearchIcon size={16} /></button>
+          <button type="submit" className="tap w-11 h-11 rounded-full flex items-center justify-center text-white" style={{ background: "var(--primary)" }}><SearchIcon size={16} /></button>
         </form>
 
         {!q ? (

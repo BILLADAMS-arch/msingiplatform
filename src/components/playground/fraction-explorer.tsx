@@ -40,7 +40,7 @@ export function FractionExplorer({ onFirstUse }: { onFirstUse: () => void }) {
         <div className="text-xs text-[--ink-soft] mb-2">{numerator}/{denominator} of the bar is filled</div>
         <div className="flex gap-1 h-16 rounded-xl overflow-hidden border" style={{ borderColor: "var(--slate)" }}>
           {Array.from({ length: denominator }, (_, i) => (
-            <div key={i} className="flex-1 h-full border-r last:border-r-0" style={{ borderColor: "var(--stone-2)", background: i < numerator ? "var(--gold-deep)" : "var(--stone-2)" }} />
+            <div key={i} className="flex-1 h-full border-r last:border-r-0" style={{ borderColor: "var(--stone-2)", background: i < numerator ? "var(--primary)" : "var(--stone-2)" }} />
           ))}
         </div>
       </div>

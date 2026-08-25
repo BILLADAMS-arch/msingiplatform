@@ -38,7 +38,7 @@ export default function AdminQuestionsPage() {
           <Link href="/admin/questions/import" className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold border" style={{ borderColor: "var(--slate)" }}>
             <Upload size={14} /> Bulk Import
           </Link>
-          <Link href="/admin/questions/new" className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--ink)" }}>
+          <Link href="/admin/questions/new" className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--primary)" }}>
             <Plus size={14} /> New Question
           </Link>
         </div>
@@ -51,7 +51,7 @@ export default function AdminQuestionsPage() {
           {questions.map((q) => (
             <div key={q.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b last:border-0" style={{ borderColor: "var(--stone-2)" }}>
               <div className="min-w-0">
-                <Link href={`/admin/questions/${q.id}`} className="tap font-medium text-sm hover:text-[--gold-deep] line-clamp-1">{q.prompt}</Link>
+                <Link href={`/admin/questions/${q.id}`} className="tap font-medium text-sm hover:text-[--primary] line-clamp-1">{q.prompt}</Link>
                 <div className="text-xs text-[--ink-soft]">{q.topicName}</div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
