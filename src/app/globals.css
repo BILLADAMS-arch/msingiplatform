@@ -1,29 +1,31 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
-  --stone: #F6F3EC;
-  --stone-2: #EFEADD;
-  --ink: #1B2438;
-  --ink-soft: #4B5468;
-  --gold: #C68A3E;
-  --gold-deep: #A5701F;
-  --green: #2E6F5E;
-  --green-soft: #E4EFEA;
-  --coral: #D1594A;
-  --coral-soft: #F7E7E3;
-  --amber-soft: #F6EDD8;
-  --slate: #D8D3C6;
+  --stone: #F5F7FC;
+  --stone-2: #EAEEF8;
+  --ink: #101B4A;
+  --ink-soft: #4B5580;
+  --gold: #F5A623;
+  --gold-deep: #A66C00;
+  --green: #128A3E;
+  --green-soft: #E1F5E8;
+  --coral: #E31B23;
+  --coral-soft: #FBE3E2;
+  --amber-soft: #FDF0DC;
+  --slate: #CBD2E6;
   --card: #FFFFFF;
 }
 
 .msingi {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   color: var(--ink);
   background: var(--stone);
+  font-weight: 500;
 }
-.msingi .disp { font-family: 'Space Grotesk', system-ui, sans-serif; }
-.msingi .mono { font-family: 'IBM Plex Mono', monospace; }
+.msingi .disp { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 800; }
+.msingi .mono { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 600; }
+.msingi button { font-weight: 600; }
 
 .brick { position: relative; }
 .brick::before {

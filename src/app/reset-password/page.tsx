@@ -29,9 +29,9 @@ export default function ResetPasswordPage() {
   return (
     <div className="msingi min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-sm fade-in space-y-4">
-        <div className="flex items-center gap-2 justify-center mb-4">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center disp font-bold text-white" style={{ background: "var(--ink)" }}>M</div>
-          <span className="disp font-bold text-lg">Msingi</span>
+        <div className="flex items-center justify-center mb-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-full.png" alt="Msingi" className="h-16 object-contain" />
         </div>
         <h1 className="disp text-2xl font-bold text-center">Choose a new password</h1>
         {done ? (

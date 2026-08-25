@@ -6,8 +6,8 @@ export default function Landing() {
     <div className="msingi min-h-screen">
       <div className="max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center disp font-bold text-white" style={{ background: "var(--ink)" }}>M</div>
-          <span className="disp font-bold text-lg tracking-tight">Msingi</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-full.png" alt="Msingi" className="h-12 object-contain" />
         </div>
         <div className="flex items-center gap-3">
           <Link href="/login" className="text-sm font-semibold text-[--ink-soft]">Log in</Link>

@@ -24,7 +24,8 @@ export function AdminShell({ children, title }: { children: React.ReactNode; tit
     <div className="msingi min-h-screen flex">
       <div className="hidden md:flex flex-col w-56 shrink-0 border-r min-h-screen" style={{ borderColor: "var(--slate)" }}>
         <Link href="/admin" className="flex items-center gap-2 px-5 py-4">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center disp font-bold text-white text-sm" style={{ background: "var(--ink)" }}>M</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-icon.png" alt="Msingi" className="w-9 h-9 object-contain" />
           <span className="disp font-bold">Admin</span>
         </Link>
         <div className="flex-1 flex flex-col gap-0.5 px-3">
