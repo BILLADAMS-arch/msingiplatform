@@ -16,10 +16,19 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true); setError(null);
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) { setError("Incorrect email or password."); return; }
-    router.push(params.get("callbackUrl") || "/dashboard");
+
+    const callbackUrl = params.get("callbackUrl");
+    if (callbackUrl) { router.push(callbackUrl); return; }
+
+    // No explicit destination — route by role instead of always assuming
+    // /dashboard, which is STUDENT-only (a Teacher/Parent/Admin landing
+    // there gets 403s from the student-only APIs it calls).
+    const role = data.user?.app_metadata?.role;
+    const home = role === "TEACHER" ? "/teacher" : role === "PARENT" ? "/parent" : role === "ADMIN" ? "/admin" : "/dashboard";
+    router.push(home);
   }
 
   return (

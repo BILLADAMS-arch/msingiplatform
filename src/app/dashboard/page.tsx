@@ -19,12 +19,18 @@ type ContinueLearning = { subjectName: string; topicName: string; lessonId: stri
 
 export default function DashboardPage() {
   const [data, setData] = useState<ProgressResponse | null>(null);
+  const [forbidden, setForbidden] = useState(false);
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [continueLearning, setContinueLearning] = useState<ContinueLearning>(null);
   const [continueLoaded, setContinueLoaded] = useState(false);
 
-  useEffect(() => { fetch("/api/progress/me").then((r) => r.json()).then(setData); }, []);
-  useEffect(() => { fetch("/api/challenges/today").then((r) => r.json()).then(setChallenge); }, []);
+  useEffect(() => {
+    fetch("/api/progress/me").then((r) => {
+      if (!r.ok) { setForbidden(true); return null; }
+      return r.json();
+    }).then((d) => d && setData(d));
+  }, []);
+  useEffect(() => { fetch("/api/challenges/today").then((r) => (r.ok ? r.json() : null)).then((d) => d && setChallenge(d)); }, []);
 
   // Picks a real "continue where you left off" topic across every subject in
   // the learner's grade — no subject/topic is hardcoded, so this works
@@ -52,6 +58,17 @@ export default function DashboardPage() {
     ? Math.round(Object.values(data.subjectMastery).reduce((a, b) => a + b, 0) / Object.values(data.subjectMastery).length)
     : 0;
   const avgScore = data && data.testHistory.length ? Math.round(data.testHistory.reduce((a, t) => a + t.score, 0) / data.testHistory.length) : null;
+
+  if (forbidden) {
+    return (
+      <Shell>
+        <div className="fade-in text-center py-20 max-w-sm mx-auto">
+          <h2 className="disp text-xl font-bold mb-1">This dashboard is for students</h2>
+          <p className="text-sm text-[--ink-soft]">Your account doesn&apos;t have a student dashboard — use the nav above to find the right one for your role.</p>
+        </div>
+      </Shell>
+    );
+  }
 
   return (
     <Shell name={data?.profile?.name} xp={data?.profile?.xp} streak={data?.profile?.streak}>

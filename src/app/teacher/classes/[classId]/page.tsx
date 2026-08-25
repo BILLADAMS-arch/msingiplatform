@@ -64,7 +64,7 @@ export default function ClassDetailPage() {
   }
 
   return (
-    <Shell>
+    <Shell variant="teacher">
       <div className="fade-in space-y-5">
         <h1 className="disp text-2xl font-bold">{detail?.class.name ?? "Class"}</h1>
 

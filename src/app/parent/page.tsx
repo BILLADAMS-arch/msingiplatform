@@ -83,7 +83,7 @@ export default function ParentPage() {
   }
 
   return (
-    <Shell>
+    <Shell variant="parent">
       <div className="fade-in space-y-6">
         <h1 className="disp text-2xl font-bold">My Children</h1>
 
