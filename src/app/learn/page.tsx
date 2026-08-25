@@ -39,6 +39,39 @@ function LearnInner() {
   return (
     <Shell>
       <div className="fade-in space-y-6">
+        <div className="relative mb-2">
+          <div className="relative rounded-3xl overflow-hidden border shadow-sm" style={{ borderColor: "var(--slate)" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/hero-journey-1.jpeg" alt="Your learning journey — from lessons and practice to quizzes and mastery" className="w-full h-44 sm:h-56 md:h-64 object-cover" />
+            <div className="absolute inset-0 flex items-end p-5" style={{ background: "linear-gradient(0deg, rgba(16,27,74,0.65), rgba(16,27,74,0) 60%)" }}>
+              <div className="text-white">
+                <div className="disp font-bold text-lg sm:text-xl">Your learning journey</div>
+                <div className="text-xs sm:text-sm opacity-90 mt-0.5">From lessons to mastery, one topic at a time.</div>
+              </div>
+            </div>
+          </div>
+          <div className="hidden lg:block absolute -top-4 -left-4 w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg rotate-[-8deg]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/hero-journey-0.jpeg" alt="" className="w-full h-full object-cover" />
+          </div>
+          <div className="hidden lg:block absolute -top-4 right-10 w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg rotate-[6deg]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/hero-journey-2.jpeg" alt="" className="w-full h-full object-cover" />
+          </div>
+          <div className="hidden lg:block absolute top-1/3 -right-4 w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg rotate-[10deg]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/hero-journey-3.jpeg" alt="" className="w-full h-full object-cover" />
+          </div>
+          <div className="hidden lg:block absolute -bottom-4 left-12 w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg rotate-[-5deg]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/hero-journey-4.jpeg" alt="" className="w-full h-full object-cover" />
+          </div>
+          <div className="hidden lg:block absolute -bottom-4 right-1/3 w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg rotate-[7deg]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/hero-journey-5.jpeg" alt="" className="w-full h-full object-cover" />
+          </div>
+        </div>
+
         <div>
           <h1 className="disp text-2xl font-bold">{activeSubject?.name ?? "Learn"}</h1>
           <p className="text-sm text-[--ink-soft]">{gradeName || "…"} · {overall}% mastery</p>
