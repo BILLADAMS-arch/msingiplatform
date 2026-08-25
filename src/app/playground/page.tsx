@@ -11,6 +11,47 @@ const AREA_LABEL: Record<string, string> = { mathematics: "Mathematics", science
 const AREA_ICON: Record<string, string> = { mathematics: "➗", science: "🌍", computer: "💻", language: "🗣️" };
 const AREA_ORDER = ["mathematics", "science", "computer", "language"];
 
+const HERO_PHOTOS = Array.from({ length: 7 }, (_, i) => `/playground${i + 1}.jpeg`);
+
+function PlaygroundHero() {
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setActive((n) => (n + 1) % HERO_PHOTOS.length), 4000);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div className="relative rounded-3xl overflow-hidden border shadow-sm h-48 sm:h-64 md:h-72" style={{ borderColor: "var(--slate)", background: "var(--ink)" }}>
+      {HERO_PHOTOS.map((src, i) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img key={src} src={src} alt="" aria-hidden={i !== active} className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out"
+          style={{ opacity: i === active ? 1 : 0 }} />
+      ))}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(0deg, rgba(16,27,74,0.7), rgba(16,27,74,0.05) 55%)" }} />
+      <div className="absolute inset-0 flex items-end p-5 pointer-events-none">
+        <div className="text-white">
+          <div className="disp font-bold text-lg sm:text-2xl">Learn <span className="opacity-70">→</span> Experiment <span className="opacity-70">→</span> Discover</div>
+          <div className="text-xs sm:text-sm opacity-90 mt-0.5">A hands-on digital lab for every subject.</div>
+        </div>
+      </div>
+
+      <div className="hidden sm:flex absolute top-4 left-4 items-center gap-1.5 bg-white/95 rounded-full pl-2.5 pr-3 py-1.5 text-xs font-semibold shadow-md">🧮 Mathematics</div>
+      <div className="hidden sm:flex absolute top-4 right-4 items-center gap-1.5 bg-white/95 rounded-full pl-2.5 pr-3 py-1.5 text-xs font-semibold shadow-md">🔬 Science</div>
+      <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-4 items-center gap-1.5 bg-white/95 rounded-full pl-2.5 pr-3 py-1.5 text-xs font-semibold shadow-md">💻 Coding</div>
+      <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 right-4 items-center gap-1.5 bg-white/95 rounded-full pl-2.5 pr-3 py-1.5 text-xs font-semibold shadow-md">📚 Reading</div>
+
+      <div className="absolute -bottom-4 -right-3 sm:right-6 bg-white rounded-2xl shadow-md px-3 py-1.5 text-xs font-semibold border pulse-ring" style={{ borderColor: "var(--slate)" }}>🎯 92% Score</div>
+      <div className="absolute -bottom-4 -left-3 sm:left-6 bg-white rounded-2xl shadow-md px-3 py-1.5 text-xs font-semibold border" style={{ borderColor: "var(--slate)" }}>🔥 7 Day Streak</div>
+
+      <div className="absolute bottom-3 right-4 flex gap-1">
+        {HERO_PHOTOS.map((_, i) => (
+          <span key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: i === active ? "white" : "rgba(255,255,255,0.4)" }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function PlaygroundPage() {
   const [activities, setActivities] = useState<Activity[] | null>(null);
 
@@ -21,6 +62,8 @@ export default function PlaygroundPage() {
   return (
     <Shell>
       <div className="fade-in space-y-8">
+        <PlaygroundHero />
+
         <div>
           <h1 className="disp text-2xl font-bold">Msingi Playground</h1>
           <p className="text-sm text-[--ink-soft]">A digital laboratory for hands-on learning — explore, don&apos;t just read.</p>

@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { Pill, FoundationBar } from "@/components/ui";
+import { Pill } from "@/components/ui";
+
+const HERO_PHOTOS = ["/hero1.jpeg", "/hero2.jpeg", "/hero3.jpeg", "/hero4.jpeg"];
 
 export default function Landing() {
   return (
@@ -26,19 +28,14 @@ export default function Landing() {
           </div>
         </div>
         <div className="relative fade-in">
-          <div className="brick bg-white rounded-3xl p-6 shadow-lg border" style={{ borderColor: "var(--slate)" }}>
-            <div className="flex items-center justify-between mb-4">
-              <span className="disp font-bold">Fractions — Grade 7</span>
-              <Pill tone="green">On track</Pill>
-            </div>
-            <FoundationBar pct={72} tone="green" height={12} />
-            <div className="grid grid-cols-3 gap-2 mt-5">
-              {["Numbers", "Fractions", "Decimals"].map((t, i) => (
-                <div key={t} className="text-center text-xs bg-[--stone-2] rounded-lg py-2 font-medium">{i < 2 ? "✓ " : ""}{t}</div>
-              ))}
-            </div>
+          <div className="relative rounded-3xl overflow-hidden shadow-lg border h-72 sm:h-80 md:h-[26rem]" style={{ borderColor: "var(--slate)" }}>
+            {HERO_PHOTOS.map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={src} src={src} alt="A Msingi learner actively engaging with an interactive lesson on a tablet"
+                className="hero-slide absolute inset-0 w-full h-full object-cover" style={{ animationDelay: `${-i * 4}s` }} />
+            ))}
           </div>
-          <div className="absolute -top-6 -right-4 bg-white rounded-2xl shadow-md px-4 py-2 text-xs font-semibold border pulse-ring" style={{ borderColor: "var(--slate)" }}>92% Test Score</div>
+          <div className="absolute -top-6 -right-4 bg-white rounded-2xl shadow-md px-4 py-2 text-xs font-semibold border pulse-ring" style={{ borderColor: "var(--slate)" }}>🎯 92% Test Score</div>
           <div className="absolute -bottom-5 -left-6 bg-white rounded-2xl shadow-md px-4 py-2 text-xs font-semibold border" style={{ borderColor: "var(--slate)" }}>🔥 7 Day Streak</div>
         </div>
       </div>
