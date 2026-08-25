@@ -50,7 +50,7 @@ export function Shell({ children, name, xp, streak, variant = "student" }: { chi
         <div className="max-w-6xl mx-auto px-5 py-3 flex items-center justify-between">
           <Link href={home} className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-icon.png" alt="Msingi" className="w-9 h-9 object-contain" />
+            <img src="/logo-icon.png" alt="Msingi" className="w-12 h-12 object-contain" />
             <span className="disp font-bold hidden sm:inline">Msingi</span>
           </Link>
           <div className="hidden md:flex items-center gap-1">

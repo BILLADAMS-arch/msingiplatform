@@ -9,7 +9,7 @@ export default function Landing() {
       <div className="max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-full.png" alt="Msingi" className="h-12 object-contain" />
+          <img src="/logo-full.png" alt="Msingi" className="h-14 object-contain" />
         </div>
         <div className="flex items-center gap-3">
           <Link href="/login" className="text-sm font-semibold text-[--ink-soft]">Log in</Link>

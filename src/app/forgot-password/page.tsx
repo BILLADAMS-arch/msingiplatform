@@ -24,7 +24,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-sm fade-in space-y-4">
         <div className="flex items-center justify-center mb-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-full.png" alt="Msingi" className="h-16 object-contain" />
+          <img src="/logo-full.png" alt="Msingi" className="h-24 object-contain" />
         </div>
         <h1 className="disp text-3xl font-bold text-center">Reset your password</h1>
         {sent ? (
