@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Shell } from "@/components/shell";
-import { Sparkles, Send } from "lucide-react";
+import { Sparkles, Send, Crown } from "lucide-react";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -16,6 +17,7 @@ function AiInner() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState("");
   const [sending, setSending] = useState(false);
+  const [limitReached, setLimitReached] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const askedMistakeRef = useRef(false);
 
@@ -37,6 +39,7 @@ function AiInner() {
     if (!forMistakeId && !message.trim()) return;
     setSending(true);
     setInput("");
+    setLimitReached(null);
     setMessages((ms) => [...(ms ?? []), { role: "user", content: forMistakeId ? "Why is my answer wrong?" : message }]);
     setStreaming("");
 
@@ -44,6 +47,14 @@ function AiInner() {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify(forMistakeId ? { mistakeId: forMistakeId } : { message }),
     });
+
+    if (res.status === 402) {
+      const body = await res.json().catch(() => null);
+      setMessages((ms) => (ms ?? []).slice(0, -1));
+      setLimitReached(body?.message ?? "You've reached today's free Msingi AI limit.");
+      setSending(false);
+      return;
+    }
 
     if (!res.ok || !res.body) {
       setStreaming("Sorry, something went wrong. Please try again.");
@@ -107,6 +118,14 @@ function AiInner() {
           )}
           <div ref={bottomRef} />
         </div>
+
+        {limitReached && (
+          <div className="brick rounded-2xl p-4 mb-3 border flex items-center gap-3" style={{ borderColor: "var(--gold-deep)", background: "var(--amber-soft)" }}>
+            <Crown size={20} className="text-[--gold-deep] shrink-0" />
+            <p className="text-sm flex-1">{limitReached}</p>
+            <Link href="/upgrade" className="tap px-4 py-2 rounded-full text-sm font-semibold text-white whitespace-nowrap" style={{ background: "var(--gold-deep)" }}>Upgrade</Link>
+          </div>
+        )}
 
         <div className="flex items-center gap-2 pt-3 border-t" style={{ borderColor: "var(--slate)" }}>
           <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !sending && send()}

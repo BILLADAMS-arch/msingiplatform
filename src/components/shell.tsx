@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, Dumbbell, LineChart, FlaskConical, Library, Sparkles, User, Flame, Star, Search, Users } from "lucide-react";
+import { Home, BookOpen, Dumbbell, LineChart, FlaskConical, Library, Sparkles, User, Flame, Star, Search, Users, Crown } from "lucide-react";
 import { Pill } from "./ui";
 import { NotificationBell } from "./notification-bell";
 
@@ -63,6 +63,11 @@ export function Shell({ children, name, xp, streak, variant = "student" }: { chi
           <div className="flex items-center gap-3">
             {typeof streak === "number" && <Pill tone="gold"><Flame size={12} /> {streak}</Pill>}
             {typeof xp === "number" && <Pill tone="gold"><Star size={12} /> {xp} XP</Pill>}
+            {variant !== "teacher" && (
+              <Link href="/upgrade" className="tap hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-white" style={{ background: "var(--gold-deep)" }} title="Upgrade to Premium">
+                <Crown size={12} /> Upgrade
+              </Link>
+            )}
             <Link href="/search" className="w-8 h-8 rounded-full flex items-center justify-center border" style={{ borderColor: "var(--slate)" }} title="Search">
               <Search size={16} />
             </Link>

@@ -6,6 +6,7 @@ import { eq, asc, desc } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
 import { createGroqClient, TUTOR_MODEL } from "@/lib/ai/groq";
 import { buildSystemPrompt, buildMistakeContext, MAX_HISTORY_MESSAGES } from "@/lib/ai/tutor";
+import { isPremium, getAiMessagesToday, AI_FREE_DAILY_LIMIT } from "@/lib/billing";
 
 const bodySchema = z.object({
   message: z.string().min(1).max(2000).optional(),
@@ -19,6 +20,16 @@ export async function POST(req: Request) {
   const guard = await requireRole(["STUDENT"]);
   if ("error" in guard) return guard.error;
   const userId = guard.session.user.id;
+
+  if (!(await isPremium(userId))) {
+    const usedToday = await getAiMessagesToday(userId);
+    if (usedToday >= AI_FREE_DAILY_LIMIT) {
+      return NextResponse.json({
+        error: "daily_limit_reached",
+        message: `You've used your ${AI_FREE_DAILY_LIMIT} free Msingi AI messages for today. Upgrade to Msingi Premium for unlimited AI tutoring.`,
+      }, { status: 402 });
+    }
+  }
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });

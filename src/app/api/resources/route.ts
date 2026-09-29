@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { resources, bookmarks } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
+import { isPremium } from "@/lib/billing";
 
 // GET /api/resources?gradeId=&subjectId=&topicId=&type=&difficulty=&bookmarkedOnly=1
 // Any signed-in user can browse the library, filtered down the curriculum
@@ -35,8 +36,16 @@ export async function GET(req: Request) {
   const myBookmarks = await db.select({ resourceId: bookmarks.resourceId }).from(bookmarks).where(eq(bookmarks.userId, userId));
   const bookmarkedIds = new Set(myBookmarks.map((b) => b.resourceId));
 
+  // Premium-only resources: students without Premium see the card (title,
+  // type, difficulty) but never the actual content, so gating can't be
+  // bypassed by reading the network response.
+  const gate = guard.session.user.role === "STUDENT" && !(await isPremium(userId));
+
   const annotated = rows
-    .map((r) => ({ ...r, bookmarked: bookmarkedIds.has(r.id) }))
+    .map((r) => {
+      const locked = gate && r.premiumOnly;
+      return { ...r, bookmarked: bookmarkedIds.has(r.id), locked, fileUrl: locked ? null : r.fileUrl, bodyText: locked ? null : r.bodyText };
+    })
     .filter((r) => !bookmarkedOnly || r.bookmarked);
 
   return NextResponse.json({ resources: annotated });

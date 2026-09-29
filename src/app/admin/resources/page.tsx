@@ -2,11 +2,11 @@
 import { useEffect, useState } from "react";
 import { AdminShell } from "@/components/admin-shell";
 import { Pill } from "@/components/ui";
-import { Trash2, Upload } from "lucide-react";
+import { Trash2, Upload, Crown } from "lucide-react";
 
 type Subject = { id: string; gradeId: string; path: string };
 type Topic = { id: string; subjectId: string; path: string };
-type Resource = { id: string; title: string; type: string; published: boolean; fileUrl: string | null; subjectName: string };
+type Resource = { id: string; title: string; type: string; published: boolean; fileUrl: string | null; subjectName: string; premiumOnly: boolean };
 
 const TYPES = ["notes", "worksheet", "past_paper", "marking_scheme", "video", "summary", "flashcard_set"];
 
@@ -20,6 +20,7 @@ export default function AdminResourcesPage() {
   const [subjectId, setSubjectId] = useState("");
   const [topicId, setTopicId] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [premiumOnly, setPremiumOnly] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +33,10 @@ export default function AdminResourcesPage() {
 
   async function togglePublished(r: Resource) {
     await fetch(`/api/admin/resources/${r.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ published: !r.published }) });
+    load();
+  }
+  async function togglePremium(r: Resource) {
+    await fetch(`/api/admin/resources/${r.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ premiumOnly: !r.premiumOnly }) });
     load();
   }
   async function remove(id: string) {
@@ -52,10 +57,11 @@ export default function AdminResourcesPage() {
     form.append("gradeId", subject.gradeId);
     form.append("subjectId", subjectId);
     if (topicId) form.append("topicId", topicId);
+    if (premiumOnly) form.append("premiumOnly", "true");
     const res = await fetch("/api/admin/resources", { method: "POST", body: form });
     setUploading(false);
     if (!res.ok) { setError("Upload failed."); return; }
-    setTitle(""); setFile(null);
+    setTitle(""); setFile(null); setPremiumOnly(false);
     load();
   }
 
@@ -79,6 +85,10 @@ export default function AdminResourcesPage() {
           {topicsForSubject.map((t) => <option key={t.id} value={t.id}>{t.path}</option>)}
         </select>
         <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="w-full text-sm" />
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={premiumOnly} onChange={(e) => setPremiumOnly(e.target.checked)} />
+          <Crown size={14} className="text-[--gold-deep]" /> Premium only
+        </label>
         {error && <p className="text-sm text-[--coral]">{error}</p>}
         <button disabled={uploading || !file || !title.trim()} onClick={upload} className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
           {uploading ? "Uploading…" : "Upload"}
@@ -96,6 +106,9 @@ export default function AdminResourcesPage() {
                 <div className="text-xs text-[--ink-soft]">{r.subjectName} · {r.type}</div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
+                <button onClick={() => togglePremium(r)} className="tap" title="Toggle premium-only">
+                  {r.premiumOnly ? <Pill tone="gold"><Crown size={12} /> Premium</Pill> : <span className="text-xs text-[--ink-soft]">Free</span>}
+                </button>
                 <button onClick={() => togglePublished(r)} className="tap"><Pill tone={r.published ? "green" : "gold"}>{r.published ? "Published" : "Draft"}</Pill></button>
                 <button onClick={() => remove(r.id)} className="tap text-[--coral]"><Trash2 size={16} /></button>
               </div>

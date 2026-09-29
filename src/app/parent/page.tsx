@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Shell } from "@/components/shell";
 import { StatCard, TopicChip, Pill } from "@/components/ui";
-import { Flame, Star, Layers, Plus, UserRound } from "lucide-react";
+import { Flame, Star, Layers, Plus, UserRound, Crown } from "lucide-react";
 
 type Child = { id: string; name: string | null; gradeName: string | null };
 type Progress = {
@@ -13,7 +14,9 @@ type Progress = {
 
 function ChildCard({ child }: { child: Child }) {
   const [progress, setProgress] = useState<Progress | null>(null);
+  const [premium, setPremium] = useState<boolean | null>(null);
   useEffect(() => { fetch(`/api/parent/children/${child.id}/progress`).then((r) => r.json()).then(setProgress); }, [child.id]);
+  useEffect(() => { fetch(`/api/billing/status?studentId=${child.id}`).then((r) => (r.ok ? r.json() : null)).then((d) => setPremium(d?.plan === "PREMIUM")); }, [child.id]);
 
   if (!progress) return <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}><p className="text-sm text-[--ink-soft]">Loading…</p></div>;
 
@@ -24,9 +27,14 @@ function ChildCard({ child }: { child: Child }) {
           <div className="disp font-bold text-lg">{progress.name ?? child.name ?? "Learner"}</div>
           <div className="text-xs text-[--ink-soft]">{progress.gradeName ?? "—"}</div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <Pill tone="gold"><Flame size={12} /> {progress.streak}</Pill>
           <Pill tone="gold"><Star size={12} /> {progress.xp} XP</Pill>
+          {premium === false && (
+            <Link href={`/upgrade?studentId=${child.id}`} className="tap flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-white" style={{ background: "var(--gold-deep)" }}>
+              <Crown size={12} /> Upgrade
+            </Link>
+          )}
         </div>
       </div>
 

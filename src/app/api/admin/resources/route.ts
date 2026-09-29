@@ -18,7 +18,7 @@ export async function GET() {
   return NextResponse.json({
     resources: rows.map((r) => ({
       id: r.resource.id, title: r.resource.title, type: r.resource.type, published: r.resource.published,
-      fileUrl: r.resource.fileUrl, subjectName: r.subjectName,
+      fileUrl: r.resource.fileUrl, subjectName: r.subjectName, premiumOnly: r.resource.premiumOnly,
     })),
   });
 }
@@ -30,6 +30,7 @@ const metaSchema = z.object({
   subjectId: z.string().uuid(),
   topicId: z.string().uuid().optional(),
   difficulty: z.enum(["easy", "medium", "hard"]).optional(),
+  premiumOnly: z.coerce.boolean().optional(),
 });
 
 // POST /api/admin/resources — multipart/form-data upload (teacher/admin
@@ -52,15 +53,16 @@ export async function POST(req: Request) {
     subjectId: form.get("subjectId"),
     topicId: form.get("topicId") || undefined,
     difficulty: form.get("difficulty") || undefined,
+    premiumOnly: form.get("premiumOnly") || undefined,
   });
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  const { title, type, gradeId, subjectId, topicId, difficulty } = parsed.data;
+  const { title, type, gradeId, subjectId, topicId, difficulty, premiumOnly } = parsed.data;
 
   const path = `${gradeId}/${subjectId}/${crypto.randomUUID()}-${file.name}`;
   const fileUrl = await uploadResourceFile(path, file);
 
   const [resource] = await db.insert(resources).values({
-    title, type, gradeId, subjectId, topicId, difficulty, fileUrl,
+    title, type, gradeId, subjectId, topicId, difficulty, fileUrl, premiumOnly: premiumOnly ?? false,
   }).returning();
 
   return NextResponse.json({ resource }, { status: 201 });

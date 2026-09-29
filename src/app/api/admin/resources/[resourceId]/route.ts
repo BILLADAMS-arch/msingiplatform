@@ -5,7 +5,7 @@ import { resources } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
 
-const bodySchema = z.object({ title: z.string().min(1).max(160).optional(), published: z.boolean().optional() });
+const bodySchema = z.object({ title: z.string().min(1).max(160).optional(), published: z.boolean().optional(), premiumOnly: z.boolean().optional() });
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ resourceId: string }> }) {
   const guard = await requireRole(["ADMIN"]);

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, Users, GitBranch, BookOpen, HelpCircle, ClipboardCheck, Library, FlaskConical, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Users, GitBranch, BookOpen, HelpCircle, ClipboardCheck, Library, FlaskConical, BarChart3, Crown } from "lucide-react";
 
 const NAV = [
   { href: "/admin", icon: <LayoutDashboard size={16} />, label: "Dashboard" },
@@ -13,6 +13,7 @@ const NAV = [
   { href: "/admin/tests", icon: <ClipboardCheck size={16} />, label: "Tests" },
   { href: "/admin/resources", icon: <Library size={16} />, label: "Resources" },
   { href: "/admin/playground", icon: <FlaskConical size={16} />, label: "Playground" },
+  { href: "/admin/subscriptions", icon: <Crown size={16} />, label: "Subscriptions" },
   { href: "/admin/analytics", icon: <BarChart3 size={16} />, label: "Analytics" },
 ];
 

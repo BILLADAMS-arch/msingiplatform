@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Shell } from "@/components/shell";
 import { Pill } from "@/components/ui";
-import { Library, Bookmark, FileText, X } from "lucide-react";
+import { Library, Bookmark, FileText, X, Lock } from "lucide-react";
 
 type Resource = {
   id: string; title: string; type: string; difficulty: string | null;
-  fileUrl: string | null; bodyText: string | null; bookmarked: boolean;
+  fileUrl: string | null; bodyText: string | null; bookmarked: boolean; locked?: boolean;
 };
 
 const TYPES = ["notes", "worksheet", "past_paper", "marking_scheme", "video", "summary", "flashcard_set"];
@@ -78,14 +79,18 @@ export default function LibraryPage() {
               <div key={r.id} className="brick bg-white rounded-2xl p-5 border flex flex-col" style={{ borderColor: "var(--slate)" }}>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <Pill tone="gold">{TYPE_LABEL[r.type] ?? r.type}</Pill>
-                  <button onClick={() => toggleBookmark(r)} title="Bookmark" className="tap">
-                    <Bookmark size={16} fill={r.bookmarked ? "var(--primary)" : "none"} color="var(--primary)" />
-                  </button>
+                  {r.locked ? <Lock size={16} className="text-[--gold-deep]" /> : (
+                    <button onClick={() => toggleBookmark(r)} title="Bookmark" className="tap">
+                      <Bookmark size={16} fill={r.bookmarked ? "var(--primary)" : "none"} color="var(--primary)" />
+                    </button>
+                  )}
                 </div>
                 <div className="font-semibold text-sm mb-1">{r.title}</div>
                 {r.difficulty && <div className="text-xs text-[--ink-soft] mb-3 capitalize">{r.difficulty}</div>}
                 <div className="mt-auto pt-2">
-                  {r.bodyText ? (
+                  {r.locked ? (
+                    <Link href="/upgrade" className="tap text-xs font-semibold text-[--gold-deep]">🔒 Premium — Upgrade to unlock</Link>
+                  ) : r.bodyText ? (
                     <button onClick={() => setReading(r)} className="tap text-xs font-semibold text-[--primary]">Read →</button>
                   ) : r.fileUrl ? (
                     <a href={r.fileUrl} target="_blank" rel="noopener noreferrer" className="tap text-xs font-semibold text-[--primary]">Open file →</a>

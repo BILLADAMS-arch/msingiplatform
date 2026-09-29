@@ -17,6 +17,9 @@ export const resourceTypeEnum = pgEnum("resource_type", [
   "notes", "worksheet", "past_paper", "marking_scheme", "video", "summary", "flashcard_set",
 ]);
 export const flashcardStatusEnum = pgEnum("flashcard_status", ["new", "easy", "difficult", "review_later"]);
+export const subscriptionPlanEnum = pgEnum("subscription_plan", ["FREE", "PREMIUM"]);
+export const subscriptionStatusEnum = pgEnum("subscription_status", ["ACTIVE", "EXPIRED", "CANCELED"]);
+export const paymentStatusEnum = pgEnum("payment_status", ["PENDING", "SUCCESS", "FAILED"]);
 
 /* ---------------------------------------------------------------------- */
 /* Identity                                                                */
@@ -247,6 +250,7 @@ export const resources = pgTable("resources", {
   fileUrl: text("file_url"),
   bodyText: text("body_text"),
   published: boolean("published").notNull().default(true),
+  premiumOnly: boolean("premium_only").notNull().default(false),
 });
 
 export const bookmarks = pgTable("bookmarks", {
@@ -351,6 +355,37 @@ export const aiMessages = pgTable("ai_messages", {
   conversationId: uuid("conversation_id").notNull().references(() => aiConversations.id, { onDelete: "cascade" }),
   role: varchar("role", { length: 20 }).notNull(), // user | assistant
   content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+/* ---------------------------------------------------------------------- */
+/* Billing — Msingi Premium                                                 */
+/* ---------------------------------------------------------------------- */
+// One row per learner (STUDENT) account. `payerId` is whoever is paying for
+// it — usually the learner themselves, but a PARENT can pay on behalf of a
+// linked child, so it's tracked separately from `userId`.
+export const subscriptions = pgTable("subscriptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
+  payerId: uuid("payer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  plan: subscriptionPlanEnum("plan").notNull().default("FREE"),
+  status: subscriptionStatusEnum("status").notNull().default("ACTIVE"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const payments = pgTable("payments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  subscriptionId: uuid("subscription_id").notNull().references(() => subscriptions.id, { onDelete: "cascade" }),
+  payerId: uuid("payer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  provider: varchar("provider", { length: 20 }).notNull().default("MPESA"),
+  amountKes: integer("amount_kes").notNull(),
+  phone: varchar("phone", { length: 20 }),
+  status: paymentStatusEnum("status").notNull().default("PENDING"),
+  // Daraja's CheckoutRequestID — how the async STK push callback finds its
+  // way back to the right payment row.
+  providerRef: varchar("provider_ref", { length: 120 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
