@@ -44,19 +44,19 @@ export default function AdminQuestionsPage() {
         </div>
       </div>
 
-      {!questions ? <p className="text-sm text-[--ink-soft]">Loading…</p> : questions.length === 0 ? (
-        <p className="text-sm text-[--ink-soft]">No questions found.</p>
+      {!questions ? <p className="text-sm text-(--ink-soft)">Loading…</p> : questions.length === 0 ? (
+        <p className="text-sm text-(--ink-soft)">No questions found.</p>
       ) : (
         <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: "var(--slate)" }}>
           {questions.map((q) => (
             <div key={q.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b last:border-0" style={{ borderColor: "var(--stone-2)" }}>
               <div className="min-w-0">
-                <Link href={`/admin/questions/${q.id}`} className="tap font-medium text-sm hover:text-[--primary] line-clamp-1">{q.prompt}</Link>
-                <div className="text-xs text-[--ink-soft]">{q.topicName}</div>
+                <Link href={`/admin/questions/${q.id}`} className="tap font-medium text-sm hover:text-(--primary) line-clamp-1">{q.prompt}</Link>
+                <div className="text-xs text-(--ink-soft)">{q.topicName}</div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <Pill tone={q.difficulty === "hard" ? "coral" : q.difficulty === "medium" ? "gold" : "green"}>{q.difficulty}</Pill>
-                <button onClick={() => remove(q.id)} className="tap text-[--coral]"><Trash2 size={16} /></button>
+                <button onClick={() => remove(q.id)} className="tap text-(--coral)"><Trash2 size={16} /></button>
               </div>
             </div>
           ))}

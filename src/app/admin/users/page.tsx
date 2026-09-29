@@ -35,11 +35,11 @@ export default function AdminUsersPage() {
         ))}
       </div>
 
-      {!shown ? <p className="text-sm text-[--ink-soft]">Loading…</p> : (
+      {!shown ? <p className="text-sm text-(--ink-soft)">Loading…</p> : (
         <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: "var(--slate)" }}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-[--ink-soft] border-b" style={{ borderColor: "var(--slate)" }}>
+              <tr className="text-left text-xs text-(--ink-soft) border-b" style={{ borderColor: "var(--slate)" }}>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Email</th>
                 <th className="px-4 py-3 font-medium">Grade</th>
@@ -50,8 +50,8 @@ export default function AdminUsersPage() {
               {shown.map((u) => (
                 <tr key={u.id} className="border-b last:border-0" style={{ borderColor: "var(--stone-2)" }}>
                   <td className="px-4 py-3 font-medium">{u.name ?? "—"}</td>
-                  <td className="px-4 py-3 text-[--ink-soft]">{u.email}</td>
-                  <td className="px-4 py-3 text-[--ink-soft]">{u.gradeName ?? "—"}</td>
+                  <td className="px-4 py-3 text-(--ink-soft)">{u.email}</td>
+                  <td className="px-4 py-3 text-(--ink-soft)">{u.gradeName ?? "—"}</td>
                   <td className="px-4 py-3">
                     <select disabled={saving === u.id} value={u.role} onChange={(e) => changeRole(u, e.target.value as Role)}
                       className="border rounded-lg px-2 py-1 text-xs font-semibold disabled:opacity-50" style={{ borderColor: "var(--slate)" }}>
@@ -62,7 +62,7 @@ export default function AdminUsersPage() {
               ))}
             </tbody>
           </table>
-          {shown.length === 0 && <p className="text-sm text-[--ink-soft] px-4 py-6">No users match this filter.</p>}
+          {shown.length === 0 && <p className="text-sm text-(--ink-soft) px-4 py-6">No users match this filter.</p>}
         </div>
       )}
     </AdminShell>

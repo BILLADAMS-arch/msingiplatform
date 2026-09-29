@@ -66,12 +66,12 @@ export default function PlaygroundPage() {
 
         <div>
           <h1 className="disp text-3xl font-bold">Msingi Playground</h1>
-          <p className="text-sm text-[--ink-soft]">A digital laboratory for hands-on learning — explore, don&apos;t just read.</p>
+          <p className="text-sm text-(--ink-soft)">A digital laboratory for hands-on learning — explore, don&apos;t just read.</p>
         </div>
 
         <div className="rounded-3xl p-4 sm:p-6 space-y-8" style={{ background: "var(--stone-2)" }}>
           {!activities ? (
-            <p className="text-sm text-[--ink-soft]">Loading…</p>
+            <p className="text-sm text-(--ink-soft)">Loading…</p>
           ) : (
             byArea.map(({ area, items }) => (
               <div key={area}>
@@ -82,7 +82,7 @@ export default function PlaygroundPage() {
                     const card = (
                       <div className={`brick bg-white rounded-2xl p-5 border relative h-full ${built ? "" : "opacity-70"}`} style={{ borderColor: "var(--slate)" }}>
                         <div className="font-semibold text-sm">{it.title}</div>
-                        <div className="text-xs text-[--ink-soft] mt-1">{it.description}</div>
+                        <div className="text-xs text-(--ink-soft) mt-1">{it.description}</div>
                         <div className="mt-2"><Pill tone={built ? "green" : "gold"}>{built ? "Try it" : "Coming soon"}</Pill></div>
                       </div>
                     );

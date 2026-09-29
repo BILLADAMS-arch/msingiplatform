@@ -68,11 +68,11 @@ export function VocabularyChallenge({ onFirstUse }: { onFirstUse: () => void }) 
         ))}
       </div>
 
-      <p className="text-sm text-center text-[--ink-soft] max-w-sm mx-auto">{current.hint}</p>
+      <p className="text-sm text-center text-(--ink-soft) max-w-sm mx-auto">{current.hint}</p>
 
       <div className="flex justify-center gap-1.5 flex-wrap min-h-10">
         {built.length === 0 ? (
-          <span className="text-sm text-[--ink-soft] italic">Tap letters below to spell the word…</span>
+          <span className="text-sm text-(--ink-soft) italic">Tap letters below to spell the word…</span>
         ) : built.map((i) => (
           <div key={i} className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white uppercase" style={{ background: "var(--primary)" }}>{scrambled[i]}</div>
         ))}
@@ -96,8 +96,8 @@ export function VocabularyChallenge({ onFirstUse }: { onFirstUse: () => void }) 
         )}
       </div>
 
-      {status === "correct" && <p className="text-center text-sm font-semibold text-[--green]">Correct! 🎉</p>}
-      {status === "wrong" && <p className="text-center text-sm font-semibold text-[--coral]">Not quite — the word was &quot;{current.word}&quot;.</p>}
+      {status === "correct" && <p className="text-center text-sm font-semibold text-(--green)">Correct! 🎉</p>}
+      {status === "wrong" && <p className="text-center text-sm font-semibold text-(--coral)">Not quite — the word was &quot;{current.word}&quot;.</p>}
     </div>
   );
 }

@@ -50,17 +50,17 @@ export default function AdminPlaygroundPage() {
         <button disabled={!title.trim() || !description.trim()} onClick={create} className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>Add</button>
       </div>
 
-      {!activities ? <p className="text-sm text-[--ink-soft]">Loading…</p> : (
+      {!activities ? <p className="text-sm text-(--ink-soft)">Loading…</p> : (
         <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: "var(--slate)" }}>
           {activities.map((a) => (
             <div key={a.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b last:border-0" style={{ borderColor: "var(--stone-2)" }}>
               <div className="min-w-0">
                 <div className="font-medium text-sm">{a.title}</div>
-                <div className="text-xs text-[--ink-soft]">{a.area} · {a.description}</div>
+                <div className="text-xs text-(--ink-soft)">{a.area} · {a.description}</div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <button onClick={() => toggleEnabled(a)} className="tap"><Pill tone={a.enabled ? "green" : "gold"}>{a.enabled ? "Enabled" : "Disabled"}</Pill></button>
-                <button onClick={() => remove(a.id)} className="tap text-[--coral]"><Trash2 size={16} /></button>
+                <button onClick={() => remove(a.id)} className="tap text-(--coral)"><Trash2 size={16} /></button>
               </div>
             </div>
           ))}

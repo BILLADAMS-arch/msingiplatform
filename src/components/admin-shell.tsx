@@ -34,14 +34,14 @@ export function AdminShell({ children, title }: { children: React.ReactNode; tit
             const active = n.href === "/admin" ? pathname === "/admin" : pathname.startsWith(n.href);
             return (
               <Link key={n.href} href={n.href}
-                className={`tap flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium ${active ? "text-white" : "text-[--ink-soft]"}`}
+                className={`tap flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium ${active ? "text-white" : "text-(--ink-soft)"}`}
                 style={{ background: active ? "var(--primary)" : "transparent" }}>
                 {n.icon}{n.label}
               </Link>
             );
           })}
         </div>
-        <button onClick={() => { createClient().auth.signOut().then(() => router.push("/")); }} className="tap m-3 px-3 py-2 rounded-xl text-sm font-medium text-[--ink-soft] text-left">
+        <button onClick={() => { createClient().auth.signOut().then(() => router.push("/")); }} className="tap m-3 px-3 py-2 rounded-xl text-sm font-medium text-(--ink-soft) text-left">
           Sign out
         </button>
       </div>

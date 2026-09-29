@@ -45,7 +45,7 @@ export function HtmlPlayground({ onFirstUse }: { onFirstUse: () => void }) {
         <iframe title="Preview" sandbox="allow-scripts" srcDoc={preview}
           className="w-full h-80 border rounded-2xl bg-white" style={{ borderColor: "var(--slate)" }} />
       </div>
-      <p className="text-xs text-[--ink-soft]">The preview runs in a sandboxed frame — it can&apos;t see or affect the rest of Msingi.</p>
+      <p className="text-xs text-(--ink-soft)">The preview runs in a sandboxed frame — it can&apos;t see or affect the rest of Msingi.</p>
     </div>
   );
 }

@@ -25,7 +25,7 @@ export default function EditQuestionPage() {
     router.push("/admin/questions");
   }
 
-  if (!initial) return <AdminShell title="Edit Question"><p className="text-sm text-[--ink-soft]">Loading…</p></AdminShell>;
+  if (!initial) return <AdminShell title="Edit Question"><p className="text-sm text-(--ink-soft)">Loading…</p></AdminShell>;
 
   return (
     <AdminShell title="Edit Question">

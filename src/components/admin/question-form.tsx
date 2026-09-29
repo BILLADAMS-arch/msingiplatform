@@ -60,8 +60,8 @@ export function QuestionForm({ initial, onSubmit, submitLabel }: { initial?: Par
   return (
     <div className="bg-white rounded-2xl border p-5 max-w-xl space-y-3" style={{ borderColor: "var(--slate)" }}>
       <div>
-        <label className="text-xs font-semibold text-[--ink-soft] block mb-1">Topic</label>
-        {!topics ? <p className="text-sm text-[--ink-soft]">Loading topics…</p> : (
+        <label className="text-xs font-semibold text-(--ink-soft) block mb-1">Topic</label>
+        {!topics ? <p className="text-sm text-(--ink-soft)">Loading topics…</p> : (
           <select value={draft.topicId} onChange={(e) => setDraft({ ...draft, topicId: e.target.value })} className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }}>
             {topics.map((t) => <option key={t.id} value={t.id}>{t.path}</option>)}
           </select>
@@ -70,7 +70,7 @@ export function QuestionForm({ initial, onSubmit, submitLabel }: { initial?: Par
 
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className="text-xs font-semibold text-[--ink-soft] block mb-1">Type</label>
+          <label className="text-xs font-semibold text-(--ink-soft) block mb-1">Type</label>
           <select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value as QuestionDraft["type"] })} className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }}>
             <option value="multiple_choice">Multiple choice</option>
             <option value="true_false">True / False</option>
@@ -79,7 +79,7 @@ export function QuestionForm({ initial, onSubmit, submitLabel }: { initial?: Par
           </select>
         </div>
         <div className="flex-1">
-          <label className="text-xs font-semibold text-[--ink-soft] block mb-1">Difficulty</label>
+          <label className="text-xs font-semibold text-(--ink-soft) block mb-1">Difficulty</label>
           <select value={draft.difficulty} onChange={(e) => setDraft({ ...draft, difficulty: e.target.value as QuestionDraft["difficulty"] })} className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }}>
             <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
           </select>
@@ -87,13 +87,13 @@ export function QuestionForm({ initial, onSubmit, submitLabel }: { initial?: Par
       </div>
 
       <div>
-        <label className="text-xs font-semibold text-[--ink-soft] block mb-1">Prompt</label>
+        <label className="text-xs font-semibold text-(--ink-soft) block mb-1">Prompt</label>
         <textarea value={draft.prompt} onChange={(e) => setDraft({ ...draft, prompt: e.target.value })} rows={2} className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
       </div>
 
       {usesOptions ? (
         <div>
-          <label className="text-xs font-semibold text-[--ink-soft] block mb-1">Options (select the correct one)</label>
+          <label className="text-xs font-semibold text-(--ink-soft) block mb-1">Options (select the correct one)</label>
           <div className="space-y-2">
             {draft.options.map((o, i) => (
               <div key={i} className="flex items-center gap-2">
@@ -101,33 +101,33 @@ export function QuestionForm({ initial, onSubmit, submitLabel }: { initial?: Par
                 <input value={o.label} onChange={(e) => setOption(i, { label: e.target.value })} placeholder={`Option ${String.fromCharCode(65 + i)}`}
                   className="flex-1 border rounded-lg px-2 py-1.5 text-sm" style={{ borderColor: "var(--slate)" }} />
                 {draft.options.length > 2 && (
-                  <button onClick={() => setDraft({ ...draft, options: draft.options.filter((_, idx) => idx !== i) })} className="tap text-[--coral]"><Trash2 size={14} /></button>
+                  <button onClick={() => setDraft({ ...draft, options: draft.options.filter((_, idx) => idx !== i) })} className="tap text-(--coral)"><Trash2 size={14} /></button>
                 )}
               </div>
             ))}
           </div>
           {draft.options.length < 6 && (
-            <button onClick={() => setDraft({ ...draft, options: [...draft.options, { label: "", isCorrect: false }] })} className="tap flex items-center gap-1 text-xs font-semibold text-[--primary] mt-2">
+            <button onClick={() => setDraft({ ...draft, options: [...draft.options, { label: "", isCorrect: false }] })} className="tap flex items-center gap-1 text-xs font-semibold text-(--primary) mt-2">
               <Plus size={14} /> Add option
             </button>
           )}
         </div>
       ) : draft.type === "short_answer" ? (
         <div>
-          <label className="text-xs font-semibold text-[--ink-soft] block mb-1">Accepted answers (separate variants with |)</label>
+          <label className="text-xs font-semibold text-(--ink-soft) block mb-1">Accepted answers (separate variants with |)</label>
           <input value={draft.answerText} onChange={(e) => setDraft({ ...draft, answerText: e.target.value })} placeholder="e.g. numerator|top number"
             className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
-          <p className="text-xs text-[--ink-soft] mt-1">Matched case-insensitively, trimmed. Any one of the | variants counts as correct.</p>
+          <p className="text-xs text-(--ink-soft) mt-1">Matched case-insensitively, trimmed. Any one of the | variants counts as correct.</p>
         </div>
       ) : (
         <div className="flex gap-3">
           <div className="flex-1">
-            <label className="text-xs font-semibold text-[--ink-soft] block mb-1">Correct value</label>
+            <label className="text-xs font-semibold text-(--ink-soft) block mb-1">Correct value</label>
             <input type="number" value={draft.answerNumeric} onChange={(e) => setDraft({ ...draft, answerNumeric: e.target.value })}
               className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
           </div>
           <div className="flex-1">
-            <label className="text-xs font-semibold text-[--ink-soft] block mb-1">Tolerance (± , optional)</label>
+            <label className="text-xs font-semibold text-(--ink-soft) block mb-1">Tolerance (± , optional)</label>
             <input type="number" value={draft.answerTolerance} onChange={(e) => setDraft({ ...draft, answerTolerance: e.target.value })}
               className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
           </div>
@@ -135,7 +135,7 @@ export function QuestionForm({ initial, onSubmit, submitLabel }: { initial?: Par
       )}
 
       <div>
-        <label className="text-xs font-semibold text-[--ink-soft] block mb-1">Explanation</label>
+        <label className="text-xs font-semibold text-(--ink-soft) block mb-1">Explanation</label>
         <textarea value={draft.explanation} onChange={(e) => setDraft({ ...draft, explanation: e.target.value })} rows={2} className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
       </div>
 

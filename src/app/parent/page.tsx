@@ -18,14 +18,14 @@ function ChildCard({ child }: { child: Child }) {
   useEffect(() => { fetch(`/api/parent/children/${child.id}/progress`).then((r) => r.json()).then(setProgress); }, [child.id]);
   useEffect(() => { fetch(`/api/billing/status?studentId=${child.id}`).then((r) => (r.ok ? r.json() : null)).then((d) => setPremium(d?.plan === "PREMIUM")); }, [child.id]);
 
-  if (!progress) return <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}><p className="text-sm text-[--ink-soft]">Loading…</p></div>;
+  if (!progress) return <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}><p className="text-sm text-(--ink-soft)">Loading…</p></div>;
 
   return (
     <div className="brick bg-white rounded-2xl p-5 border space-y-4" style={{ borderColor: "var(--slate)" }}>
       <div className="flex items-center justify-between">
         <div>
           <div className="disp font-bold text-lg">{progress.name ?? child.name ?? "Learner"}</div>
-          <div className="text-xs text-[--ink-soft]">{progress.gradeName ?? "—"}</div>
+          <div className="text-xs text-(--ink-soft)">{progress.gradeName ?? "—"}</div>
         </div>
         <div className="flex gap-2 items-center">
           <Pill tone="gold"><Flame size={12} /> {progress.streak}</Pill>
@@ -45,7 +45,7 @@ function ChildCard({ child }: { child: Child }) {
 
       {Object.keys(progress.subjectMastery).length > 0 && (
         <div>
-          <div className="text-xs font-semibold text-[--ink-soft] mb-2">Subject mastery</div>
+          <div className="text-xs font-semibold text-(--ink-soft) mb-2">Subject mastery</div>
           <div className="space-y-1.5">
             {Object.entries(progress.subjectMastery).map(([name, pct]) => <TopicChip key={name} label={name} pct={pct} />)}
           </div>
@@ -53,15 +53,15 @@ function ChildCard({ child }: { child: Child }) {
       )}
 
       {progress.weakSubjects.length > 0 && (
-        <div className="text-xs text-[--coral]">Recommended revision: {progress.weakSubjects.join(", ")}</div>
+        <div className="text-xs text-(--coral)">Recommended revision: {progress.weakSubjects.join(", ")}</div>
       )}
 
       {progress.recentTests.length > 0 && (
         <div>
-          <div className="text-xs font-semibold text-[--ink-soft] mb-2">Recent tests</div>
+          <div className="text-xs font-semibold text-(--ink-soft) mb-2">Recent tests</div>
           {progress.recentTests.map((t, i) => (
             <div key={i} className="flex items-center justify-between text-sm border-b last:border-0 py-1.5" style={{ borderColor: "var(--stone-2)" }}>
-              <span className="text-[--ink-soft]">{t.title}</span>
+              <span className="text-(--ink-soft)">{t.title}</span>
               <span className="font-semibold">{t.score}%</span>
             </div>
           ))}
@@ -103,13 +103,13 @@ export default function ParentPage() {
               <Plus size={14} /> Link
             </button>
           </div>
-          {error && <p className="text-sm text-[--coral] mt-2">{error}</p>}
+          {error && <p className="text-sm text-(--coral) mt-2">{error}</p>}
         </div>
 
-        {!children ? <p className="text-sm text-[--ink-soft]">Loading…</p> : children.length === 0 ? (
+        {!children ? <p className="text-sm text-(--ink-soft)">Loading…</p> : children.length === 0 ? (
           <div className="text-center py-16">
-            <UserRound size={36} className="mx-auto text-[--ink-soft] mb-3" />
-            <p className="text-sm text-[--ink-soft]">Link your child&apos;s Msingi account by email to see their progress here.</p>
+            <UserRound size={36} className="mx-auto text-(--ink-soft) mb-3" />
+            <p className="text-sm text-(--ink-soft)">Link your child&apos;s Msingi account by email to see their progress here.</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-4">

@@ -32,15 +32,15 @@ export default function NewLessonPage() {
     <AdminShell title="New Lesson">
       <div className="bg-white rounded-2xl border p-5 max-w-lg space-y-4" style={{ borderColor: "var(--slate)" }}>
         <div>
-          <label className="text-xs font-semibold text-[--ink-soft] block mb-1">Topic</label>
-          {!topics ? <p className="text-sm text-[--ink-soft]">Loading topics…</p> : (
+          <label className="text-xs font-semibold text-(--ink-soft) block mb-1">Topic</label>
+          {!topics ? <p className="text-sm text-(--ink-soft)">Loading topics…</p> : (
             <select value={topicId} onChange={(e) => setTopicId(e.target.value)} className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }}>
               {topics.map((t) => <option key={t.id} value={t.id}>{t.path}</option>)}
             </select>
           )}
         </div>
         <div>
-          <label className="text-xs font-semibold text-[--ink-soft] block mb-1">Title</label>
+          <label className="text-xs font-semibold text-(--ink-soft) block mb-1">Title</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Adding Fractions"
             className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
         </div>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { topics, questions, questionOptions, topicProgress } from "@/db/schema";
+import { topics, questions, questionOptions, topicProgress, subStrands, strands, subjects, profiles } from "@/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
 
@@ -15,7 +15,8 @@ function weightsForMastery(mastery: number): Record<Difficulty, number> {
   return { easy: 1, medium: 2, hard: 3 };
 }
 
-// GET /api/practice?topic=Fractions&count=10
+// GET /api/practice?topicId=<uuid>&count=10   (preferred)
+// GET /api/practice?topic=Fractions&count=10   (legacy fallback by name)
 // Returns questions WITHOUT which option/answer is correct — that's only
 // revealed after the student answers, via POST below.
 export async function GET(req: Request) {
@@ -24,12 +25,13 @@ export async function GET(req: Request) {
   const userId = guard.session.user.id;
 
   const url = new URL(req.url);
+  const topicId = url.searchParams.get("topicId");
   const topicName = url.searchParams.get("topic");
   const count = Math.min(20, Number(url.searchParams.get("count") ?? 10));
-  if (!topicName) return NextResponse.json({ error: "topic query param is required" }, { status: 400 });
+  if (!topicId && !topicName) return NextResponse.json({ error: "topicId (or topic) query param is required" }, { status: 400 });
 
-  const [topic] = await db.select().from(topics).where(eq(topics.name, topicName)).limit(1);
-  if (!topic) return NextResponse.json({ error: `Unknown topic: ${topicName}` }, { status: 404 });
+  const topic = topicId ? await topicById(topicId) : await topicByName(topicName!, userId);
+  if (!topic) return NextResponse.json({ error: `Unknown topic: ${topicId ?? topicName}` }, { status: 404 });
 
   const pool = await db.select().from(questions).where(eq(questions.topicId, topic.id));
   if (pool.length === 0) return NextResponse.json({ questions: [] });
@@ -58,5 +60,27 @@ export async function GET(req: Request) {
     options: options.filter((o) => o.questionId === q.id).sort((a, b) => a.order - b.order).map((o) => ({ id: o.id, label: o.label })),
   }));
 
-  return NextResponse.json({ topic: topic.name, questions: result });
+  return NextResponse.json({ topic: topic.name, topicId: topic.id, questions: result });
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function topicById(id: string) {
+  if (!UUID.test(id)) return undefined;
+  const [topic] = await db.select().from(topics).where(eq(topics.id, id)).limit(1);
+  return topic;
+}
+
+// Topic names aren't unique across grades, so when a name matches several
+// topics prefer the one in the learner's own grade.
+async function topicByName(name: string, userId: string) {
+  const matches = await db.select({ topic: topics, gradeId: subjects.gradeId })
+    .from(topics)
+    .innerJoin(subStrands, eq(subStrands.id, topics.subStrandId))
+    .innerJoin(strands, eq(strands.id, subStrands.strandId))
+    .innerJoin(subjects, eq(subjects.id, strands.subjectId))
+    .where(eq(topics.name, name));
+  if (matches.length <= 1) return matches[0]?.topic;
+  const [profile] = await db.select({ gradeId: profiles.gradeId }).from(profiles).where(eq(profiles.userId, userId)).limit(1);
+  return (matches.find((m) => m.gradeId === profile?.gradeId) ?? matches[0]).topic;
 }

@@ -51,8 +51,8 @@ export default function LibraryPage() {
       <div className="fade-in space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="disp text-3xl font-bold flex items-center gap-2"><Library size={22} className="text-[--primary]" /> Msingi Library</h1>
-            <p className="text-sm text-[--ink-soft] mt-1">Revision notes, worksheets, summaries and more.</p>
+            <h1 className="disp text-3xl font-bold flex items-center gap-2"><Library size={22} className="text-(--primary)" /> Msingi Library</h1>
+            <p className="text-sm text-(--ink-soft) mt-1">Revision notes, worksheets, summaries and more.</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {filterSelect(type, setType, TYPES, "All types", TYPE_LABEL)}
@@ -66,12 +66,12 @@ export default function LibraryPage() {
         </div>
 
         {!resources ? (
-          <p className="text-sm text-[--ink-soft]">Loading library…</p>
+          <p className="text-sm text-(--ink-soft)">Loading library…</p>
         ) : resources.length === 0 ? (
           <div className="text-center py-20 max-w-sm mx-auto">
-            <FileText size={36} className="mx-auto text-[--ink-soft] mb-3" />
+            <FileText size={36} className="mx-auto text-(--ink-soft) mb-3" />
             <h2 className="disp text-xl font-bold mb-1">No resources found</h2>
-            <p className="text-sm text-[--ink-soft]">Try a different filter, or check back later.</p>
+            <p className="text-sm text-(--ink-soft)">Try a different filter, or check back later.</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -79,23 +79,23 @@ export default function LibraryPage() {
               <div key={r.id} className="brick bg-white rounded-2xl p-5 border flex flex-col" style={{ borderColor: "var(--slate)" }}>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <Pill tone="gold">{TYPE_LABEL[r.type] ?? r.type}</Pill>
-                  {r.locked ? <Lock size={16} className="text-[--gold-deep]" /> : (
+                  {r.locked ? <Lock size={16} className="text-(--gold-deep)" /> : (
                     <button onClick={() => toggleBookmark(r)} title="Bookmark" className="tap">
                       <Bookmark size={16} fill={r.bookmarked ? "var(--primary)" : "none"} color="var(--primary)" />
                     </button>
                   )}
                 </div>
                 <div className="font-semibold text-sm mb-1">{r.title}</div>
-                {r.difficulty && <div className="text-xs text-[--ink-soft] mb-3 capitalize">{r.difficulty}</div>}
+                {r.difficulty && <div className="text-xs text-(--ink-soft) mb-3 capitalize">{r.difficulty}</div>}
                 <div className="mt-auto pt-2">
                   {r.locked ? (
-                    <Link href="/upgrade" className="tap text-xs font-semibold text-[--gold-deep]">🔒 Premium — Upgrade to unlock</Link>
+                    <Link href="/upgrade" className="tap text-xs font-semibold text-(--gold-deep)">🔒 Premium — Upgrade to unlock</Link>
                   ) : r.bodyText ? (
-                    <button onClick={() => setReading(r)} className="tap text-xs font-semibold text-[--primary]">Read →</button>
+                    <button onClick={() => setReading(r)} className="tap text-xs font-semibold text-(--primary)">Read →</button>
                   ) : r.fileUrl ? (
-                    <a href={r.fileUrl} target="_blank" rel="noopener noreferrer" className="tap text-xs font-semibold text-[--primary]">Open file →</a>
+                    <a href={r.fileUrl} target="_blank" rel="noopener noreferrer" className="tap text-xs font-semibold text-(--primary)">Open file →</a>
                   ) : (
-                    <span className="text-xs text-[--ink-soft]">No content yet</span>
+                    <span className="text-xs text-(--ink-soft)">No content yet</span>
                   )}
                 </div>
               </div>

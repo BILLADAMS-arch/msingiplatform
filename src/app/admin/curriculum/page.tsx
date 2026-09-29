@@ -88,12 +88,12 @@ export default function AdminCurriculumPage() {
         <select value={gradeId} onChange={(e) => selectGrade(e.target.value)} className="border rounded-xl px-3 py-2 text-sm font-medium" style={{ borderColor: "var(--slate)" }}>
           {grades?.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
         </select>
-        <div className="flex items-center gap-1 text-sm text-[--ink-soft] flex-wrap">
-          <button onClick={() => goTo(0)} className="tap font-medium hover:text-[--ink]">Subjects</button>
+        <div className="flex items-center gap-1 text-sm text-(--ink-soft) flex-wrap">
+          <button onClick={() => goTo(0)} className="tap font-medium hover:text-(--ink)">Subjects</button>
           {trail.map((t, i) => (
             <span key={t.id} className="flex items-center gap-1">
               <ChevronRight size={14} />
-              <button onClick={() => goTo(i + 1)} className="tap font-medium hover:text-[--ink]">{t.name}</button>
+              <button onClick={() => goTo(i + 1)} className="tap font-medium hover:text-(--ink)">{t.name}</button>
             </span>
           ))}
         </div>
@@ -101,26 +101,26 @@ export default function AdminCurriculumPage() {
 
       <div className="bg-white rounded-2xl border p-5" style={{ borderColor: "var(--slate)" }}>
         <h3 className="disp font-bold mb-3">{LEVEL_CONFIG[level].label}</h3>
-        {!rows ? <p className="text-sm text-[--ink-soft]">Loading…</p> : (
+        {!rows ? <p className="text-sm text-(--ink-soft)">Loading…</p> : (
           <div className="space-y-1.5">
-            {rows.length === 0 && <p className="text-sm text-[--ink-soft] mb-2">Nothing here yet — add one below.</p>}
+            {rows.length === 0 && <p className="text-sm text-(--ink-soft) mb-2">Nothing here yet — add one below.</p>}
             {rows.map((row) => (
               <div key={row.id} className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 border" style={{ borderColor: "var(--stone-2)" }}>
                 {editing?.id === row.id ? (
                   <>
                     <input autoFocus value={editing.name} onChange={(e) => setEditing({ id: row.id, name: e.target.value })}
                       className="flex-1 border rounded-lg px-2 py-1 text-sm" style={{ borderColor: "var(--slate)" }} />
-                    <button onClick={saveEdit} className="tap text-[--green]"><Check size={16} /></button>
-                    <button onClick={() => setEditing(null)} className="tap text-[--ink-soft]"><X size={16} /></button>
+                    <button onClick={saveEdit} className="tap text-(--green)"><Check size={16} /></button>
+                    <button onClick={() => setEditing(null)} className="tap text-(--ink-soft)"><X size={16} /></button>
                   </>
                 ) : (
                   <>
                     <button onClick={() => drillInto(row)} disabled={level === "topics"} className="tap flex-1 text-left text-sm font-medium disabled:cursor-default">
                       {row.name}
                     </button>
-                    {level !== "topics" && <ChevronRight size={14} className="text-[--ink-soft]" />}
-                    <button onClick={() => setEditing({ id: row.id, name: row.name })} className="tap text-[--ink-soft]"><Pencil size={14} /></button>
-                    <button onClick={() => remove(row.id)} className="tap text-[--coral]"><Trash2 size={14} /></button>
+                    {level !== "topics" && <ChevronRight size={14} className="text-(--ink-soft)" />}
+                    <button onClick={() => setEditing({ id: row.id, name: row.name })} className="tap text-(--ink-soft)"><Pencil size={14} /></button>
+                    <button onClick={() => remove(row.id)} className="tap text-(--coral)"><Trash2 size={14} /></button>
                   </>
                 )}
               </div>

@@ -54,10 +54,10 @@ export function SolarSystem({ onFirstUse }: { onFirstUse: () => void }) {
         {selected ? (
           <>
             <div className="font-semibold" style={{ color: selected.color }}>{selected.name}</div>
-            <p className="text-sm text-[--ink-soft] mt-1">{selected.fact}</p>
+            <p className="text-sm text-(--ink-soft) mt-1">{selected.fact}</p>
           </>
         ) : (
-          <p className="text-sm text-[--ink-soft]">Tap a planet to learn a fact about it.</p>
+          <p className="text-sm text-(--ink-soft)">Tap a planet to learn a fact about it.</p>
         )}
       </div>
     </div>

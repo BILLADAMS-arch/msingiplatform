@@ -1,4 +1,5 @@
 "use client";
+import { ProgressRing } from "./ui";
 
 const TONE_COLOR = { gold: "var(--gold-deep)", green: "var(--green)", coral: "var(--coral)", blue: "var(--primary)" } as const;
 
@@ -12,7 +13,7 @@ export function BarChart({ data, tone = "gold" }: { data: { label: string; value
         <div key={d.label}>
           <div className="flex items-center justify-between text-xs mb-1">
             <span className="font-medium">{d.label}</span>
-            <span className="text-[--ink-soft]">{d.value}%</span>
+            <span className="text-(--ink-soft)">{d.value}%</span>
           </div>
           <div className="w-full rounded-full overflow-hidden" style={{ height: 8, background: "var(--stone-2)" }}>
             <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(2, (d.value / max) * 100)}%`, background: TONE_COLOR[tone] }} />
@@ -24,7 +25,7 @@ export function BarChart({ data, tone = "gold" }: { data: { label: string; value
 }
 
 /** A simple line/trend chart — pure SVG polyline, no charting library. */
-export function LineChart({ data, tone = "gold" }: { data: { label: string; value: number }[]; tone?: keyof typeof TONE_COLOR }) {
+export function LineChart({ data, tone = "gold", description }: { data: { label: string; value: number }[]; tone?: keyof typeof TONE_COLOR; description?: string }) {
   if (data.length === 0) return null;
   const width = 320, height = 120, pad = 20;
   const max = 100, min = 0;
@@ -38,7 +39,7 @@ export function LineChart({ data, tone = "gold" }: { data: { label: string; valu
   const color = TONE_COLOR[tone];
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ maxWidth: width }}>
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ maxWidth: width }} role="img" aria-label={description ?? `Trend of ${data.length} values`}>
       <line x1={pad} y1={height - pad} x2={width - pad} y2={height - pad} stroke="var(--stone-2)" strokeWidth={1} />
       <path d={path} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       {points.map((p, i) => (
@@ -50,21 +51,9 @@ export function LineChart({ data, tone = "gold" }: { data: { label: string; valu
   );
 }
 
-/** A circular progress ring for headline scores — pure SVG, no charting library. */
+/** A circular progress ring for headline scores — kept for existing callers; delegates to the shared ProgressRing. */
 export function ScoreRing({ pct, size = 132, stroke = 10, tone = "blue", children }: {
   pct: number; size?: number; stroke?: number; tone?: keyof typeof TONE_COLOR; children?: React.ReactNode;
 }) {
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const offset = c - (Math.max(0, Math.min(100, pct)) / 100) * c;
-  return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--stone-2)" strokeWidth={stroke} />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={TONE_COLOR[tone]} strokeWidth={stroke}
-          strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round" style={{ transition: "stroke-dashoffset 700ms ease" }} />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">{children}</div>
-    </div>
-  );
+  return <ProgressRing pct={pct} size={size} stroke={stroke} tone={tone} label={`Score ${Math.round(pct)}%`}>{children}</ProgressRing>;
 }

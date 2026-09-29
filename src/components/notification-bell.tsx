@@ -25,8 +25,10 @@ export function NotificationBell() {
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); }
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setOpen(false); }
     document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onClickOutside); document.removeEventListener("keydown", onKey); };
   }, []);
 
   async function markRead(id: string) {
@@ -40,22 +42,24 @@ export function NotificationBell() {
 
   return (
     <div className="relative" ref={ref}>
-      <button onClick={() => setOpen((o) => !o)} className="tap relative w-8 h-8 rounded-full flex items-center justify-center border" style={{ borderColor: "var(--slate)" }} title="Notifications">
-        <Bell size={16} />
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="true"
+        aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
+        className="tap relative w-9 h-9 rounded-full flex items-center justify-center border bg-white hover:border-(--primary)" style={{ borderColor: "var(--slate)" }}>
+        <Bell size={16} aria-hidden />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold text-white flex items-center justify-center" style={{ background: "var(--coral)" }}>
+          <span aria-hidden className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold text-white flex items-center justify-center" style={{ background: "var(--coral)" }}>
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white rounded-2xl border shadow-lg z-30" style={{ borderColor: "var(--slate)" }}>
+        <div className="absolute right-0 mt-2 w-[min(20rem,calc(100vw-2rem))] max-h-96 overflow-y-auto bg-white rounded-2xl border shadow-lg z-30" style={{ borderColor: "var(--slate)" }}>
           <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--stone-2)" }}>
             <span className="font-semibold text-sm">Notifications</span>
-            {unreadCount > 0 && <button onClick={markAllRead} className="text-xs font-semibold text-[--primary]">Mark all read</button>}
+            {unreadCount > 0 && <button onClick={markAllRead} className="text-xs font-semibold text-(--primary)">Mark all read</button>}
           </div>
           {!notifications || notifications.length === 0 ? (
-            <p className="text-sm text-[--ink-soft] px-4 py-6 text-center">Nothing yet.</p>
+            <p className="text-sm text-(--ink-soft) px-4 py-6 text-center">Nothing yet.</p>
           ) : (
             notifications.map((n) => {
               const { icon, text } = describe(n);

@@ -34,11 +34,11 @@ export function GeometryLab({ onFirstUse }: { onFirstUse: () => void }) {
 
       <div className="space-y-3">
         <div>
-          <div className="flex justify-between text-xs text-[--ink-soft] mb-1"><span>Base / Width</span><span>{width}</span></div>
+          <div className="flex justify-between text-xs text-(--ink-soft) mb-1"><span>Base / Width</span><span>{width}</span></div>
           <input type="range" min={2} max={12} value={width} onChange={(e) => { setWidth(Number(e.target.value)); touch(); }} className="w-full" />
         </div>
         <div>
-          <div className="flex justify-between text-xs text-[--ink-soft] mb-1"><span>Height</span><span>{height}</span></div>
+          <div className="flex justify-between text-xs text-(--ink-soft) mb-1"><span>Height</span><span>{height}</span></div>
           <input type="range" min={2} max={10} value={height} onChange={(e) => { setHeight(Number(e.target.value)); touch(); }} className="w-full" />
         </div>
       </div>
@@ -46,14 +46,14 @@ export function GeometryLab({ onFirstUse }: { onFirstUse: () => void }) {
       <div className="grid grid-cols-2 gap-3 text-center">
         <div className="bg-white rounded-xl p-3 border" style={{ borderColor: "var(--slate)" }}>
           <div className="disp text-xl font-bold">{area}</div>
-          <div className="text-xs text-[--ink-soft]">Area (units²)</div>
+          <div className="text-xs text-(--ink-soft)">Area (units²)</div>
         </div>
         <div className="bg-white rounded-xl p-3 border" style={{ borderColor: "var(--slate)" }}>
           <div className="disp text-xl font-bold">{perimeter ?? "—"}</div>
-          <div className="text-xs text-[--ink-soft]">Perimeter (units)</div>
+          <div className="text-xs text-(--ink-soft)">Perimeter (units)</div>
         </div>
       </div>
-      <p className="text-xs text-[--ink-soft] text-center">
+      <p className="text-xs text-(--ink-soft) text-center">
         {shape === "rectangle" ? "Area = width × height. Perimeter = 2 × (width + height)." : "Area = ½ × base × height."}
       </p>
     </div>

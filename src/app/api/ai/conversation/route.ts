@@ -15,7 +15,7 @@ export async function GET() {
     .where(eq(aiConversations.userId, userId)).orderBy(desc(aiConversations.startedAt)).limit(1);
   if (!conversation) return NextResponse.json({ messages: [] });
 
-  const messages = await db.select({ role: aiMessages.role, content: aiMessages.content })
+  const messages = await db.select({ role: aiMessages.role, content: aiMessages.content, createdAt: aiMessages.createdAt })
     .from(aiMessages).where(eq(aiMessages.conversationId, conversation.id)).orderBy(asc(aiMessages.createdAt));
 
   return NextResponse.json({ messages });

@@ -32,21 +32,21 @@ export default function AdminLessonsPage() {
           <Plus size={14} /> New Lesson
         </Link>
       </div>
-      {!lessons ? <p className="text-sm text-[--ink-soft]">Loading…</p> : lessons.length === 0 ? (
-        <p className="text-sm text-[--ink-soft]">No lessons yet.</p>
+      {!lessons ? <p className="text-sm text-(--ink-soft)">Loading…</p> : lessons.length === 0 ? (
+        <p className="text-sm text-(--ink-soft)">No lessons yet.</p>
       ) : (
         <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: "var(--slate)" }}>
           {lessons.map((l) => (
             <div key={l.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b last:border-0" style={{ borderColor: "var(--stone-2)" }}>
               <div className="min-w-0">
-                <Link href={`/admin/lessons/${l.id}`} className="tap font-medium text-sm hover:text-[--primary]">{l.title}</Link>
-                <div className="text-xs text-[--ink-soft]">{l.subjectName} · {l.topicName}</div>
+                <Link href={`/admin/lessons/${l.id}`} className="tap font-medium text-sm hover:text-(--primary)">{l.title}</Link>
+                <div className="text-xs text-(--ink-soft)">{l.subjectName} · {l.topicName}</div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <button onClick={() => togglePublished(l)} className="tap">
                   <Pill tone={l.published ? "green" : "gold"}>{l.published ? "Published" : "Draft"}</Pill>
                 </button>
-                <button onClick={() => remove(l.id)} className="tap text-[--coral]"><Trash2 size={16} /></button>
+                <button onClick={() => remove(l.id)} className="tap text-(--coral)"><Trash2 size={16} /></button>
               </div>
             </div>
           ))}

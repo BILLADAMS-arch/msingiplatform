@@ -26,7 +26,7 @@ export function NumberLine({ onFirstUse }: { onFirstUse: () => void }) {
     <div className="space-y-6">
       <div className="text-center">
         <div className="disp text-xl font-bold">Find <span style={{ color: "var(--primary)" }}>{target}</span> on the number line</div>
-        {guess !== null && <div className={`text-sm font-semibold mt-1 ${correct ? "text-[--green]" : "text-[--coral]"}`}>{correct ? "Correct! 🎉" : `You placed ${guess} — try again.`}</div>}
+        {guess !== null && <div className={`text-sm font-semibold mt-1 ${correct ? "text-(--green)" : "text-(--coral)"}`}>{correct ? "Correct! 🎉" : `You placed ${guess} — try again.`}</div>}
       </div>
 
       <div className="relative py-6">
@@ -36,7 +36,7 @@ export function NumberLine({ onFirstUse }: { onFirstUse: () => void }) {
             <button key={v} onClick={() => place(v)} className="tap flex flex-col items-center gap-1" style={{ width: `${100 / marks.length}%` }}>
               <div className="w-0.5 h-3" style={{ background: "var(--slate)" }} />
               <div className="w-3 h-3 rounded-full" style={{ background: guess === v ? (correct ? "var(--green)" : "var(--coral)") : "white", border: "2px solid var(--slate)" }} />
-              <span className="text-[10px] text-[--ink-soft]">{v}</span>
+              <span className="text-[10px] text-(--ink-soft)">{v}</span>
             </button>
           ))}
         </div>

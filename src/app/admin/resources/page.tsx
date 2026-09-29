@@ -87,30 +87,30 @@ export default function AdminResourcesPage() {
         <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="w-full text-sm" />
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={premiumOnly} onChange={(e) => setPremiumOnly(e.target.checked)} />
-          <Crown size={14} className="text-[--gold-deep]" /> Premium only
+          <Crown size={14} className="text-(--gold-deep)" /> Premium only
         </label>
-        {error && <p className="text-sm text-[--coral]">{error}</p>}
+        {error && <p className="text-sm text-(--coral)">{error}</p>}
         <button disabled={uploading || !file || !title.trim()} onClick={upload} className="tap px-5 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
           {uploading ? "Uploading…" : "Upload"}
         </button>
       </div>
 
-      {!resources ? <p className="text-sm text-[--ink-soft]">Loading…</p> : resources.length === 0 ? (
-        <p className="text-sm text-[--ink-soft]">No resources yet.</p>
+      {!resources ? <p className="text-sm text-(--ink-soft)">Loading…</p> : resources.length === 0 ? (
+        <p className="text-sm text-(--ink-soft)">No resources yet.</p>
       ) : (
         <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: "var(--slate)" }}>
           {resources.map((r) => (
             <div key={r.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b last:border-0" style={{ borderColor: "var(--stone-2)" }}>
               <div className="min-w-0">
                 <div className="font-medium text-sm">{r.title}</div>
-                <div className="text-xs text-[--ink-soft]">{r.subjectName} · {r.type}</div>
+                <div className="text-xs text-(--ink-soft)">{r.subjectName} · {r.type}</div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <button onClick={() => togglePremium(r)} className="tap" title="Toggle premium-only">
-                  {r.premiumOnly ? <Pill tone="gold"><Crown size={12} /> Premium</Pill> : <span className="text-xs text-[--ink-soft]">Free</span>}
+                  {r.premiumOnly ? <Pill tone="gold"><Crown size={12} /> Premium</Pill> : <span className="text-xs text-(--ink-soft)">Free</span>}
                 </button>
                 <button onClick={() => togglePublished(r)} className="tap"><Pill tone={r.published ? "green" : "gold"}>{r.published ? "Published" : "Draft"}</Pill></button>
-                <button onClick={() => remove(r.id)} className="tap text-[--coral]"><Trash2 size={16} /></button>
+                <button onClick={() => remove(r.id)} className="tap text-(--coral)"><Trash2 size={16} /></button>
               </div>
             </div>
           ))}

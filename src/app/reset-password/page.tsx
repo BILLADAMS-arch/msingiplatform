@@ -35,12 +35,12 @@ export default function ResetPasswordPage() {
         </div>
         <h1 className="disp text-3xl font-bold text-center">Choose a new password</h1>
         {done ? (
-          <p className="text-sm text-[--green] text-center">Password updated — redirecting you to log in…</p>
+          <p className="text-sm text-(--green) text-center">Password updated — redirecting you to log in…</p>
         ) : (
           <form onSubmit={submit} className="space-y-4">
             <input type="password" required placeholder="New password (min 8 characters)" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" style={{ borderColor: "var(--slate)" }} />
             <input type="password" required placeholder="Confirm new password" value={confirm} onChange={(e) => setConfirm(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" style={{ borderColor: "var(--slate)" }} />
-            {error && <p className="text-sm text-[--coral]">{error}</p>}
+            {error && <p className="text-sm text-(--coral)">{error}</p>}
             <button disabled={loading} type="submit" className="tap w-full px-6 py-3 rounded-full font-semibold text-white disabled:opacity-50" style={{ background: "var(--primary)" }}>
               {loading ? "Updating…" : "Update password"}
             </button>

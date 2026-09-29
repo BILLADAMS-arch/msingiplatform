@@ -41,12 +41,12 @@ function LoginForm() {
         <h1 className="disp text-3xl font-bold text-center">Welcome back</h1>
         <input type="email" required placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" style={{ borderColor: "var(--slate)" }} />
         <input type="password" required placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" style={{ borderColor: "var(--slate)" }} />
-        <div className="text-right -mt-2"><a href="/forgot-password" className="text-xs font-semibold text-[--primary]">Forgot password?</a></div>
-        {error && <p className="text-sm text-[--coral]">{error}</p>}
+        <div className="text-right -mt-2"><a href="/forgot-password" className="text-xs font-semibold text-(--primary)">Forgot password?</a></div>
+        {error && <p className="text-sm text-(--coral)">{error}</p>}
         <button disabled={loading} type="submit" className="tap w-full px-6 py-3 rounded-full font-semibold text-white disabled:opacity-50" style={{ background: "var(--primary)" }}>
           {loading ? "Signing in…" : "Log in"}
         </button>
-        <p className="text-center text-sm text-[--ink-soft]">New to Msingi? <a href="/register" className="font-semibold text-[--primary]">Create an account</a></p>
+        <p className="text-center text-sm text-(--ink-soft)">New to Msingi? <a href="/register" className="font-semibold text-(--primary)">Create an account</a></p>
       </form>
     </div>
   );

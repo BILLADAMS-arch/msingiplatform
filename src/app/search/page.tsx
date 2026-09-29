@@ -3,6 +3,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Shell } from "@/components/shell";
+import { practiceHref } from "@/lib/links";
 import { Search as SearchIcon, BookOpen, Layers, Library, ClipboardCheck } from "lucide-react";
 
 type Results = {
@@ -42,26 +43,26 @@ function SearchInner() {
         </form>
 
         {!q ? (
-          <p className="text-sm text-[--ink-soft] text-center py-10">Search across Msingi&apos;s lessons, topics, library resources, flashcards, and tests.</p>
+          <p className="text-sm text-(--ink-soft) text-center py-10">Search across Msingi&apos;s lessons, topics, library resources, flashcards, and tests.</p>
         ) : !results ? (
-          <p className="text-sm text-[--ink-soft]">Searching…</p>
+          <p className="text-sm text-(--ink-soft)">Searching…</p>
         ) : !hasAny ? (
-          <p className="text-sm text-[--ink-soft] text-center py-10">No results for &quot;{q}&quot;.</p>
+          <p className="text-sm text-(--ink-soft) text-center py-10">No results for &quot;{q}&quot;.</p>
         ) : (
           <div className="space-y-5">
             {results.topics.length > 0 && (
               <section>
-                <h3 className="text-xs font-bold text-[--ink-soft] uppercase mb-2 flex items-center gap-1"><Layers size={12} /> Topics</h3>
+                <h3 className="text-xs font-bold text-(--ink-soft) uppercase mb-2 flex items-center gap-1"><Layers size={12} /> Topics</h3>
                 <div className="space-y-1.5">
                   {results.topics.map((t) => (
-                    <Link key={t.id} href={`/practice?topic=${encodeURIComponent(t.name)}`} className="tap block bg-white rounded-xl px-4 py-2.5 text-sm border" style={{ borderColor: "var(--slate)" }}>{t.name}</Link>
+                    <Link key={t.id} href={practiceHref({ id: t.id, name: t.name })} className="tap block bg-white rounded-xl px-4 py-2.5 text-sm border" style={{ borderColor: "var(--slate)" }}>{t.name}</Link>
                   ))}
                 </div>
               </section>
             )}
             {results.lessons.length > 0 && (
               <section>
-                <h3 className="text-xs font-bold text-[--ink-soft] uppercase mb-2 flex items-center gap-1"><BookOpen size={12} /> Lessons</h3>
+                <h3 className="text-xs font-bold text-(--ink-soft) uppercase mb-2 flex items-center gap-1"><BookOpen size={12} /> Lessons</h3>
                 <div className="space-y-1.5">
                   {results.lessons.map((l) => (
                     <Link key={l.id} href={`/learn/lesson/${l.id}`} className="tap block bg-white rounded-xl px-4 py-2.5 text-sm border" style={{ borderColor: "var(--slate)" }}>{l.title}</Link>
@@ -71,7 +72,7 @@ function SearchInner() {
             )}
             {results.tests.length > 0 && (
               <section>
-                <h3 className="text-xs font-bold text-[--ink-soft] uppercase mb-2 flex items-center gap-1"><ClipboardCheck size={12} /> Tests</h3>
+                <h3 className="text-xs font-bold text-(--ink-soft) uppercase mb-2 flex items-center gap-1"><ClipboardCheck size={12} /> Tests</h3>
                 <div className="space-y-1.5">
                   {results.tests.map((t) => (
                     <Link key={t.id} href={`/tests/${t.id}`} className="tap block bg-white rounded-xl px-4 py-2.5 text-sm border" style={{ borderColor: "var(--slate)" }}>{t.title}</Link>
@@ -81,17 +82,17 @@ function SearchInner() {
             )}
             {results.resources.length > 0 && (
               <section>
-                <h3 className="text-xs font-bold text-[--ink-soft] uppercase mb-2 flex items-center gap-1"><Library size={12} /> Library</h3>
+                <h3 className="text-xs font-bold text-(--ink-soft) uppercase mb-2 flex items-center gap-1"><Library size={12} /> Library</h3>
                 <div className="space-y-1.5">
                   {results.resources.map((r) => (
-                    <Link key={r.id} href="/library" className="tap block bg-white rounded-xl px-4 py-2.5 text-sm border" style={{ borderColor: "var(--slate)" }}>{r.title} <span className="text-xs text-[--ink-soft]">({r.type})</span></Link>
+                    <Link key={r.id} href="/library" className="tap block bg-white rounded-xl px-4 py-2.5 text-sm border" style={{ borderColor: "var(--slate)" }}>{r.title} <span className="text-xs text-(--ink-soft)">({r.type})</span></Link>
                   ))}
                 </div>
               </section>
             )}
             {results.flashcards.length > 0 && (
               <section>
-                <h3 className="text-xs font-bold text-[--ink-soft] uppercase mb-2">Flashcards</h3>
+                <h3 className="text-xs font-bold text-(--ink-soft) uppercase mb-2">Flashcards</h3>
                 <div className="space-y-1.5">
                   {results.flashcards.map((f, i) => (
                     <Link key={i} href={`/flashcards?topic=${encodeURIComponent(f.topicName)}`} className="tap block bg-white rounded-xl px-4 py-2.5 text-sm border" style={{ borderColor: "var(--slate)" }}>{f.front}</Link>

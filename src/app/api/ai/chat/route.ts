@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     if (usedToday >= AI_FREE_DAILY_LIMIT) {
       return NextResponse.json({
         error: "daily_limit_reached",
-        message: `You've used your ${AI_FREE_DAILY_LIMIT} free Msingi AI messages for today. Upgrade to Msingi Premium for unlimited AI tutoring.`,
+        message: `You've used your ${AI_FREE_DAILY_LIMIT} free Ask Msingi messages for today. Upgrade to Msingi Premium for unlimited tutoring.`,
       }, { status: 402 });
     }
   }
@@ -72,15 +72,23 @@ export async function POST(req: Request) {
   const systemPrompt = buildSystemPrompt(profile?.gradeName ?? null) + (mistakeContextBlock ? `\n\n${mistakeContextBlock}` : "");
 
   const groq = createGroqClient();
-  const groqStream = await groq.chat.completions.create({
-    model: TUTOR_MODEL,
-    max_tokens: 4096,
-    stream: true,
-    messages: [
-      { role: "system", content: systemPrompt },
-      ...recent.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
-    ],
-  });
+  let groqStream;
+  try {
+    groqStream = await groq.chat.completions.create({
+      model: TUTOR_MODEL,
+      max_tokens: 4096,
+      stream: true,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...recent.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+      ],
+    });
+  } catch (err) {
+    // Provider unavailable / rate-limited: answer with a clear JSON error
+    // instead of an unhandled 500, so the client can offer a retry.
+    console.error("Ask Msingi: tutor request failed", err);
+    return NextResponse.json({ error: "ai_unavailable", message: "Ask Msingi couldn't reply just now. Please try again." }, { status: 502 });
+  }
 
   const encoder = new TextEncoder();
   let full = "";

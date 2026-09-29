@@ -9,7 +9,7 @@ type Status = { plan: "FREE" | "PREMIUM"; currentPeriodEnd: string | null; price
 type Child = { id: string; name: string | null; gradeName: string | null };
 
 const FEATURES = [
-  { icon: <Sparkles size={18} />, label: "Unlimited Msingi AI tutoring", sub: "No daily message limit" },
+  { icon: <Sparkles size={18} />, label: "Unlimited Ask Msingi tutoring", sub: "No daily message limit" },
   { icon: <Library size={18} />, label: "Full Library access", sub: "Every premium worksheet, past paper and summary" },
   { icon: <LineChart size={18} />, label: "Deeper progress insights", sub: "Full mastery breakdowns and trends" },
 ];
@@ -83,16 +83,16 @@ function UpgradeInner() {
     <Shell>
       <div className="fade-in max-w-lg mx-auto space-y-6">
         <div className="text-center">
-          <Crown size={36} className="mx-auto text-[--gold-deep] mb-2" />
+          <Crown size={36} className="mx-auto text-(--gold-deep) mb-2" />
           <h1 className="disp text-3xl font-bold">Msingi Premium</h1>
-          <p className="text-sm text-[--ink-soft] mt-1">Unlock everything Msingi has to offer.</p>
+          <p className="text-sm text-(--ink-soft) mt-1">Unlock everything Msingi has to offer.</p>
         </div>
 
         {role === "PARENT" && (
           <div className="brick bg-white rounded-2xl p-4 border" style={{ borderColor: "var(--slate)" }}>
-            <label className="text-xs font-semibold text-[--ink-soft] block mb-1">Upgrade for</label>
-            {!children ? <p className="text-sm text-[--ink-soft]">Loading your children…</p> : children.length === 0 ? (
-              <p className="text-sm text-[--ink-soft]">Link a child from your Parent dashboard first.</p>
+            <label className="text-xs font-semibold text-(--ink-soft) block mb-1">Upgrade for</label>
+            {!children ? <p className="text-sm text-(--ink-soft)">Loading your children…</p> : children.length === 0 ? (
+              <p className="text-sm text-(--ink-soft)">Link a child from your Parent dashboard first.</p>
             ) : (
               <select value={studentId ?? ""} onChange={(e) => setStudentId(e.target.value)} className="w-full border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }}>
                 {children.map((c) => <option key={c.id} value={c.id}>{c.name ?? "Unnamed learner"} {c.gradeName ? `— ${c.gradeName}` : ""}</option>)}
@@ -103,16 +103,16 @@ function UpgradeInner() {
 
         {isPremium ? (
           <div className="brick rounded-2xl p-6 border text-center" style={{ borderColor: "var(--green)", background: "var(--green-soft)" }}>
-            <Check size={28} className="mx-auto text-[--green] mb-2" />
+            <Check size={28} className="mx-auto text-(--green) mb-2" />
             <h2 className="disp text-xl font-bold">Premium is active</h2>
-            {status?.currentPeriodEnd && <p className="text-sm text-[--ink-soft] mt-1">Renews {new Date(status.currentPeriodEnd).toLocaleDateString()}</p>}
+            {status?.currentPeriodEnd && <p className="text-sm text-(--ink-soft) mt-1">Renews {new Date(status.currentPeriodEnd).toLocaleDateString()}</p>}
           </div>
         ) : (
           <>
             <div className="brick bg-white rounded-2xl p-6 border" style={{ borderColor: "var(--slate)" }}>
               <div className="flex items-baseline gap-1 mb-4">
                 <span className="disp text-4xl font-bold">KES {status?.priceKes ?? 300}</span>
-                <span className="text-sm text-[--ink-soft]">/ month</span>
+                <span className="text-sm text-(--ink-soft)">/ month</span>
               </div>
               <div className="space-y-3">
                 {FEATURES.map((f) => (
@@ -120,22 +120,22 @@ function UpgradeInner() {
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--primary-soft)", color: "var(--primary)" }}>{f.icon}</div>
                     <div>
                       <div className="text-sm font-semibold">{f.label}</div>
-                      <div className="text-xs text-[--ink-soft]">{f.sub}</div>
+                      <div className="text-xs text-(--ink-soft)">{f.sub}</div>
                     </div>
                   </div>
                 ))}
               </div>
               {status && !status.ai.unlimited && (
-                <p className="text-xs text-[--ink-soft] mt-4">Free plan: {status.ai.usedToday}/{status.ai.dailyLimit} Msingi AI messages used today.</p>
+                <p className="text-xs text-(--ink-soft) mt-4">Free plan: {status.ai.usedToday}/{status.ai.dailyLimit} Ask Msingi messages used today.</p>
               )}
             </div>
 
             {stage === "idle" && (
               <div className="brick bg-white rounded-2xl p-5 border space-y-3" style={{ borderColor: "var(--slate)" }}>
-                <label className="text-xs font-semibold text-[--ink-soft] block">M-Pesa phone number</label>
+                <label className="text-xs font-semibold text-(--ink-soft) block">M-Pesa phone number</label>
                 <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="07xx xxx xxx"
                   className="w-full border rounded-xl px-4 py-3 text-sm outline-none" style={{ borderColor: "var(--slate)" }} />
-                {error && <p className="text-sm text-[--coral]">{error}</p>}
+                {error && <p className="text-sm text-(--coral)">{error}</p>}
                 <button disabled={!phone.trim() || (role === "PARENT" && !studentId)} onClick={startCheckout}
                   className="tap w-full px-6 py-3 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>
                   Pay with M-Pesa
@@ -145,7 +145,7 @@ function UpgradeInner() {
 
             {stage === "pending" && (
               <div className="brick rounded-2xl p-6 border text-center" style={{ borderColor: "var(--primary)", background: "var(--primary-soft)" }}>
-                <Loader2 size={24} className="mx-auto animate-spin text-[--primary] mb-2" />
+                <Loader2 size={24} className="mx-auto animate-spin text-(--primary) mb-2" />
                 <p className="text-sm font-medium">Check your phone for the M-Pesa prompt and enter your PIN to complete payment.</p>
               </div>
             )}

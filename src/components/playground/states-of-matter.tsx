@@ -60,7 +60,7 @@ export function StatesOfMatter({ onFirstUse }: { onFirstUse: () => void }) {
         })}
       </div>
 
-      <p className="text-sm text-[--ink-soft] text-center max-w-sm mx-auto">{config.fact}</p>
+      <p className="text-sm text-(--ink-soft) text-center max-w-sm mx-auto">{config.fact}</p>
     </div>
   );
 }

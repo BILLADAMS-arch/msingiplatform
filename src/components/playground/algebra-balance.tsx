@@ -41,7 +41,7 @@ export function AlgebraBalance({ onFirstUse }: { onFirstUse: () => void }) {
     <div className="space-y-6">
       <div className="text-center">
         <div className="disp text-2xl font-bold">x {leftConst > 0 ? `+ ${leftConst}` : ""} = {rightConst}</div>
-        {solved && <div className="text-sm font-semibold text-[--green] mt-1">Solved! x = {rightConst}</div>}
+        {solved && <div className="text-sm font-semibold text-(--green) mt-1">Solved! x = {rightConst}</div>}
       </div>
 
       <div className="flex items-end justify-center gap-1">
@@ -53,13 +53,13 @@ export function AlgebraBalance({ onFirstUse }: { onFirstUse: () => void }) {
             <Block label="x" />
             {Array.from({ length: leftConst }, (_, i) => <Block key={i} label="1" />)}
           </div>
-          <span className="text-xs text-[--ink-soft]">Left pan</span>
+          <span className="text-xs text-(--ink-soft)">Left pan</span>
         </div>
         <div className="flex flex-col items-center gap-2">
           <div className="flex flex-wrap gap-1.5 justify-center bg-white rounded-xl border p-3 min-h-16 w-32" style={{ borderColor: "var(--slate)" }}>
             {Array.from({ length: rightConst }, (_, i) => <Block key={i} label="1" />)}
           </div>
-          <span className="text-xs text-[--ink-soft]">Right pan</span>
+          <span className="text-xs text-(--ink-soft)">Right pan</span>
         </div>
       </div>
 
@@ -71,7 +71,7 @@ export function AlgebraBalance({ onFirstUse }: { onFirstUse: () => void }) {
           <Shuffle size={14} /> New equation
         </button>
       </div>
-      <p className="text-xs text-[--ink-soft] text-center">Removing the same number from both pans keeps the balance level — that&apos;s how you isolate x.</p>
+      <p className="text-xs text-(--ink-soft) text-center">Removing the same number from both pans keeps the balance level — that&apos;s how you isolate x.</p>
     </div>
   );
 }

@@ -80,7 +80,7 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {error && <p className="text-sm text-[--coral] mt-3">{error}</p>}
+        {error && <p className="text-sm text-(--coral) mt-3">{error}</p>}
 
         <div className="flex justify-between mt-8">
           <button disabled={step === 0} onClick={() => setStep((s) => s - 1)} className="tap px-4 py-2 text-sm font-medium disabled:opacity-30">Back</button>
@@ -89,7 +89,7 @@ export default function RegisterPage() {
             {loading ? "Creating account…" : isLast ? "Get started" : "Next"}
           </button>
         </div>
-        <p className="text-center text-sm text-[--ink-soft] mt-6">Already have an account? <a href="/login" className="font-semibold text-[--primary]">Log in</a></p>
+        <p className="text-center text-sm text-(--ink-soft) mt-6">Already have an account? <a href="/login" className="font-semibold text-(--primary)">Log in</a></p>
       </div>
     </div>
   );

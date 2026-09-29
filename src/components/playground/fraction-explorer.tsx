@@ -37,7 +37,7 @@ export function FractionExplorer({ onFirstUse }: { onFirstUse: () => void }) {
       </div>
 
       <div>
-        <div className="text-xs text-[--ink-soft] mb-2">{numerator}/{denominator} of the bar is filled</div>
+        <div className="text-xs text-(--ink-soft) mb-2">{numerator}/{denominator} of the bar is filled</div>
         <div className="flex gap-1 h-16 rounded-xl overflow-hidden border" style={{ borderColor: "var(--slate)" }}>
           {Array.from({ length: denominator }, (_, i) => (
             <div key={i} className="flex-1 h-full border-r last:border-r-0" style={{ borderColor: "var(--stone-2)", background: i < numerator ? "var(--primary)" : "var(--stone-2)" }} />
@@ -47,14 +47,14 @@ export function FractionExplorer({ onFirstUse }: { onFirstUse: () => void }) {
 
       <div className="grid sm:grid-cols-2 gap-3">
         <div className="bg-white rounded-2xl p-4 border" style={{ borderColor: "var(--slate)" }}>
-          <div className="text-xs text-[--ink-soft] mb-1">Simplified form</div>
+          <div className="text-xs text-(--ink-soft) mb-1">Simplified form</div>
           <div className="disp text-2xl font-bold">{simplified.n}/{simplified.d}</div>
-          <div className="text-xs text-[--ink-soft] mt-1">{isSimplified ? "Already in simplest form" : `Divide both by ${g}`}</div>
+          <div className="text-xs text-(--ink-soft) mt-1">{isSimplified ? "Already in simplest form" : `Divide both by ${g}`}</div>
         </div>
         <div className="bg-white rounded-2xl p-4 border" style={{ borderColor: "var(--slate)" }}>
-          <div className="text-xs text-[--ink-soft] mb-1">An equivalent fraction</div>
+          <div className="text-xs text-(--ink-soft) mb-1">An equivalent fraction</div>
           <div className="disp text-2xl font-bold">{equivalent.n}/{equivalent.d}</div>
-          <div className="text-xs text-[--ink-soft] mt-1">Multiply both by 2</div>
+          <div className="text-xs text-(--ink-soft) mt-1">Multiply both by 2</div>
         </div>
       </div>
     </div>

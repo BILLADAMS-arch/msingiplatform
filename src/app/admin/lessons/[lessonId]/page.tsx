@@ -67,7 +67,7 @@ export default function EditLessonPage() {
     router.push("/admin/lessons");
   }
 
-  if (!loaded) return <AdminShell title="Edit Lesson"><p className="text-sm text-[--ink-soft]">Loading…</p></AdminShell>;
+  if (!loaded) return <AdminShell title="Edit Lesson"><p className="text-sm text-(--ink-soft)">Loading…</p></AdminShell>;
 
   return (
     <AdminShell title="Edit Lesson">
@@ -82,7 +82,7 @@ export default function EditLessonPage() {
         <div className="bg-white rounded-2xl border p-5 space-y-4" style={{ borderColor: "var(--slate)" }}>
           <div className="flex items-center justify-between">
             <h3 className="disp font-bold">Sections</h3>
-            <button onClick={() => setSections((ss) => [...ss, { ...BLANK_SECTION }])} className="tap flex items-center gap-1 text-xs font-semibold text-[--primary]"><Plus size={14} /> Add section</button>
+            <button onClick={() => setSections((ss) => [...ss, { ...BLANK_SECTION }])} className="tap flex items-center gap-1 text-xs font-semibold text-(--primary)"><Plus size={14} /> Add section</button>
           </div>
           {sections.map((s, i) => (
             <div key={i} className="border rounded-xl p-4 space-y-2" style={{ borderColor: "var(--stone-2)" }}>
@@ -91,24 +91,24 @@ export default function EditLessonPage() {
                   <option value="learn">learn</option><option value="example">example</option><option value="keypoint">keypoint</option><option value="vocab">vocab</option>
                 </select>
                 <input value={s.heading} onChange={(e) => updateSection(i, { heading: e.target.value })} placeholder="Heading" className="flex-1 border rounded-lg px-2 py-1 text-sm" style={{ borderColor: "var(--slate)" }} />
-                <button onClick={() => moveSection(i, -1)} className="tap text-[--ink-soft]"><ArrowUp size={14} /></button>
-                <button onClick={() => moveSection(i, 1)} className="tap text-[--ink-soft]"><ArrowDown size={14} /></button>
-                <button onClick={() => setSections((ss) => ss.filter((_, idx) => idx !== i))} className="tap text-[--coral]"><Trash2 size={14} /></button>
+                <button onClick={() => moveSection(i, -1)} className="tap text-(--ink-soft)"><ArrowUp size={14} /></button>
+                <button onClick={() => moveSection(i, 1)} className="tap text-(--ink-soft)"><ArrowDown size={14} /></button>
+                <button onClick={() => setSections((ss) => ss.filter((_, idx) => idx !== i))} className="tap text-(--coral)"><Trash2 size={14} /></button>
               </div>
               <textarea value={s.body} onChange={(e) => updateSection(i, { body: e.target.value })} placeholder="Body" rows={2} className="w-full border rounded-lg px-2 py-1.5 text-sm" style={{ borderColor: "var(--slate)" }} />
               <input value={s.note} onChange={(e) => updateSection(i, { note: e.target.value })} placeholder="Note (optional)" className="w-full border rounded-lg px-2 py-1.5 text-sm" style={{ borderColor: "var(--slate)" }} />
             </div>
           ))}
-          {sections.length === 0 && <p className="text-sm text-[--ink-soft]">No sections yet.</p>}
+          {sections.length === 0 && <p className="text-sm text-(--ink-soft)">No sections yet.</p>}
         </div>
 
         <div className="bg-white rounded-2xl border p-5 space-y-3" style={{ borderColor: "var(--slate)" }}>
           <div className="flex items-center justify-between">
             <h3 className="disp font-bold">Quick Check</h3>
             {quickCheck ? (
-              <button onClick={() => setQuickCheck(null)} className="tap text-xs font-semibold text-[--coral]">Remove</button>
+              <button onClick={() => setQuickCheck(null)} className="tap text-xs font-semibold text-(--coral)">Remove</button>
             ) : (
-              <button onClick={() => setQuickCheck({ ...BLANK_QUICK_CHECK, options: [...BLANK_QUICK_CHECK.options] })} className="tap flex items-center gap-1 text-xs font-semibold text-[--primary]"><Plus size={14} /> Add quick check</button>
+              <button onClick={() => setQuickCheck({ ...BLANK_QUICK_CHECK, options: [...BLANK_QUICK_CHECK.options] })} className="tap flex items-center gap-1 text-xs font-semibold text-(--primary)"><Plus size={14} /> Add quick check</button>
             )}
           </div>
           {quickCheck && (
@@ -127,7 +127,7 @@ export default function EditLessonPage() {
         </div>
 
         <div className="flex items-center justify-between">
-          <button onClick={remove} className="tap text-sm font-semibold text-[--coral]">Delete lesson</button>
+          <button onClick={remove} className="tap text-sm font-semibold text-(--coral)">Delete lesson</button>
           <button disabled={saving} onClick={save} className="tap px-6 py-2.5 rounded-full font-semibold text-sm text-white disabled:opacity-50" style={{ background: "var(--primary)" }}>
             {saving ? "Saving…" : "Save changes"}
           </button>

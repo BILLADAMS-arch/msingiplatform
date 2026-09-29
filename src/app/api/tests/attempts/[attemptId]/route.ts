@@ -48,12 +48,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
   const topicNameById = Object.fromEntries(topicRows.map((t) => [t.id, t.name]));
 
   let correctCount = 0;
-  const byTopic: Record<string, { correct: number; total: number }> = {};
+  const byTopic: Record<string, { correct: number; total: number; topicId: string }> = {};
   const missed: { questionId: string; topicId: string; chosenOptionId: string | null; chosenText: string | null }[] = [];
 
   for (const q of qRows) {
     const topicName = topicNameById[q.topicId];
-    byTopic[topicName] = byTopic[topicName] || { correct: 0, total: 0 };
+    byTopic[topicName] = byTopic[topicName] || { correct: 0, total: 0, topicId: q.topicId };
     byTopic[topicName].total++;
 
     const answer = answers.find((a) => a.questionId === q.id);

@@ -1,215 +1,455 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import { Shell } from "@/components/shell";
-import { FoundationBar, Pill, TopicChip } from "@/components/ui";
-import { ScoreRing } from "@/components/charts";
-import { Clock, ChevronLeft, ChevronRight, Dumbbell } from "lucide-react";
+import { Button, Card, Pill, FoundationBar, ProgressRing, EmptyState, ErrorState, Skeleton, LoadingState } from "@/components/ui";
+import { AnswerOptions, AnswerInput } from "@/components/question";
+import { practiceHref } from "@/lib/links";
+import {
+  Clock, ChevronLeft, ChevronRight, ClipboardCheck, CheckCircle2, XCircle, Dumbbell, BookMarked, RotateCcw, ArrowRight, Timer, Target, AlertTriangle, Check,
+} from "lucide-react";
 
 type TQuestion = { id: string; type: string; prompt: string; topicId: string; options: { id: string; label: string }[] };
 type StartResp = { attemptId: string; test: { id: string; title: string; timeLimitSeconds: number | null; passingThreshold: number }; questions: TQuestion[] };
 type TestMeta = { title: string; type: string; passingThreshold: number; timeLimitSeconds: number | null; questionCount: number; topics: string[] };
 type SubmitResult = {
   score: number; correct: number; total: number; timeTaken: string;
-  byTopic: Record<string, { correct: number; total: number }>;
+  byTopic: Record<string, { correct: number; total: number; topicId?: string }>;
   previousScore: number | null; improvement: number | null; xpAwarded: number;
 };
 
-type Stage = "intro" | "taking" | "results" | "remediation";
+type Stage =
+  | { kind: "intro" }
+  | { kind: "taking" }
+  | { kind: "submitting"; auto: boolean }
+  | { kind: "submitError"; alreadySubmitted: boolean }
+  | { kind: "results"; result: SubmitResult; answeredCount: number; timedOut: boolean };
+
+function mmss(total: number) {
+  const s = Math.max(0, Math.floor(total));
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+}
 
 export default function TestPage() {
   const { testId } = useParams<{ testId: string }>();
-  const router = useRouter();
-  const [stage, setStage] = useState<Stage>("intro");
-  const [meta, setMeta] = useState<TestMeta | null>(null);
+  const [meta, setMeta] = useState<{ status: "loading" } | { status: "notfound" } | { status: "error" } | { status: "ready"; data: TestMeta }>({ status: "loading" });
+  const [stage, setStage] = useState<Stage>({ kind: "intro" });
   const [session, setSession] = useState<StartResp | null>(null);
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [idx, setIdx] = useState(0);
-  const [seconds, setSeconds] = useState(0);
-  const [result, setResult] = useState<SubmitResult | null>(null);
-  const [remediationStep, setRemediationStep] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const [confirmingSubmit, setConfirmingSubmit] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
 
-  useEffect(() => { fetch(`/api/tests/${testId}`).then((r) => r.json()).then(setMeta); }, [testId]);
+  const startedAtRef = useRef(0);
+  const submittingRef = useRef(false);
+  const timedOutRef = useRef(false);
+  const warnedRef = useRef(false);
+  const questionHeadingRef = useRef<HTMLHeadingElement>(null);
 
-  useEffect(() => {
-    if (stage !== "taking") return;
-    const t = setInterval(() => setSeconds((s) => s + 1), 1000);
-    return () => clearInterval(t);
-  }, [stage]);
+  const fetchMeta = useCallback(() => {
+    fetch(`/api/tests/${testId}`)
+      .then(async (r) => {
+        if (r.status === 404) return setMeta({ status: "notfound" });
+        if (!r.ok) throw new Error();
+        setMeta({ status: "ready", data: await r.json() });
+      })
+      .catch(() => setMeta({ status: "error" }));
+  }, [testId]);
+  useEffect(() => { fetchMeta(); }, [fetchMeta]);
 
-  async function begin() {
-    const res = await fetch(`/api/tests/${testId}/attempts`, { method: "POST" }).then((r) => r.json());
-    setSession(res);
-    setStage("taking");
-  }
+  const limit = session?.test.timeLimitSeconds ?? null;
 
-  async function submit() {
-    if (!session) return;
+  // Submits the attempt exactly once. Grading stays entirely server-side
+  // (PATCH /api/tests/attempts/:id) — the payload shape is unchanged.
+  const submit = useCallback(async (auto = false) => {
+    if (!session || submittingRef.current) return;
+    submittingRef.current = true;
+    if (auto) timedOutRef.current = true;
+    setConfirmingSubmit(false);
+    setStage({ kind: "submitting", auto: timedOutRef.current });
+    const secondsTaken = Math.floor((Date.now() - startedAtRef.current) / 1000);
     const payload = {
       answers: session.questions.map((q) => {
         const value = answers[q.id];
-        if (q.type === "numerical") return { questionId: q.id, answerNumeric: value !== undefined ? Number(value) : null };
+        if (q.type === "numerical") return { questionId: q.id, answerNumeric: value !== undefined && value !== "" ? Number(value) : null };
         if (q.type === "short_answer") return { questionId: q.id, answerText: value ?? null };
         return { questionId: q.id, chosenOptionId: value ?? null };
       }),
-      timeTakenSeconds: seconds,
+      // A timed test can't report more time than it allows.
+      timeTakenSeconds: limit ? Math.min(secondsTaken, limit) : secondsTaken,
     };
-    const res = await fetch(`/api/tests/attempts/${session.attemptId}`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
-    }).then((r) => r.json());
-    setResult(res);
-    setStage("results");
+    try {
+      const res = await fetch(`/api/tests/attempts/${session.attemptId}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+      });
+      if (res.status === 409) { setStage({ kind: "submitError", alreadySubmitted: true }); return; }
+      if (!res.ok) throw new Error();
+      const result: SubmitResult = await res.json();
+      // Count distinct questions: the server grades each question once, even
+      // if a test lists the same question twice.
+      const answeredCount = new Set(session.questions.filter((q) => (answers[q.id] ?? "") !== "").map((q) => q.id)).size;
+      setStage({ kind: "results", result, answeredCount, timedOut: timedOutRef.current });
+      window.scrollTo({ top: 0 });
+    } catch {
+      submittingRef.current = false; // allow Retry — answers are kept
+      setStage({ kind: "submitError", alreadySubmitted: false });
+    }
+  }, [session, answers, limit]);
+
+  // Latest submit for the timer callback, without restarting the interval.
+  const submitRef = useRef(submit);
+  useEffect(() => { submitRef.current = submit; }, [submit]);
+
+  // Clock based on real elapsed time (robust to throttled background tabs).
+  // Enforces timeLimitSeconds: at zero, answers so far are submitted.
+  useEffect(() => {
+    if (stage.kind !== "taking") return;
+    const t = setInterval(() => {
+      const secs = Math.floor((Date.now() - startedAtRef.current) / 1000);
+      setElapsed(secs);
+      if (limit) {
+        const left = limit - secs;
+        if (left <= 60 && left > 0 && !warnedRef.current && limit > 60) {
+          warnedRef.current = true;
+          setAnnouncement("One minute remaining.");
+        }
+        if (left <= 0) {
+          setAnnouncement("Time is up. Submitting your answers.");
+          submitRef.current(true);
+        }
+      }
+    }, 1000);
+    return () => clearInterval(t);
+  }, [stage.kind, limit]);
+
+  const startingRef = useRef(false);
+  async function begin() {
+    if (startingRef.current) return; // one click = one attempt row
+    startingRef.current = true;
+    setStarting(true);
+    setStartError(false);
+    try {
+      const res = await fetch(`/api/tests/${testId}/attempts`, { method: "POST" });
+      if (!res.ok) throw new Error();
+      const data: StartResp = await res.json();
+      setSession(data);
+      setAnswers({}); setIdx(0); setElapsed(0);
+      submittingRef.current = false; timedOutRef.current = false; warnedRef.current = false;
+      startedAtRef.current = Date.now();
+      setStage({ kind: "taking" });
+    } catch {
+      setStartError(true);
+    } finally {
+      startingRef.current = false;
+      setStarting(false);
+    }
   }
 
-  if (stage === "intro") {
+  function goTo(i: number) {
+    setIdx(i);
+    requestAnimationFrame(() => questionHeadingRef.current?.focus());
+  }
+
+  function retake() {
+    setSession(null);
+    setStage({ kind: "intro" });
+    window.scrollTo({ top: 0 });
+  }
+
+  /* -------- Meta loading / errors -------- */
+  if (meta.status === "loading") {
+    return <Shell><LoadingState label="Loading test"><div className="max-w-xl mx-auto space-y-4"><Skeleton className="h-8 w-2/3" /><Skeleton className="h-48 rounded-2xl" /></div></LoadingState></Shell>;
+  }
+  if (meta.status === "notfound") {
+    return <Shell><Card className="max-w-xl mx-auto"><EmptyState icon={<ClipboardCheck size={22} />} title="This test isn't available" description="It may have been unpublished." action={<Button href="/tests">All tests</Button>} /></Card></Shell>;
+  }
+  if (meta.status === "error") {
+    return <Shell><Card className="max-w-xl mx-auto"><ErrorState title="We couldn't load this test" onRetry={() => { setMeta({ status: "loading" }); fetchMeta(); }} /></Card></Shell>;
+  }
+  const m = meta.data;
+
+  /* -------- Intro -------- */
+  if (stage.kind === "intro") {
     return (
       <Shell>
-        <div className="fade-in max-w-md mx-auto text-center space-y-5 py-10">
-          <div className="disp text-2xl font-bold">{meta?.title ?? "Ready for a test?"}</div>
-          {!meta ? (
-            <p className="text-sm text-[--ink-soft]">Loading…</p>
+        <div className="fade-in max-w-xl mx-auto">
+          <Card padding="lg">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-(--primary-soft) text-(--primary-deep)" aria-hidden><ClipboardCheck size={22} /></div>
+            <p className="text-xs font-bold uppercase tracking-wider text-(--ink-soft) mt-4">{m.type} test</p>
+            <h1 className="disp text-2xl sm:text-3xl mt-1 leading-tight">{m.title}</h1>
+            <dl className="grid grid-cols-3 gap-2 mt-5 text-center">
+              <div className="rounded-xl bg-(--stone-2) p-3"><dt className="text-[11px] text-(--ink-soft)">Questions</dt><dd className="disp text-lg">{m.questionCount}</dd></div>
+              <div className="rounded-xl bg-(--stone-2) p-3"><dt className="text-[11px] text-(--ink-soft)">Time</dt><dd className="disp text-lg">{m.timeLimitSeconds ? `${Math.round(m.timeLimitSeconds / 60)} min` : "Untimed"}</dd></div>
+              <div className="rounded-xl bg-(--stone-2) p-3"><dt className="text-[11px] text-(--ink-soft)">Pass mark</dt><dd className="disp text-lg">{m.passingThreshold}%</dd></div>
+            </dl>
+            {m.topics.length > 0 && (
+              <div className="mt-5">
+                <p className="text-xs font-semibold text-(--ink-soft) mb-2">Topics covered</p>
+                <ul className="flex flex-wrap gap-1.5">{m.topics.map((t) => <li key={t}><Pill tone="blue">{t}</Pill></li>)}</ul>
+              </div>
+            )}
+            <ul className="mt-5 space-y-1.5 text-sm text-(--ink-soft)">
+              <li className="flex gap-2"><Check size={16} className="text-(--green) shrink-0 mt-0.5" aria-hidden /> You can move between questions and change answers before submitting.</li>
+              <li className="flex gap-2"><Check size={16} className="text-(--green) shrink-0 mt-0.5" aria-hidden /> Answers are graded when you submit — nothing is revealed before then.</li>
+              {m.timeLimitSeconds ? <li className="flex gap-2"><Timer size={16} className="text-(--gold-deep) shrink-0 mt-0.5" aria-hidden /> When time runs out, your answers are submitted automatically.</li> : null}
+            </ul>
+            {startError && <p role="alert" className="text-sm text-(--coral) mt-4">We couldn&apos;t start the test. Please try again.</p>}
+            {m.questionCount === 0 ? (
+              <p className="text-sm text-(--ink-soft) mt-6">This test has no questions yet.</p>
+            ) : (
+              <Button size="lg" full className="mt-6" onClick={begin} disabled={starting}>{starting ? "Starting…" : "Start test"} {!starting && <ArrowRight size={18} aria-hidden />}</Button>
+            )}
+            <Button href="/tests" variant="ghost" full className="mt-2">All tests</Button>
+          </Card>
+        </div>
+      </Shell>
+    );
+  }
+
+  /* -------- Submitting / submit errors -------- */
+  if (stage.kind === "submitting") {
+    return (
+      <Shell>
+        <Card className="max-w-xl mx-auto text-center" padding="lg">
+          <LoadingState label="Submitting your answers">
+            <p className="font-semibold">{stage.auto ? "Time's up — submitting your answers…" : "Submitting your answers…"}</p>
+            <Skeleton className="h-2 mt-4" />
+          </LoadingState>
+        </Card>
+      </Shell>
+    );
+  }
+  if (stage.kind === "submitError") {
+    return (
+      <Shell>
+        <Card className="max-w-xl mx-auto">
+          {stage.alreadySubmitted ? (
+            <EmptyState icon={<ClipboardCheck size={22} />} title="This attempt was already submitted" description="Your results were saved. You can start a new attempt."
+              action={<Button onClick={retake}><RotateCcw size={16} aria-hidden /> Start a new attempt</Button>} />
           ) : (
-            <p className="text-sm text-[--ink-soft]">
-              Covers {meta.topics.join(", ")} — {meta.questionCount} question{meta.questionCount === 1 ? "" : "s"}
-              {meta.timeLimitSeconds ? `, ${Math.round(meta.timeLimitSeconds / 60)} min` : ", untimed"}.
-              Your answers are graded on submit; nothing is revealed until then.
+            <ErrorState title="We couldn't submit your test" message="Your answers are still here. Check your connection and try again." onRetry={() => submit(timedOutRef.current)} />
+          )}
+        </Card>
+      </Shell>
+    );
+  }
+
+  /* -------- Results -------- */
+  if (stage.kind === "results") {
+    return <Results meta={m} threshold={session?.test.passingThreshold ?? m.passingThreshold} stage={stage} onRetake={retake} />;
+  }
+
+  /* -------- Taking -------- */
+  if (!session) return null;
+  const q = session.questions[idx];
+  const total = session.questions.length;
+  const isAnswered = (id: string) => (answers[id] ?? "") !== "";
+  const answeredCount = session.questions.filter((qq) => isAnswered(qq.id)).length;
+  const unanswered = total - answeredCount;
+  const remaining = limit ? limit - elapsed : null;
+  const lowTime = remaining !== null && remaining <= 60;
+  const setAnswer = (value: string) => setAnswers((a) => ({ ...a, [q.id]: value }));
+
+  return (
+    <Shell>
+      <div className="fade-in max-w-2xl mx-auto space-y-5">
+        <p className="sr-only" aria-live="assertive">{announcement}</p>
+
+        {/* Header: title + timer */}
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-bold uppercase tracking-wider text-(--ink-soft) truncate">Test · {session.test.title}</p>
+          <div role="timer" aria-label={remaining !== null ? "Time remaining" : "Time elapsed"}
+            className={`shrink-0 flex items-center gap-1.5 min-h-9 px-3 rounded-full text-sm font-bold tabular-nums border ${lowTime ? "bg-(--coral-soft) border-(--coral) text-(--coral)" : "bg-white border-(--slate)"}`}>
+            <Clock size={15} aria-hidden />
+            {remaining !== null ? <>{mmss(remaining)}<span className="font-medium text-xs"> left</span></> : mmss(elapsed)}
+          </div>
+        </div>
+
+        {/* Navigator */}
+        <Card padding="sm">
+          <div className="flex items-center justify-between gap-2 mb-2.5">
+            <h2 className="text-sm font-semibold">Questions</h2>
+            <span className="text-xs text-(--ink-soft)"><b className="text-(--ink)">{answeredCount}</b> of {total} answered</span>
+          </div>
+          <nav aria-label="Question navigator">
+            <ol className="flex flex-wrap gap-1.5">
+              {session.questions.map((qq, i) => {
+                const current = i === idx;
+                const done = isAnswered(qq.id);
+                return (
+                  <li key={`${qq.id}-${i}`}>
+                    <button type="button" onClick={() => goTo(i)} aria-current={current ? "step" : undefined}
+                      aria-label={`Question ${i + 1}, ${done ? "answered" : "not answered"}${current ? ", current" : ""}`}
+                      className={`tap relative w-10 h-10 rounded-lg text-sm font-bold border-2 ${current ? "bg-(--primary) border-(--primary) text-white" : done ? "bg-(--primary-soft) border-(--primary-soft) text-(--primary-deep)" : "bg-white border-dashed border-(--slate) text-(--ink-soft)"}`}>
+                      {i + 1}
+                      {done && !current && <Check size={11} strokeWidth={3} className="absolute top-0.5 right-0.5 text-(--primary-deep)" aria-hidden />}
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5 text-[11px] text-(--ink-soft)" aria-hidden>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-(--primary)" /> Current</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-(--primary-soft)" /> Answered</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border-2 border-dashed border-(--slate)" /> Not answered</span>
+          </div>
+        </Card>
+
+        {/* Question */}
+        <Card padding="lg">
+          <p className="text-xs font-semibold text-(--ink-soft)">Question {idx + 1} of {total}</p>
+          <h1 ref={questionHeadingRef} tabIndex={-1} className="font-semibold text-lg leading-snug mt-1 mb-5">{q.prompt}</h1>
+          {q.type === "short_answer" || q.type === "numerical" ? (
+            <AnswerInput id={`answer-${q.id}`} type={q.type} value={answers[q.id] ?? ""} onChange={setAnswer} />
+          ) : (
+            <AnswerOptions key={`${q.id}-${idx}`} name={`q-${q.id}`} legend={q.prompt} options={q.options} value={answers[q.id] ?? null} onChange={setAnswer} />
+          )}
+        </Card>
+
+        {/* Controls */}
+        {confirmingSubmit ? (
+          <Card padding="md" className="border-(--gold)!" style={{ background: "var(--amber-soft)" }}>
+            <div role="alertdialog" aria-labelledby="confirm-title" aria-describedby="confirm-desc">
+              <p id="confirm-title" className="font-bold flex items-center gap-2"><AlertTriangle size={16} className="text-(--gold-deep)" aria-hidden /> Submit with {unanswered} unanswered?</p>
+              <p id="confirm-desc" className="text-sm text-(--ink-soft) mt-1">Unanswered questions are marked incorrect.</p>
+              <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                <Button variant="secondary" onClick={() => { setConfirmingSubmit(false); const first = session.questions.findIndex((qq) => !isAnswered(qq.id)); if (first >= 0) goTo(first); }}>Go to first unanswered</Button>
+                <Button variant="success" onClick={() => submit()}>Submit anyway</Button>
+              </div>
+            </div>
+          </Card>
+        ) : (
+          <div className="flex items-center justify-between gap-2">
+            <Button variant="ghost" onClick={() => goTo(idx - 1)} disabled={idx === 0}><ChevronLeft size={16} aria-hidden /> Previous</Button>
+            <div className="flex gap-2">
+              {idx < total - 1 && <Button onClick={() => goTo(idx + 1)}>Next <ChevronRight size={16} aria-hidden /></Button>}
+              {(idx === total - 1 || answeredCount === total) && (
+                <Button variant="success" onClick={() => (unanswered > 0 ? setConfirmingSubmit(true) : submit())}>Submit test</Button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </Shell>
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Results                                                                  */
+/* ---------------------------------------------------------------------- */
+
+function Results({ meta, threshold, stage, onRetake }: {
+  meta: TestMeta; threshold: number; stage: Extract<Stage, { kind: "results" }>; onRetake: () => void;
+}) {
+  const { result, answeredCount, timedOut } = stage;
+  const passed = result.score >= threshold;
+  const wrong = result.total - result.correct;
+  // Per-topic accuracy against the same pass mark the test uses.
+  const topics = Object.entries(result.byTopic)
+    .map(([name, v]) => ({ name, topicId: v.topicId ?? null, pct: Math.round((v.correct / v.total) * 100), correct: v.correct, total: v.total }))
+    .sort((a, b) => a.pct - b.pct);
+  const weak = topics.filter((t) => t.pct < threshold);
+  const weakest = weak[0];
+
+  return (
+    <Shell>
+      <div className="fade-in max-w-2xl mx-auto space-y-6">
+        {timedOut && (
+          <p className="text-sm rounded-xl bg-(--amber-soft) text-(--gold-deep) px-4 py-3 flex items-center gap-2 font-semibold">
+            <Timer size={16} aria-hidden /> Time ran out — your answers were submitted automatically.
+          </p>
+        )}
+
+        <Card padding="lg" className="text-center">
+          <p className="text-xs font-bold uppercase tracking-wider text-(--ink-soft)">Results · {meta.title}</p>
+          <div className="mt-5 flex justify-center">
+            <ProgressRing pct={result.score} size={140} stroke={11} tone={passed ? "green" : "coral"} label={`Score ${result.score}%`}>
+              <div><div className="disp text-3xl">{result.score}%</div><div className="text-[11px] text-(--ink-soft)">score</div></div>
+            </ProgressRing>
+          </div>
+          <div className="mt-4 flex justify-center">
+            {passed ? (
+              <Pill tone="green"><CheckCircle2 size={14} aria-hidden /> Passed — pass mark {threshold}%</Pill>
+            ) : (
+              <Pill tone="coral"><XCircle size={14} aria-hidden /> Not passed yet — pass mark {threshold}%</Pill>
+            )}
+          </div>
+          <h1 className="disp text-2xl mt-3">{passed ? "Great work!" : "Let's close the gap."}</h1>
+          {result.previousScore !== null && result.improvement !== null && (
+            <p className="text-sm text-(--ink-soft) mt-1">
+              {result.improvement > 0 ? `Up ${result.improvement} points` : result.improvement < 0 ? `Down ${Math.abs(result.improvement)} points` : "Same score"} from your previous attempt ({result.previousScore}%).
             </p>
           )}
-          <button disabled={!meta} onClick={begin} className="tap px-6 py-3 rounded-full font-semibold text-white disabled:opacity-40" style={{ background: "var(--primary)" }}>Start Test</button>
-        </div>
-      </Shell>
-    );
-  }
+          <dl className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-6">
+            <Stat label="Correct" value={`${result.correct}/${result.total}`} />
+            <Stat label="Answered" value={`${answeredCount}/${result.total}`} />
+            <Stat label="Time taken" value={result.timeTaken} />
+            <Stat label="XP earned" value={`+${result.xpAwarded}`} />
+          </dl>
+        </Card>
 
-  if (stage === "taking" && session) {
-    const q = session.questions[idx];
-    const mmss = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-    return (
-      <Shell>
-        <div className="fade-in max-w-2xl mx-auto space-y-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-semibold"><Clock size={16} /> {mmss}</div>
-            <div className="text-sm text-[--ink-soft]">Question {idx + 1} of {session.questions.length}</div>
-          </div>
-          <FoundationBar pct={(idx / session.questions.length) * 100} />
-          <div className="flex gap-1.5 flex-wrap">
-            {session.questions.map((qq, i) => (
-              <button key={qq.id} onClick={() => setIdx(i)} className="tap w-7 h-7 rounded-lg text-xs font-semibold border"
-                style={{ borderColor: "var(--slate)", background: i === idx ? "var(--primary)" : answers[qq.id] ? "var(--green-soft)" : "white", color: i === idx ? "white" : "var(--ink)" }}>
-                {i + 1}
-              </button>
-            ))}
-          </div>
-          <div className="brick bg-white rounded-2xl p-6 border" style={{ borderColor: "var(--slate)" }}>
-            <p className="font-medium mb-4 pr-4">{q.prompt}</p>
-            {q.type === "short_answer" || q.type === "numerical" ? (
-              <input
-                type={q.type === "numerical" ? "number" : "text"}
-                value={answers[q.id] ?? ""}
-                onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
-                placeholder={q.type === "numerical" ? "Enter a number" : "Type your answer"}
-                className="w-full border rounded-xl px-4 py-3 text-sm outline-none"
-                style={{ borderColor: answers[q.id] ? "var(--primary)" : "var(--slate)" }}
-              />
-            ) : (
-            <div className="grid sm:grid-cols-2 gap-3">
-              {q.options.map((opt, i) => (
-                <button key={opt.id} onClick={() => setAnswers((a) => ({ ...a, [q.id]: opt.id }))}
-                  className="tap border rounded-xl px-4 py-3 text-sm font-medium text-left"
-                  style={{ borderColor: answers[q.id] === opt.id ? "var(--primary)" : "var(--slate)", background: answers[q.id] === opt.id ? "var(--primary-soft)" : "white" }}>
-                  {String.fromCharCode(65 + i)}. {opt.label}
-                </button>
-              ))}
-            </div>
+        {/* Next steps — the Analyse → Revise → Retest part of the loop */}
+        <Card padding="lg">
+          <h2 className="disp text-lg">What to do next</h2>
+          <div className="grid gap-2.5 mt-4">
+            {weakest && (
+              <Button size="lg" href={practiceHref({ id: weakest.topicId, name: weakest.name })} variant={passed ? "secondary" : "primary"}>
+                <Dumbbell size={16} aria-hidden /> Practise {weakest.name}
+              </Button>
             )}
-          </div>
-          <div className="flex justify-between">
-            <button disabled={idx === 0} onClick={() => setIdx((i) => i - 1)} className="tap px-4 py-2 text-sm font-medium disabled:opacity-30 flex items-center gap-1"><ChevronLeft size={16} />Previous</button>
-            {idx < session.questions.length - 1 ? (
-              <button onClick={() => setIdx((i) => i + 1)} className="tap px-6 py-2.5 rounded-full font-semibold text-white flex items-center gap-1" style={{ background: "var(--primary)" }}>Next <ChevronRight size={16} /></button>
-            ) : (
-              <button onClick={submit} className="tap px-6 py-2.5 rounded-full font-semibold text-white" style={{ background: "var(--green)" }}>Submit Test</button>
+            {wrong > 0 && (
+              <Button size="lg" variant="secondary" href="/mistakes"><BookMarked size={16} aria-hidden /> Review the {wrong} question{wrong === 1 ? "" : "s"} you missed</Button>
             )}
+            <Button size="lg" variant={passed || !weakest ? "secondary" : "ghost"} onClick={onRetake}><RotateCcw size={16} aria-hidden /> Retake this test</Button>
+            {passed && <Button size="lg" href="/dashboard">Continue learning <ArrowRight size={16} aria-hidden /></Button>}
           </div>
-        </div>
-      </Shell>
-    );
-  }
+          {wrong > 0 && <p className="text-xs text-(--ink-soft) mt-3">Questions you got wrong are saved in your Mistake Book.</p>}
+        </Card>
 
-  if (stage === "results" && result) {
-    const failed = result.score < 60;
-    const weakTopics = Object.entries(result.byTopic).filter(([, v]) => v.correct / v.total < 0.6).sort((a, b) => a[1].correct / a[1].total - b[1].correct / b[1].total).map(([t]) => t);
-    return (
-      <Shell>
-        <div className="fade-in max-w-2xl mx-auto space-y-6">
-          <div className="text-center">
-            <h1 className="disp text-3xl font-bold mb-1">{failed ? "Let's improve this 💪" : "Great effort! 🎉"}</h1>
-            {failed && <p className="text-sm text-[--ink-soft] mb-3">You scored:</p>}
-            <ScoreRing pct={result.score} tone="blue">
-              <div className="disp text-3xl font-bold" style={{ color: "var(--primary)" }}>{result.score}%</div>
-            </ScoreRing>
-            {result.previousScore !== null && (
-              <div className="mt-2"><Pill tone={(result.improvement ?? 0) >= 0 ? "green" : "coral"}>{(result.improvement ?? 0) >= 0 ? "+" : ""}{result.improvement}% vs previous attempt</Pill></div>
-            )}
+        <Card padding="none">
+          <div className="px-5 pt-5 pb-2">
+            <h2 className="disp text-lg">Performance by topic</h2>
+            <p className="text-xs text-(--ink-soft) mt-0.5">Topics below the {threshold}% pass mark need more practice.</p>
           </div>
-          <div className="grid grid-cols-3 gap-3 text-center text-sm">
-            <div className="bg-white rounded-xl p-3 border" style={{ borderColor: "var(--slate)" }}><div className="disp font-bold text-lg" style={{ color: "var(--primary)" }}>{result.correct}/{result.total}</div><div className="text-[--ink-soft] text-xs">Correct</div></div>
-            <div className="bg-white rounded-xl p-3 border" style={{ borderColor: "var(--slate)" }}><div className="disp font-bold text-lg">{result.timeTaken}</div><div className="text-[--ink-soft] text-xs">Time taken</div></div>
-            <div className="bg-white rounded-xl p-3 border" style={{ borderColor: "var(--slate)" }}><div className="disp font-bold text-lg" style={{ color: "var(--gold-deep)" }}>+{result.xpAwarded}</div><div className="text-[--ink-soft] text-xs">XP earned</div></div>
-          </div>
-          <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
-            <h3 className="disp font-bold mb-3">Performance by Topic</h3>
-            <div className="space-y-2">
-              {Object.entries(result.byTopic).map(([t, v]) => <TopicChip key={t} label={t} pct={Math.round((v.correct / v.total) * 100)} />)}
-            </div>
-          </div>
-          {failed ? (
-            <div className="brick rounded-2xl p-5 border" style={{ borderColor: "var(--coral)", background: "var(--coral-soft)" }}>
-              <h3 className="disp font-bold mb-2">You need more practice in:</h3>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {weakTopics.map((t) => <Pill key={t} tone="coral">🔴 {t}</Pill>)}
-              </div>
-              <h3 className="disp font-bold mb-2">Your Revision Plan</h3>
-              <ol className="text-sm space-y-1 list-decimal list-inside text-[--ink-soft]">
-                <li>Review your weakest topic</li><li>Practise 5 targeted questions</li><li>Review your mistakes</li><li>Complete a mini quiz</li><li>Retake the test</li>
-              </ol>
-              <button onClick={() => setStage("remediation")} className="tap mt-4 w-full px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Start Revision</button>
-            </div>
-          ) : (
-            <button onClick={() => router.push("/dashboard")} className="tap w-full px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Continue</button>
-          )}
-        </div>
-      </Shell>
-    );
-  }
+          <ul className="divide-y divide-(--stone-2)">
+            {topics.map((t) => {
+              const ok = t.pct >= threshold;
+              return (
+                <li key={t.name} className="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center gap-2.5">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-sm">{t.name}</span>
+                      <Pill tone={ok ? "green" : "coral"}>{ok ? <><Target size={12} aria-hidden /> On track</> : "Needs practice"}</Pill>
+                    </div>
+                    <div className="flex items-center gap-3 mt-1.5">
+                      <div className="flex-1 max-w-xs"><FoundationBar pct={t.pct} tone={ok ? "green" : "coral"} height={6} label={`${t.name}: ${t.pct}%`} /></div>
+                      <span className="text-xs font-semibold tabular-nums">{t.correct}/{t.total} · {t.pct}%</span>
+                    </div>
+                  </div>
+                  {!ok && (
+                    <Button size="sm" variant="secondary" href={practiceHref({ id: t.topicId, name: t.name })} aria-label={`Practise ${t.name}`}>
+                      <Dumbbell size={14} aria-hidden /> Practise
+                    </Button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      </div>
+    </Shell>
+  );
+}
 
-  if (stage === "remediation" && result) {
-    const weakTopics = Object.entries(result.byTopic).filter(([, v]) => v.correct / v.total < 0.6).sort((a, b) => a[1].correct / a[1].total - b[1].correct / b[1].total).map(([t]) => t);
-    const topic = weakTopics[0] || Object.keys(result.byTopic)[0];
-    return (
-      <Shell>
-        <div className="fade-in max-w-xl mx-auto text-center space-y-5 py-10">
-          {remediationStep < 2 ? (
-            <>
-              <Dumbbell size={36} className="mx-auto text-[--primary]" />
-              <h1 className="disp text-3xl font-bold">Review &amp; Practise: {topic}</h1>
-              <p className="text-sm text-[--ink-soft]">Head to Practice for {topic}, then come back here to retake the test.</p>
-              <a href={`/practice?topic=${encodeURIComponent(topic)}`} className="tap inline-block px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Go Practise {topic}</a>
-              <div>
-                <button onClick={() => setRemediationStep(2)} className="text-sm font-semibold text-[--primary] mt-4">I've practised — I'm ready</button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="disp text-2xl font-bold">You're ready to try again! 🚀</div>
-              <p className="text-sm text-[--ink-soft]">Mistakes from this attempt are saved in your Mistake Book too.</p>
-              <button onClick={() => { setStage("intro"); setResult(null); setAnswers({}); setIdx(0); setSeconds(0); setRemediationStep(0); }} className="tap px-6 py-3 rounded-full font-semibold text-white" style={{ background: "var(--primary)" }}>Retake Test</button>
-            </>
-          )}
-        </div>
-      </Shell>
-    );
-  }
-
-  return <Shell><p className="text-sm text-[--ink-soft]">Loading…</p></Shell>;
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-(--stone-2) p-3">
+      <dt className="text-[11px] text-(--ink-soft)">{label}</dt>
+      <dd className="disp text-lg tabular-nums">{value}</dd>
+    </div>
+  );
 }

@@ -79,7 +79,7 @@ export default function ClassDetailPage() {
 
         {tab === "performance" && (
           <div className="space-y-4">
-            {!dashboard ? <p className="text-sm text-[--ink-soft]">Loading…</p> : (
+            {!dashboard ? <p className="text-sm text-(--ink-soft)">Loading…</p> : (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   <StatCard icon={<Layers size={18} />} label="Class Average" value={`${dashboard.classAverage}%`} tone="green" />
@@ -88,18 +88,18 @@ export default function ClassDetailPage() {
                 </div>
                 <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
                   <h3 className="disp font-bold mb-3">Most Difficult Topics</h3>
-                  {dashboard.difficultTopics.length === 0 ? <p className="text-sm text-[--ink-soft]">No progress data yet.</p> : (
+                  {dashboard.difficultTopics.length === 0 ? <p className="text-sm text-(--ink-soft)">No progress data yet.</p> : (
                     <div className="space-y-2">{dashboard.difficultTopics.map((t) => <TopicChip key={t.name} label={t.name} pct={t.avgMastery} />)}</div>
                   )}
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
                     <h3 className="disp font-bold mb-3">Improving</h3>
-                    {dashboard.improving.length === 0 ? <p className="text-sm text-[--ink-soft]">No one flagged yet.</p> : dashboard.improving.map((s) => <div key={s.id} className="text-sm py-1">{s.name ?? "Unnamed student"}</div>)}
+                    {dashboard.improving.length === 0 ? <p className="text-sm text-(--ink-soft)">No one flagged yet.</p> : dashboard.improving.map((s) => <div key={s.id} className="text-sm py-1">{s.name ?? "Unnamed student"}</div>)}
                   </div>
                   <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
                     <h3 className="disp font-bold mb-3">Needing Support</h3>
-                    {dashboard.needingSupport.length === 0 ? <p className="text-sm text-[--ink-soft]">No one flagged yet.</p> : dashboard.needingSupport.map((s) => <div key={s.id} className="text-sm py-1">{s.name ?? "Unnamed student"}</div>)}
+                    {dashboard.needingSupport.length === 0 ? <p className="text-sm text-(--ink-soft)">No one flagged yet.</p> : dashboard.needingSupport.map((s) => <div key={s.id} className="text-sm py-1">{s.name ?? "Unnamed student"}</div>)}
                   </div>
                 </div>
               </>
@@ -114,14 +114,14 @@ export default function ClassDetailPage() {
                 placeholder="Student email" className="flex-1 border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }} />
               <button onClick={addStudent} className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--primary)" }}><Plus size={14} /> Add</button>
             </div>
-            {!detail ? <p className="text-sm text-[--ink-soft]">Loading…</p> : detail.roster.length === 0 ? (
-              <div className="text-center py-12"><Users size={32} className="mx-auto text-[--ink-soft] mb-2" /><p className="text-sm text-[--ink-soft]">No students yet.</p></div>
+            {!detail ? <p className="text-sm text-(--ink-soft)">Loading…</p> : detail.roster.length === 0 ? (
+              <div className="text-center py-12"><Users size={32} className="mx-auto text-(--ink-soft) mb-2" /><p className="text-sm text-(--ink-soft)">No students yet.</p></div>
             ) : (
               <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: "var(--slate)" }}>
                 {detail.roster.map((s) => (
                   <div key={s.id} className="flex items-center justify-between px-4 py-3 border-b last:border-0" style={{ borderColor: "var(--stone-2)" }}>
-                    <div><div className="font-medium text-sm">{s.name ?? "Unnamed student"}</div><div className="text-xs text-[--ink-soft]">{s.email}</div></div>
-                    <button onClick={() => removeStudent(s.id)} className="tap text-[--coral]"><X size={16} /></button>
+                    <div><div className="font-medium text-sm">{s.name ?? "Unnamed student"}</div><div className="text-xs text-(--ink-soft)">{s.email}</div></div>
+                    <button onClick={() => removeStudent(s.id)} className="tap text-(--coral)"><X size={16} /></button>
                   </div>
                 ))}
               </div>
@@ -137,14 +137,14 @@ export default function ClassDetailPage() {
               </select>
               <button onClick={createAssignment} className="tap flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--primary)" }}><Plus size={14} /> Assign</button>
             </div>
-            {!assignments ? <p className="text-sm text-[--ink-soft]">Loading…</p> : assignments.length === 0 ? (
-              <div className="text-center py-12"><ClipboardCheck size={32} className="mx-auto text-[--ink-soft] mb-2" /><p className="text-sm text-[--ink-soft]">No assignments yet.</p></div>
+            {!assignments ? <p className="text-sm text-(--ink-soft)">Loading…</p> : assignments.length === 0 ? (
+              <div className="text-center py-12"><ClipboardCheck size={32} className="mx-auto text-(--ink-soft) mb-2" /><p className="text-sm text-(--ink-soft)">No assignments yet.</p></div>
             ) : (
               <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: "var(--slate)" }}>
                 {assignments.map((a) => (
                   <button key={a.id} onClick={() => viewCompletion(a)} className="tap w-full text-left flex items-center justify-between px-4 py-3 border-b last:border-0" style={{ borderColor: "var(--stone-2)" }}>
                     <span className="font-medium text-sm">{a.testTitle}</span>
-                    <span className="text-xs text-[--primary] font-semibold">View completion →</span>
+                    <span className="text-xs text-(--primary) font-semibold">View completion →</span>
                   </button>
                 ))}
               </div>

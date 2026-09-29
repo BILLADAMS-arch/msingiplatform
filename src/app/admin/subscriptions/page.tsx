@@ -25,16 +25,16 @@ export default function AdminSubscriptionsPage() {
 
   return (
     <AdminShell title="Subscriptions">
-      <p className="text-sm text-[--ink-soft] mb-4">
+      <p className="text-sm text-(--ink-soft) mb-4">
         {rows ? `${premiumCount} of ${rows.length} learners on Msingi Premium.` : "Loading…"} Learners pay via M-Pesa from{" "}
         <span className="font-medium">/upgrade</span> — use the actions below for offline/school payments.
       </p>
 
-      {!rows ? <p className="text-sm text-[--ink-soft]">Loading…</p> : (
+      {!rows ? <p className="text-sm text-(--ink-soft)">Loading…</p> : (
         <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: "var(--slate)" }}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-[--ink-soft] border-b" style={{ borderColor: "var(--slate)" }}>
+              <tr className="text-left text-xs text-(--ink-soft) border-b" style={{ borderColor: "var(--slate)" }}>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Email</th>
                 <th className="px-4 py-3 font-medium">Plan</th>
@@ -46,9 +46,9 @@ export default function AdminSubscriptionsPage() {
               {rows.map((r) => (
                 <tr key={r.userId} className="border-b last:border-0" style={{ borderColor: "var(--stone-2)" }}>
                   <td className="px-4 py-3 font-medium">{r.name ?? "—"}</td>
-                  <td className="px-4 py-3 text-[--ink-soft]">{r.email}</td>
+                  <td className="px-4 py-3 text-(--ink-soft)">{r.email}</td>
                   <td className="px-4 py-3"><Pill tone={r.plan === "PREMIUM" ? "gold" : "green"}>{r.plan}</Pill></td>
-                  <td className="px-4 py-3 text-[--ink-soft]">{r.currentPeriodEnd ? new Date(r.currentPeriodEnd).toLocaleDateString() : "—"}</td>
+                  <td className="px-4 py-3 text-(--ink-soft)">{r.currentPeriodEnd ? new Date(r.currentPeriodEnd).toLocaleDateString() : "—"}</td>
                   <td className="px-4 py-3">
                     <button disabled={saving === r.userId} onClick={() => setPlan(r.userId, r.plan === "PREMIUM" ? "revoke" : "grant")}
                       className="tap text-xs font-semibold disabled:opacity-40" style={{ color: r.plan === "PREMIUM" ? "var(--coral)" : "var(--primary)" }}>
@@ -59,7 +59,7 @@ export default function AdminSubscriptionsPage() {
               ))}
             </tbody>
           </table>
-          {rows.length === 0 && <p className="text-sm text-[--ink-soft] px-4 py-6">No learner accounts yet.</p>}
+          {rows.length === 0 && <p className="text-sm text-(--ink-soft) px-4 py-6">No learner accounts yet.</p>}
         </div>
       )}
     </AdminShell>

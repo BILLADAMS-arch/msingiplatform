@@ -75,7 +75,7 @@ function LearnInner() {
 
         <div>
           <h1 className="disp text-3xl font-bold">{activeSubject?.name ?? "Learn"}</h1>
-          <p className="text-sm text-[--ink-soft]">{gradeName || "…"} · {overall}% mastery</p>
+          <p className="text-sm text-(--ink-soft)">{gradeName || "…"} · {overall}% mastery</p>
           <div className="max-w-sm mt-2"><FoundationBar pct={overall} tone="green" /></div>
         </div>
 
@@ -98,13 +98,13 @@ function LearnInner() {
         <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
           <h3 className="disp font-bold mb-4">Learning Roadmap</h3>
           {!subjects ? (
-            <p className="text-sm text-[--ink-soft]">Loading…</p>
+            <p className="text-sm text-(--ink-soft)">Loading…</p>
           ) : subjects.length === 0 ? (
-            <p className="text-sm text-[--ink-soft]">No subjects have been set up for your grade yet.</p>
+            <p className="text-sm text-(--ink-soft)">No subjects have been set up for your grade yet.</p>
           ) : !roadmap ? (
-            <p className="text-sm text-[--ink-soft]">Loading roadmap…</p>
+            <p className="text-sm text-(--ink-soft)">Loading roadmap…</p>
           ) : roadmap.length === 0 ? (
-            <p className="text-sm text-[--ink-soft]">No topics have been added for this subject yet.</p>
+            <p className="text-sm text-(--ink-soft)">No topics have been added for this subject yet.</p>
           ) : (
             <div className="flex flex-wrap gap-3">
               {roadmap.map((t) => {

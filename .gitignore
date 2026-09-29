@@ -4,3 +4,6 @@ node_modules/
 .env
 tsconfig.tsbuildinfo
 .vercel
+
+# Claude Code local preview config
+.claude/launch.json

@@ -71,7 +71,7 @@ export default function EditTestPage() {
     setPublished(next);
   }
 
-  if (!loaded) return <AdminShell title="Edit Test"><p className="text-sm text-[--ink-soft]">Loading…</p></AdminShell>;
+  if (!loaded) return <AdminShell title="Edit Test"><p className="text-sm text-(--ink-soft)">Loading…</p></AdminShell>;
 
   return (
     <AdminShell title="Edit Test">
@@ -82,9 +82,9 @@ export default function EditTestPage() {
             <button onClick={togglePublished} className="tap"><Pill tone={published ? "green" : "gold"}>{published ? "Published" : "Draft"}</Pill></button>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-xs font-semibold text-[--ink-soft]">Passing threshold</label>
+            <label className="text-xs font-semibold text-(--ink-soft)">Passing threshold</label>
             <input type="number" min={0} max={100} value={passingThreshold} onChange={(e) => setPassingThreshold(Number(e.target.value))} className="w-20 border rounded-lg px-2 py-1 text-sm" style={{ borderColor: "var(--slate)" }} />
-            <span className="text-xs text-[--ink-soft]">%</span>
+            <span className="text-xs text-(--ink-soft)">%</span>
           </div>
         </div>
 
@@ -95,12 +95,12 @@ export default function EditTestPage() {
               {selected.map((q, i) => (
                 <div key={q.id} className="flex items-center justify-between gap-2 border rounded-lg px-3 py-2" style={{ borderColor: "var(--stone-2)" }}>
                   <span className="text-xs line-clamp-1 flex-1">{i + 1}. {q.prompt}</span>
-                  <button onClick={() => move(i, -1)} className="tap text-[--ink-soft]"><ArrowUp size={12} /></button>
-                  <button onClick={() => move(i, 1)} className="tap text-[--ink-soft]"><ArrowDown size={12} /></button>
-                  <button onClick={() => removeQuestion(q.id)} className="tap text-[--coral]"><Trash2 size={12} /></button>
+                  <button onClick={() => move(i, -1)} className="tap text-(--ink-soft)"><ArrowUp size={12} /></button>
+                  <button onClick={() => move(i, 1)} className="tap text-(--ink-soft)"><ArrowDown size={12} /></button>
+                  <button onClick={() => removeQuestion(q.id)} className="tap text-(--coral)"><Trash2 size={12} /></button>
                 </div>
               ))}
-              {selected.length === 0 && <p className="text-sm text-[--ink-soft]">No questions added yet.</p>}
+              {selected.length === 0 && <p className="text-sm text-(--ink-soft)">No questions added yet.</p>}
             </div>
           </div>
 
@@ -110,13 +110,13 @@ export default function EditTestPage() {
               {topics?.map((t) => <option key={t.id} value={t.id}>{t.path}</option>)}
             </select>
             <div className="space-y-1.5 max-h-96 overflow-y-auto">
-              {!bank ? <p className="text-sm text-[--ink-soft]">Loading…</p> : bank.map((q) => (
+              {!bank ? <p className="text-sm text-(--ink-soft)">Loading…</p> : bank.map((q) => (
                 <div key={q.id} className="flex items-center justify-between gap-2 border rounded-lg px-3 py-2" style={{ borderColor: "var(--stone-2)" }}>
                   <span className="text-xs line-clamp-1 flex-1">{q.prompt}</span>
-                  <button onClick={() => addQuestion(q)} disabled={selected.some((s) => s.id === q.id)} className="tap text-[--primary] disabled:opacity-30"><Plus size={14} /></button>
+                  <button onClick={() => addQuestion(q)} disabled={selected.some((s) => s.id === q.id)} className="tap text-(--primary) disabled:opacity-30"><Plus size={14} /></button>
                 </div>
               ))}
-              {bank && bank.length === 0 && <p className="text-sm text-[--ink-soft]">No questions for this topic yet.</p>}
+              {bank && bank.length === 0 && <p className="text-sm text-(--ink-soft)">No questions for this topic yet.</p>}
             </div>
           </div>
         </div>

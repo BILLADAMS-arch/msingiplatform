@@ -36,17 +36,17 @@ export default function TeacherPage() {
           </button>
         </div>
 
-        {!classes ? <p className="text-sm text-[--ink-soft]">Loading…</p> : classes.length === 0 ? (
+        {!classes ? <p className="text-sm text-(--ink-soft)">Loading…</p> : classes.length === 0 ? (
           <div className="text-center py-16">
-            <Users size={36} className="mx-auto text-[--ink-soft] mb-3" />
-            <p className="text-sm text-[--ink-soft]">No classes yet — create one above.</p>
+            <Users size={36} className="mx-auto text-(--ink-soft) mb-3" />
+            <p className="text-sm text-(--ink-soft)">No classes yet — create one above.</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
             {classes.map((c) => (
               <Link key={c.id} href={`/teacher/classes/${c.id}`} className="tap brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
                 <div className="font-semibold">{c.name}</div>
-                <div className="text-xs text-[--ink-soft] mt-1 flex items-center gap-1"><Users size={12} /> {c.studentCount} student{c.studentCount === 1 ? "" : "s"}</div>
+                <div className="text-xs text-(--ink-soft) mt-1 flex items-center gap-1"><Users size={12} /> {c.studentCount} student{c.studentCount === 1 ? "" : "s"}</div>
               </Link>
             ))}
           </div>
