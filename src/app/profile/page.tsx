@@ -2,8 +2,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Shell } from "@/components/shell";
-import { StatCard, Pill } from "@/components/ui";
+import { StatCard, Pill, Button, EmptyState, Skeleton, LoadingState } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { clearClientData } from "@/lib/client-data";
 import { Flame, Star, Layers, Trophy, LogOut } from "lucide-react";
 
 type Role = "STUDENT" | "TEACHER" | "PARENT" | "ADMIN";
@@ -22,6 +23,7 @@ const GOALS = ["Improve my grades", "Prepare for exams", "Practise every day", "
 export default function ProfilePage() {
   const router = useRouter();
   const [role, setRole] = useState<Role | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const [data, setData] = useState<ProgressResponse | null>(null);
   const [name, setName] = useState("");
@@ -43,6 +45,7 @@ export default function ProfilePage() {
     createClient().auth.getUser().then(({ data: { user } }) => {
       const r = (user?.app_metadata?.role as Role | undefined) ?? null;
       setRole(r);
+      setAuthChecked(true);
       setEmail(user?.email ?? null);
 
       if (r === "STUDENT") {
@@ -67,6 +70,7 @@ export default function ProfilePage() {
       method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify(role === "STUDENT" ? { name, goal, leaderboardOptOut } : { name }),
     });
+    clearClientData(); // other pages re-read the updated name
     setSavingProfile(false); setSaved(true);
   }
 
@@ -83,6 +87,7 @@ export default function ProfilePage() {
 
   async function signOut() {
     await createClient().auth.signOut();
+    clearClientData();
     router.push("/");
   }
 
@@ -94,7 +99,12 @@ export default function ProfilePage() {
       <div className="fade-in max-w-2xl mx-auto space-y-6">
         <h1 className="disp text-3xl font-bold">My Profile</h1>
 
-        {!role ? <p className="text-sm text-(--ink-soft)">Loading…</p> : (
+        {!authChecked ? (
+          <LoadingState label="Loading your profile"><div className="space-y-4"><Skeleton className="h-24 rounded-2xl" /><Skeleton className="h-40 rounded-2xl" /></div></LoadingState>
+        ) : !role ? (
+          // /profile isn't covered by the proxy matcher, so a signed-out visitor can land here.
+          <EmptyState title="Sign in to see your profile" action={<Button href="/login?callbackUrl=%2Fprofile">Sign in</Button>} />
+        ) : (
           <>
             <div className="brick bg-white rounded-2xl p-5 border flex items-center gap-4" style={{ borderColor: "var(--slate)" }}>
               <div className="w-16 h-16 rounded-full flex items-center justify-center disp font-bold text-white text-2xl" style={{ background: "var(--green)" }}>

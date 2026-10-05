@@ -39,8 +39,8 @@ function LoginForm() {
           <img src="/logo-full.png" alt="Msingi" className="h-24 object-contain" />
         </div>
         <h1 className="disp text-3xl font-bold text-center">Welcome back</h1>
-        <input type="email" required placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" style={{ borderColor: "var(--slate)" }} />
-        <input type="password" required placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" style={{ borderColor: "var(--slate)" }} />
+        <input type="email" required placeholder="Email address" aria-label="Email address" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" style={{ borderColor: "var(--slate)" }} />
+        <input type="password" required placeholder="Password" aria-label="Password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" style={{ borderColor: "var(--slate)" }} />
         <div className="text-right -mt-2"><a href="/forgot-password" className="text-xs font-semibold text-(--primary)">Forgot password?</a></div>
         {error && <p className="text-sm text-(--coral)">{error}</p>}
         <button disabled={loading} type="submit" className="tap w-full px-6 py-3 rounded-full font-semibold text-white disabled:opacity-50" style={{ background: "var(--primary)" }}>

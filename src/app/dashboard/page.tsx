@@ -6,6 +6,7 @@ import { Button, Card, Section, EmptyState, ErrorState, Skeleton, LoadingState, 
 import { subjectAccent } from "@/lib/subject-colors";
 import { practiceHref } from "@/lib/links";
 import { MASTERED, bandFor, liveStreak } from "@/lib/mastery";
+import { getProfile, getSubjects } from "@/lib/client-data";
 import {
   Flame, Star, Target, CheckCircle2, ArrowRight, BookOpen, Dumbbell, BookMarked, ClipboardCheck, Zap, Trophy, Layers, Settings,
 } from "lucide-react";
@@ -67,7 +68,7 @@ export default function DashboardPage() {
   // Fetchers only set state once the request settles; the "loading" state is
   // the initial value, or set by the Retry handlers below.
   const fetchCore = useCallback(() => {
-    Promise.all([getJson<ProgressResponse>("/api/progress/me"), getJson<ProfileResponse>("/api/profile")])
+    Promise.all([getJson<ProgressResponse>("/api/progress/me"), getProfile<ProfileResponse>()])
       .then(([progress, profile]) => setCore({ status: "ready", data: { progress, profile } }))
       .catch((e: { status?: number }) => {
         if (e.status === 403) setForbidden(true);
@@ -79,7 +80,7 @@ export default function DashboardPage() {
   // requests the previous dashboard made, fetched once and shared by the
   // Continue, Focus, Recommended and Subjects sections.
   const fetchCurriculum = useCallback((gradeName: string) => {
-    getJson<{ subjects: Subject[] }>(`/api/curriculum/subjects?grade=${encodeURIComponent(gradeName)}`)
+    getSubjects<{ subjects: Subject[] }>(gradeName)
       .then(async ({ subjects }) => {
         const roadmaps = await Promise.all(subjects.map((s) => getJson<{ roadmap: RoadmapTopic[] }>(`/api/curriculum/roadmap?subjectId=${s.id}`)));
         setCurriculum({ status: "ready", data: { subjects, roadmaps: Object.fromEntries(subjects.map((s, i) => [s.id, roadmaps[i].roadmap ?? []])) } });

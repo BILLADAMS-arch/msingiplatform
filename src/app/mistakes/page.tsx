@@ -1,25 +1,42 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Shell } from "@/components/shell";
-import { Pill } from "@/components/ui";
+import { Pill, Card, ErrorState, Skeleton, LoadingState } from "@/components/ui";
+import { useApi } from "@/lib/use-api";
 import { BookMarked, XCircle, CheckCircle2, Sparkles } from "lucide-react";
 
 type Mistake = { id: string; question: string; topic: string; chosen: string; correct?: string; explanation: string; date: string };
 
 export default function MistakesPage() {
-  const [mistakes, setMistakes] = useState<Mistake[] | null>(null);
-  const load = () => fetch("/api/mistakes").then((r) => r.json()).then((d) => setMistakes(d.mistakes));
-  useEffect(() => { load(); }, []);
+  const { data, loading, error, reload } = useApi<{ mistakes: Mistake[] }>("/api/mistakes");
+  const mistakes = data?.mistakes ?? null;
+  const [pending, setPending] = useState<string | null>(null);
+  const [actionError, setActionError] = useState(false);
 
   async function markMastered(id: string) {
-    await fetch(`/api/mistakes/${id}`, { method: "PATCH" });
-    load();
+    if (pending) return; // one update at a time
+    setPending(id);
+    setActionError(false);
+    try {
+      const res = await fetch(`/api/mistakes/${id}`, { method: "PATCH" });
+      if (!res.ok) throw new Error();
+      reload();
+    } catch {
+      setActionError(true);
+    } finally {
+      setPending(null);
+    }
   }
 
   return (
     <Shell>
-      {!mistakes ? <p className="text-sm text-(--ink-soft)">Loading…</p> : mistakes.length === 0 ? (
+      {actionError && <p role="alert" className="mb-4 text-sm text-(--coral)">We couldn&apos;t update that mistake. Please try again.</p>}
+      {loading ? (
+        <LoadingState label="Loading your mistakes"><div className="space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-40 rounded-2xl" /><Skeleton className="h-40 rounded-2xl" /></div></LoadingState>
+      ) : error || !mistakes ? (
+        <Card><ErrorState title="We couldn't load your Mistake Book" onRetry={reload} /></Card>
+      ) : mistakes.length === 0 ? (
         <div className="fade-in text-center py-20 max-w-sm mx-auto">
           <BookMarked size={36} className="mx-auto text-(--ink-soft) mb-3" />
           <h2 className="disp text-xl font-bold mb-1">No mistakes yet</h2>
@@ -36,8 +53,8 @@ export default function MistakesPage() {
               <p className="text-sm text-(--green)"><CheckCircle2 size={14} className="inline mr-1" />Correct: {m.correct}</p>
               <p className="text-xs text-(--ink-soft) mt-1">{m.explanation}</p>
               <div className="flex items-center gap-2 mt-3">
-                <button onClick={() => markMastered(m.id)} className="tap text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--green-soft)", color: "var(--green)" }}>Mark as Mastered</button>
-                <Link href={`/ai?mistakeId=${m.id}`} className="tap flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--primary-soft)", color: "var(--primary-deep)" }}>
+                <button type="button" disabled={pending === m.id} onClick={() => markMastered(m.id)} className="tap text-xs font-semibold px-3 py-1.5 rounded-full min-h-9 disabled:opacity-50" style={{ background: "var(--green-soft)", color: "var(--green)" }}>Mark as Mastered</button>
+                <Link href={`/ai?mistakeId=${m.id}`} className="tap flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full min-h-9" style={{ background: "var(--primary-soft)", color: "var(--primary-deep)" }}>
                   <Sparkles size={12} /> Ask Msingi why
                 </Link>
               </div>

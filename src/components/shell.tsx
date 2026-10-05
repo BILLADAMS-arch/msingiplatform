@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { subjectAccent } from "@/lib/subject-colors";
+import { getProfile, getSubjects, clearClientData } from "@/lib/client-data";
 import { Pill } from "./ui";
 import { NotificationBell } from "./notification-bell";
 
@@ -71,13 +72,9 @@ type Subject = { id: string; name: string };
 // than refetching the learner's subjects on every navigation.
 let subjectsCache: Promise<Subject[]> | null = null;
 function loadSubjects(): Promise<Subject[]> {
-  subjectsCache ??= fetch("/api/profile")
-    .then((r) => (r.ok ? r.json() : null))
-    .then(async (p) => {
-      if (!p?.gradeName) return [];
-      const res = await fetch(`/api/curriculum/subjects?grade=${encodeURIComponent(p.gradeName)}`);
-      return res.ok ? ((await res.json()).subjects ?? []) : [];
-    })
+  // getProfile/getSubjects share one request with the page that's rendering.
+  subjectsCache ??= getProfile()
+    .then(async (p) => (p?.gradeName ? ((await getSubjects(p.gradeName)).subjects ?? []) : []))
     .catch(() => {
       subjectsCache = null;
       return [];
@@ -146,6 +143,7 @@ function useSignOut() {
   return async () => {
     await createClient().auth.signOut();
     subjectsCache = null;
+    clearClientData();
     router.push("/");
   };
 }

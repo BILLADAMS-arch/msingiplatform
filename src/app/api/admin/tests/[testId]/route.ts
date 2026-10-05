@@ -42,7 +42,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ testId
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  const { questionIds, ...meta } = parsed.data;
+  const { questionIds: requestedIds, ...meta } = parsed.data;
+  // A question can appear in a test only once (the admin UI already prevents
+  // it; this stops a hand-made or stale request from adding a duplicate).
+  const questionIds = requestedIds ? [...new Set(requestedIds)] : undefined;
 
   if (Object.keys(meta).length) await db.update(tests).set(meta).where(eq(tests.id, testId));
 

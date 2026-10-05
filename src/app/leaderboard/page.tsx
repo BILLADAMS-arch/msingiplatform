@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Shell } from "@/components/shell";
+import { Card, ErrorState, Skeleton, LoadingState } from "@/components/ui";
+import { useApi } from "@/lib/use-api";
 import { Trophy } from "lucide-react";
 
 type Row = { rank: number; name: string; xp: number; isMe: boolean };
@@ -10,8 +11,7 @@ type Data = { rows: Row[]; myRank: number | null; optedOut: boolean };
 const MEDAL = ["🥇", "🥈", "🥉"];
 
 export default function LeaderboardPage() {
-  const [data, setData] = useState<Data | null>(null);
-  useEffect(() => { fetch("/api/leaderboard").then((r) => r.json()).then(setData); }, []);
+  const { data, loading, error, reload } = useApi<Data>("/api/leaderboard");
 
   return (
     <Shell>
@@ -28,7 +28,11 @@ export default function LeaderboardPage() {
           </div>
         )}
 
-        {!data ? <p className="text-sm text-(--ink-soft) text-center">Loading…</p> : data.rows.length === 0 ? (
+        {loading ? (
+          <LoadingState label="Loading leaderboard"><div className="space-y-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-12" />)}</div></LoadingState>
+        ) : error || !data ? (
+          <Card><ErrorState compact title="We couldn't load the leaderboard" onRetry={reload} /></Card>
+        ) : data.rows.length === 0 ? (
           <p className="text-sm text-(--ink-soft) text-center">No ranked students yet.</p>
         ) : (
           <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: "var(--slate)" }}>

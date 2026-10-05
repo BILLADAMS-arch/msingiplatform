@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { lessons, lessonSections, quickChecks, topics, subStrands, strands, subjects, grades } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
+import { requireRole } from "@/lib/api-guard";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ lessonId: string }> }) {
+  // The /learn pages are sign-in only; the lesson content API now matches.
+  const guard = await requireRole(["STUDENT", "TEACHER", "PARENT", "ADMIN"]);
+  if ("error" in guard) return guard.error;
   const { lessonId } = await params;
   // Joins up the curriculum tree so the lesson page can show where it sits:
   // Grade → Subject → Strand → Sub-strand → Topic.

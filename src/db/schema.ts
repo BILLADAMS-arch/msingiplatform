@@ -115,6 +115,16 @@ export const lessonSections = pgTable("lesson_sections", {
   order: integer("order").notNull().default(0),
 });
 
+// One row per learner per lesson, created the first time they finish it.
+// Makes lesson-completion XP idempotent: finishing again (or a duplicate
+// request) never awards it twice. The unique constraint is the guard.
+export const lessonCompletions = pgTable("lesson_completions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  lessonId: uuid("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+  completedAt: timestamp("completed_at").defaultNow().notNull(),
+}, (t) => [unique().on(t.userId, t.lessonId)]);
+
 export const quickChecks = pgTable("quick_checks", {
   id: uuid("id").defaultRandom().primaryKey(),
   lessonId: uuid("lesson_id").notNull().unique().references(() => lessons.id, { onDelete: "cascade" }),

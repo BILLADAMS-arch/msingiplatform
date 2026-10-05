@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { profiles, grades } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
+import { isAuthOutage, AUTH_UNAVAILABLE_BODY } from "@/lib/supabase/auth-errors";
 
 const patchSchema = z.object({
   gradeName: z.string().optional(),
@@ -16,8 +17,8 @@ const patchSchema = z.object({
 // PATCH — completes onboarding (grade + goal) for the signed-in user.
 export async function PATCH(req: Request) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (!user) return isAuthOutage(error) ? NextResponse.json(AUTH_UNAVAILABLE_BODY, { status: 503 }) : NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
   const parsed = patchSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
@@ -43,8 +44,8 @@ export async function PATCH(req: Request) {
 
 export async function GET() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (!user) return isAuthOutage(error) ? NextResponse.json(AUTH_UNAVAILABLE_BODY, { status: 503 }) : NextResponse.json({ error: "Not signed in." }, { status: 401 });
   const [row] = await db.select({ profile: profiles, gradeName: grades.name })
     .from(profiles).leftJoin(grades, eq(profiles.gradeId, grades.id))
     .where(eq(profiles.userId, user.id)).limit(1);

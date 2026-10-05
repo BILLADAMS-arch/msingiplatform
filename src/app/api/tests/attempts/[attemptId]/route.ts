@@ -5,9 +5,9 @@ import {
   testAttempts, testQuestions, questions, questionOptions, testAnswers,
   topics, tests, subjects, topicProgress, subjectProgress, mistakes,
 } from "@/db/schema";
-import { eq, inArray, and } from "drizzle-orm";
+import { eq, inArray, and, isNull } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
-import { awardXp, touchStreak, unlockAchievement, recordQuestionAnswered } from "@/lib/gamification";
+import { awardXp, touchStreak, unlockAchievement, recordQuestionsAnswered } from "@/lib/gamification";
 import { gradeAnswer } from "@/lib/grading";
 
 const bodySchema = z.object({
@@ -20,9 +20,25 @@ const bodySchema = z.object({
   timeTakenSeconds: z.number().int().nonnegative(),
 });
 
+// Submissions arriving this long after the time limit are refused. The grace
+// covers request latency and the client's auto-submit at 0:00 — the server
+// clock starts when the attempt row is created, slightly before the client's.
+const TIME_LIMIT_GRACE_SECONDS = 60;
+
+class AlreadySubmitted extends Error {}
+
 // PATCH /api/tests/attempts/:attemptId — the ONLY place answers are graded.
 // Every claim of "correct"/"score" in the product is computed here, from the
 // database's isCorrect flags, never trusted from the client.
+//
+// Integrity:
+// - Time: elapsed time is measured from the attempt's server-side startedAt.
+//   A submission past timeLimitSeconds + grace is refused, and the recorded
+//   time is the server's measurement (capped at the limit), not the client's.
+// - Exactly once: the attempt is claimed with a conditional UPDATE
+//   (… WHERE submitted_at IS NULL) inside a transaction together with the
+//   answers, mistakes and mastery writes. Two simultaneous submissions can't
+//   both win, and a failure part-way leaves nothing half-written.
 export async function PATCH(req: Request, { params }: { params: Promise<{ attemptId: string }> }) {
   const guard = await requireRole(["STUDENT"]);
   if ("error" in guard) return guard.error;
@@ -35,7 +51,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  const { answers, timeTakenSeconds } = parsed.data;
+  const { answers } = parsed.data; // timeTakenSeconds from the client is no longer trusted
+
+  const [testRow] = await db.select().from(tests).where(eq(tests.id, attempt.testId)).limit(1);
+  const limit = testRow?.timeLimitSeconds ?? null;
+  const elapsedSeconds = Math.max(0, Math.round((Date.now() - attempt.startedAt.getTime()) / 1000));
+  if (limit && elapsedSeconds > limit + TIME_LIMIT_GRACE_SECONDS) {
+    return NextResponse.json({
+      error: "time_limit_exceeded",
+      message: "The time limit for this attempt had passed before your answers were received.",
+    }, { status: 409 });
+  }
+  const timeTakenSeconds = limit ? Math.min(elapsedSeconds, limit) : elapsedSeconds;
 
   const tqs = await db.select().from(testQuestions).where(eq(testQuestions.testId, attempt.testId));
   const questionIds = tqs.map((tq) => tq.questionId);
@@ -47,9 +74,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
   const topicRows = await db.select().from(topics).where(inArray(topics.id, topicIds));
   const topicNameById = Object.fromEntries(topicRows.map((t) => [t.id, t.name]));
 
+  // Grade in memory (same rules as before).
   let correctCount = 0;
   const byTopic: Record<string, { correct: number; total: number; topicId: string }> = {};
   const missed: { questionId: string; topicId: string; chosenOptionId: string | null; chosenText: string | null }[] = [];
+  const answerRows: (typeof testAnswers.$inferInsert)[] = [];
 
   for (const q of qRows) {
     const topicName = topicNameById[q.topicId];
@@ -65,42 +94,63 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
     if (isCorrect) { correctCount++; byTopic[topicName].correct++; }
     else missed.push({ questionId: q.id, topicId: q.topicId, chosenOptionId: answer?.chosenOptionId ?? null, chosenText });
 
-    await db.insert(testAnswers).values({ attemptId, questionId: q.id, chosenOptionId: answer?.chosenOptionId ?? null, chosenText, isCorrect });
+    answerRows.push({ attemptId, questionId: q.id, chosenOptionId: answer?.chosenOptionId ?? null, chosenText, isCorrect });
   }
 
   const score = Math.round((correctCount / qRows.length) * 100);
+  const subjectId = testRow?.subjectId;
+  const topicPcts: { topicId: string; pct: number }[] = [];
+  let nextSubjectMastery: number | null = null;
 
-  await db.update(testAttempts).set({
-    submittedAt: new Date(), score, correctCount, totalCount: qRows.length, timeTakenSeconds,
-  }).where(eq(testAttempts.id, attemptId));
+  try {
+    await db.transaction(async (tx) => {
+      // The claim: only the first submission finds submitted_at still NULL.
+      // A concurrent second one waits on the row lock, then matches nothing.
+      const claimed = await tx.update(testAttempts).set({
+        submittedAt: new Date(), score, correctCount, totalCount: qRows.length, timeTakenSeconds,
+      }).where(and(eq(testAttempts.id, attemptId), eq(testAttempts.userId, userId), isNull(testAttempts.submittedAt)))
+        .returning({ id: testAttempts.id });
+      if (claimed.length === 0) throw new AlreadySubmitted();
 
-  // Record mistakes (mirrors the prototype's Mistake Book).
-  for (const m of missed) {
-    await db.insert(mistakes).values({ userId, questionId: m.questionId, chosenOptionId: m.chosenOptionId, chosenText: m.chosenText, topicId: m.topicId });
+      if (answerRows.length) await tx.insert(testAnswers).values(answerRows);
+
+      // Record mistakes (mirrors the prototype's Mistake Book).
+      if (missed.length) {
+        await tx.insert(mistakes).values(missed.map((m) => ({ userId, questionId: m.questionId, chosenOptionId: m.chosenOptionId, chosenText: m.chosenText, topicId: m.topicId })));
+      }
+
+      // Update topic mastery from this attempt's per-topic accuracy.
+      for (const [topicName, v] of Object.entries(byTopic)) {
+        const topicId = topicRows.find((t) => t.name === topicName)!.id;
+        const pct = Math.round((v.correct / v.total) * 100);
+        topicPcts.push({ topicId, pct });
+        const [existing] = await tx.select().from(topicProgress).where(and(eq(topicProgress.userId, userId), eq(topicProgress.topicId, topicId))).limit(1);
+        if (existing) await tx.update(topicProgress).set({ masteryPct: pct, attemptsCount: existing.attemptsCount + v.total, updatedAt: new Date() }).where(eq(topicProgress.id, existing.id));
+        else await tx.insert(topicProgress).values({ userId, topicId, masteryPct: pct, attemptsCount: v.total });
+      }
+
+      // Update subject mastery (average with previous, same rule as the prototype).
+      if (subjectId) {
+        const [existingSubj] = await tx.select().from(subjectProgress).where(and(eq(subjectProgress.userId, userId), eq(subjectProgress.subjectId, subjectId))).limit(1);
+        nextSubjectMastery = existingSubj ? Math.round((existingSubj.masteryPct + score) / 2) : score;
+        if (existingSubj) await tx.update(subjectProgress).set({ masteryPct: nextSubjectMastery, updatedAt: new Date() }).where(eq(subjectProgress.id, existingSubj.id));
+        else await tx.insert(subjectProgress).values({ userId, subjectId, masteryPct: nextSubjectMastery });
+      }
+    });
+  } catch (err) {
+    if (err instanceof AlreadySubmitted) return NextResponse.json({ error: "Attempt already submitted" }, { status: 409 });
+    throw err;
   }
 
-  // Update topic mastery from this attempt's per-topic accuracy.
+  // Everything below runs only for the submission that won the claim, so XP,
+  // streak, counters and achievements are applied exactly once.
   let unlockedCount = 0;
-  for (const [topicName, v] of Object.entries(byTopic)) {
-    const topicId = topicRows.find((t) => t.name === topicName)!.id;
-    const pct = Math.round((v.correct / v.total) * 100);
-    const [existing] = await db.select().from(topicProgress).where(and(eq(topicProgress.userId, userId), eq(topicProgress.topicId, topicId))).limit(1);
-    if (existing) await db.update(topicProgress).set({ masteryPct: pct, attemptsCount: existing.attemptsCount + v.total, updatedAt: new Date() }).where(eq(topicProgress.id, existing.id));
-    else await db.insert(topicProgress).values({ userId, topicId, masteryPct: pct, attemptsCount: v.total });
+  for (const { pct } of topicPcts) {
     if (pct >= 90 && await unlockAchievement(userId, "topicmaster")) unlockedCount++;
   }
-
-  // Update subject mastery (average with previous, same rule as the prototype).
-  const [testRow] = await db.select().from(tests).where(eq(tests.id, attempt.testId)).limit(1);
-  const subjectId = testRow?.subjectId;
-  if (subjectId) {
-    const [existingSubj] = await db.select().from(subjectProgress).where(and(eq(subjectProgress.userId, userId), eq(subjectProgress.subjectId, subjectId))).limit(1);
-    const nextMastery = existingSubj ? Math.round((existingSubj.masteryPct + score) / 2) : score;
-    if (existingSubj) await db.update(subjectProgress).set({ masteryPct: nextMastery, updatedAt: new Date() }).where(eq(subjectProgress.id, existingSubj.id));
-    else await db.insert(subjectProgress).values({ userId, subjectId, masteryPct: nextMastery });
-
+  if (subjectId && nextSubjectMastery !== null) {
     const [subjectRow] = await db.select().from(subjects).where(eq(subjects.id, subjectId)).limit(1);
-    if (subjectRow?.name === "Mathematics" && nextMastery >= 80 && await unlockAchievement(userId, "mathmaster")) unlockedCount++;
+    if (subjectRow?.name === "Mathematics" && nextSubjectMastery >= 80 && await unlockAchievement(userId, "mathmaster")) unlockedCount++;
   }
 
   // XP, streak and running question counters.
@@ -109,11 +159,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
   const streak = await touchStreak(userId);
   if (streak >= 7 && await unlockAchievement(userId, "streak7")) unlockedCount++;
 
-  let questionsAnswered = 0;
-  for (const q of qRows) {
-    const isCorrect = !missed.some((m) => m.questionId === q.id);
-    ({ answered: questionsAnswered } = await recordQuestionAnswered(userId, isCorrect));
-  }
+  const { answered: questionsAnswered } = await recordQuestionsAnswered(userId, qRows.length, correctCount);
   if (questionsAnswered >= 100 && await unlockAchievement(userId, "q100")) unlockedCount++;
 
   const priorAttempts = await db.select().from(testAttempts).where(and(eq(testAttempts.userId, userId), eq(testAttempts.testId, attempt.testId)));

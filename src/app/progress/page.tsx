@@ -6,6 +6,7 @@ import { LineChart } from "@/components/charts";
 import { subjectAccent } from "@/lib/subject-colors";
 import { practiceHref } from "@/lib/links";
 import { MASTERED, bandFor, liveStreak, type Band } from "@/lib/mastery";
+import { getProfile, getSubjects } from "@/lib/client-data";
 import {
   Target, Dumbbell, BookOpen, BookMarked, ClipboardCheck, Trophy, Lock, CheckCircle2, XCircle, ArrowRight, Flame, Star, Layers, Info, RotateCcw, TrendingUp,
 } from "lucide-react";
@@ -52,12 +53,12 @@ export default function ProgressPage() {
   const [mistakes, setMistakes] = useState<Load<Mistake[]>>({ status: "loading" });
 
   const fetchCore = useCallback(() => {
-    Promise.all([getJson<ProgressResponse>("/api/progress/me"), getJson<ProfileResponse>("/api/profile")])
+    Promise.all([getJson<ProgressResponse>("/api/progress/me"), getProfile<ProfileResponse>()])
       .then(([progress, profile]) => setCore({ status: "ready", data: { progress, profile } }))
       .catch((e: { status?: number }) => (e.status === 403 ? setForbidden(true) : setCore({ status: "error" })));
   }, []);
   const fetchSubjects = useCallback((gradeName: string) => {
-    getJson<{ subjects: Subject[] }>(`/api/curriculum/subjects?grade=${encodeURIComponent(gradeName)}`)
+    getSubjects<{ subjects: Subject[] }>(gradeName)
       .then((d) => setSubjects({ status: "ready", data: d.subjects ?? [] }))
       .catch(() => setSubjects({ status: "error" }));
   }, []);

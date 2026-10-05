@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   const { mistakeId } = parsed.data;
 
-  const userVisibleMessage = parsed.data.message ?? "Why is my answer wrong?";
+  let userVisibleMessage = parsed.data.message ?? "Why is my answer wrong?";
   let mistakeContextBlock: string | null = null;
 
   if (mistakeId) {
@@ -45,12 +45,21 @@ export async function POST(req: Request) {
     const [question] = await db.select().from(questions).where(eq(questions.id, mistake.questionId)).limit(1);
     const [topic] = await db.select().from(topics).where(eq(topics.id, mistake.topicId)).limit(1);
     const options = await db.select().from(questionOptions).where(eq(questionOptions.questionId, mistake.questionId));
-    const chosen = options.find((o) => o.id === mistake.chosenOptionId);
-    const correct = options.find((o) => o.isCorrect);
+    // Option questions store the chosen option; short-answer/numerical ones
+    // store the typed answer and keep the accepted answer on the question.
+    const chosenLabel = options.find((o) => o.id === mistake.chosenOptionId)?.label ?? mistake.chosenText ?? null;
+    const correctLabel = options.find((o) => o.isCorrect)?.label
+      ?? question?.answerText?.split("|")[0]
+      ?? (question?.answerNumeric !== null && question?.answerNumeric !== undefined ? String(question.answerNumeric) : undefined);
 
-    if (question && topic && correct) {
+    // Name the question in the learner's message itself: with one ongoing
+    // conversation, a bare "Why is my answer wrong?" was being read as
+    // referring to whatever question came up last in the chat.
+    if (question && !parsed.data.message) userVisibleMessage = `Why is my answer to "${question.prompt}" wrong?`;
+
+    if (question && topic && correctLabel) {
       mistakeContextBlock = buildMistakeContext({
-        prompt: question.prompt, chosenLabel: chosen?.label ?? null, correctLabel: correct.label,
+        prompt: question.prompt, chosenLabel, correctLabel,
         explanation: question.explanation, topicName: topic.name,
       });
     }
@@ -64,10 +73,10 @@ export async function POST(req: Request) {
     [conversation] = await db.insert(aiConversations).values({ userId }).returning();
   }
 
-  await db.insert(aiMessages).values({ conversationId: conversation.id, role: "user", content: userVisibleMessage });
-
+  // The learner's message is saved only once the tutor has accepted the
+  // request (below), so a provider failure doesn't use up a free message.
   const history = await db.select().from(aiMessages).where(eq(aiMessages.conversationId, conversation.id)).orderBy(asc(aiMessages.createdAt));
-  const recent = history.slice(-MAX_HISTORY_MESSAGES);
+  const recent = [...history.map((m) => ({ role: m.role, content: m.content })), { role: "user", content: userVisibleMessage }].slice(-MAX_HISTORY_MESSAGES);
 
   const systemPrompt = buildSystemPrompt(profile?.gradeName ?? null) + (mistakeContextBlock ? `\n\n${mistakeContextBlock}` : "");
 
@@ -89,6 +98,8 @@ export async function POST(req: Request) {
     console.error("Ask Msingi: tutor request failed", err);
     return NextResponse.json({ error: "ai_unavailable", message: "Ask Msingi couldn't reply just now. Please try again." }, { status: 502 });
   }
+
+  await db.insert(aiMessages).values({ conversationId: conversation.id, role: "user", content: userVisibleMessage });
 
   const encoder = new TextEncoder();
   let full = "";

@@ -193,10 +193,17 @@ async function main() {
     subjectId: g7MathId, title: "Standard Test — Fractions, Ratios & Percentages", type: "standard", passingThreshold: 60, timeLimitSeconds: 900,
   }).returning();
   const testPlan = ["Fractions", "Fractions", "Fractions", "Fractions", "Ratios", "Ratios", "Ratios", "Percentages", "Percentages", "Fractions"];
+  // Take the next unused question for each topic. (Indexing by slot position
+  // — topicQs[i % length] — picked the same Fractions question for slots 2
+  // and 10, so the test contained "1/2 + 1/4 = ?" twice.)
+  const usedPerTopic: Record<string, number> = {};
   for (let i = 0; i < testPlan.length; i++) {
-    const topicQs = questionIdsByTopic[testPlan[i]];
-    const questionId = topicQs[i % topicQs.length];
-    await db.insert(testQuestions).values({ testId: standardTest.id, questionId, order: i });
+    const topicName = testPlan[i];
+    const topicQs = questionIdsByTopic[topicName];
+    const n = usedPerTopic[topicName] ?? 0;
+    if (n >= topicQs.length) throw new Error(`Standard Test needs more ${topicName} questions than the bank has (${topicQs.length})`);
+    usedPerTopic[topicName] = n + 1;
+    await db.insert(testQuestions).values({ testId: standardTest.id, questionId: topicQs[n], order: i });
   }
   console.log("  Standard Test assembled (10 questions)");
 

@@ -22,7 +22,7 @@ type Stage =
   | { kind: "intro" }
   | { kind: "taking" }
   | { kind: "submitting"; auto: boolean }
-  | { kind: "submitError"; alreadySubmitted: boolean }
+  | { kind: "submitError"; alreadySubmitted: boolean; timeLimitPassed?: boolean }
   | { kind: "results"; result: SubmitResult; answeredCount: number; timedOut: boolean };
 
 function mmss(total: number) {
@@ -85,7 +85,13 @@ export default function TestPage() {
       const res = await fetch(`/api/tests/attempts/${session.attemptId}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
       });
-      if (res.status === 409) { setStage({ kind: "submitError", alreadySubmitted: true }); return; }
+      if (res.status === 409) {
+        // The server refuses a submission that arrives after the time limit
+        // (plus grace) — distinct from a repeat of an already-graded attempt.
+        const body = await res.json().catch(() => null);
+        setStage({ kind: "submitError", alreadySubmitted: true, timeLimitPassed: body?.error === "time_limit_exceeded" });
+        return;
+      }
       if (!res.ok) throw new Error();
       const result: SubmitResult = await res.json();
       // Count distinct questions: the server grades each question once, even
@@ -226,7 +232,10 @@ export default function TestPage() {
     return (
       <Shell>
         <Card className="max-w-xl mx-auto">
-          {stage.alreadySubmitted ? (
+          {stage.timeLimitPassed ? (
+            <EmptyState icon={<Timer size={22} />} title="Time ran out for this attempt" description="The time limit had passed before your answers reached us, so this attempt couldn't be graded. You can start a new attempt."
+              action={<Button onClick={retake}><RotateCcw size={16} aria-hidden /> Start a new attempt</Button>} />
+          ) : stage.alreadySubmitted ? (
             <EmptyState icon={<ClipboardCheck size={22} />} title="This attempt was already submitted" description="Your results were saved. You can start a new attempt."
               action={<Button onClick={retake}><RotateCcw size={16} aria-hidden /> Start a new attempt</Button>} />
           ) : (

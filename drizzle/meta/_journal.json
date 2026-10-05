@@ -57,6 +57,13 @@
       "when": 1788857365973,
       "tag": "0007_gray_husk",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791188827197,
+      "tag": "0008_dapper_roxanne_simpson",
+      "breakpoints": true
     }
   ]
 }

@@ -147,6 +147,7 @@ function AiInner() {
       }
       if (!full.trim()) throw new Error("empty");
       setMessages((m) => m.status === "ready" ? { ...m, list: [...m.list, { role: "assistant", content: full, createdAt: new Date().toISOString() }] } : m);
+      if (forMistakeId) fetchConversation(); // show the saved wording, which names the question
       setQuota((q) => (q ? { ...q, usedToday: q.usedToday + 1 } : q));
       setAnnouncement("Ask Msingi has replied.");
     } catch {
@@ -158,7 +159,7 @@ function AiInner() {
       sendingRef.current = false;
       setSending(false);
     }
-  }, []);
+  }, [fetchConversation]);
 
   function retry() {
     if (!failed) return;

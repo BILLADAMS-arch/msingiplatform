@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { topics, subStrands, strands, topicProgress, lessons } from "@/db/schema";
 import { eq, asc, and, inArray } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
+import { isAuthOutage, AUTH_UNAVAILABLE_BODY } from "@/lib/supabase/auth-errors";
 
 // GET /api/curriculum/roadmap?subjectId=... — topics in order, with this
 // learner's mastery and whether a lesson exists, so the client can render
@@ -16,7 +17,7 @@ export async function GET(req: Request) {
   if (!subjectId) return NextResponse.json({ error: "subjectId query param is required" }, { status: 400 });
 
   const supabase = await createClient();
-  const [{ data: { user } }, rows] = await Promise.all([
+  const [{ data: { user }, error: authError }, rows] = await Promise.all([
     supabase.auth.getUser(),
     db.select({ topic: topics })
       .from(topics)
@@ -25,6 +26,10 @@ export async function GET(req: Request) {
       .where(eq(strands.subjectId, subjectId))
       .orderBy(asc(topics.order)),
   ]);
+
+  // Signed-out visitors still get the roadmap (0 mastery), but if the auth
+  // service is down we mustn't show a signed-in learner 0% everywhere.
+  if (!user && isAuthOutage(authError)) return NextResponse.json(AUTH_UNAVAILABLE_BODY, { status: 503 });
 
   const topicIds = rows.map((r) => r.topic.id);
   const [lessonRows, progressRows] = topicIds.length

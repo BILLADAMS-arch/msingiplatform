@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Shell } from "@/components/shell";
 import { Button, Card, Pill, FoundationBar, EmptyState, ErrorState, Skeleton, LoadingState, ProgressRing } from "@/components/ui";
 import { AnswerOptions, AnswerInput, AnswerFeedback } from "@/components/question";
+import { getProfile, getSubjects } from "@/lib/client-data";
 import { Dumbbell, Trophy, ArrowRight, BookMarked, RotateCcw, ClipboardCheck, CheckCircle2, Sparkles } from "lucide-react";
 
 type PracticeQuestion = { attemptKey: string; id: string; type: string; prompt: string; difficulty: string; options: { id: string; label: string }[] };
@@ -29,9 +30,9 @@ function PracticeInner() {
       const p = await fetch("/api/progress/me").then((r) => { if (!r.ok) throw new Error(); return r.json(); });
       const weakest = Object.entries(p.topicMastery as Record<string, number>).filter(([, v]) => v > 0 && v < 70).sort((a, b) => a[1] - b[1])[0];
       if (weakest) return setFallback({ status: "idle", topic: { id: null, name: weakest[0] } });
-      const profile = await fetch("/api/profile").then((r) => r.json());
+      const profile = await getProfile();
       if (!profile.gradeName) return setFallback({ status: "none" });
-      const subjRes = await fetch(`/api/curriculum/subjects?grade=${encodeURIComponent(profile.gradeName)}`).then((r) => r.json());
+      const subjRes = await getSubjects(profile.gradeName);
       const firstSubject = subjRes.subjects?.[0];
       if (!firstSubject) return setFallback({ status: "none" });
       const roadmap = await fetch(`/api/curriculum/roadmap?subjectId=${firstSubject.id}`).then((r) => r.json());

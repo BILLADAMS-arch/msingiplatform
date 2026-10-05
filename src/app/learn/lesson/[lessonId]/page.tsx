@@ -17,7 +17,7 @@ type Lesson = {
 };
 
 type Load = { status: "loading" } | { status: "notfound" } | { status: "error" } | { status: "ready"; lesson: Lesson };
-type Completion = { status: "idle" } | { status: "saving" } | { status: "error" } | { status: "done"; xp: number };
+type Completion = { status: "idle" } | { status: "saving" } | { status: "error" } | { status: "done"; xp: number; alreadyCompleted: boolean };
 
 // How each lesson_sections.kind is presented. Unknown kinds fall back to "learn".
 const KIND: Record<string, { label: string; icon: React.ReactNode; card: string; badge: string }> = {
@@ -66,7 +66,7 @@ export default function LessonPage() {
       const res = await fetch(`/api/lessons/${lessonId}/complete`, { method: "POST" });
       if (!res.ok) throw new Error(String(res.status));
       const body = await res.json().catch(() => ({}));
-      setCompletion({ status: "done", xp: body.xpAwarded ?? 0 });
+      setCompletion({ status: "done", xp: body.xpAwarded ?? 0, alreadyCompleted: !!body.alreadyCompleted });
       window.scrollTo({ top: 0 });
     } catch {
       finishingRef.current = false; // allow a retry
@@ -143,6 +143,9 @@ export default function LessonPage() {
             <p className="text-sm text-(--ink-soft) mt-1">
               You finished <b className="text-(--ink)">{lesson.title}</b>{completion.xp > 0 ? <> and earned <b className="text-(--gold-deep)">+{completion.xp} XP</b></> : null}.
             </p>
+            {completion.alreadyCompleted && (
+              <p className="text-xs text-(--ink-soft) mt-1">You&apos;ve completed this lesson before — lesson XP is awarded the first time only.</p>
+            )}
             <div className="mt-6 rounded-xl bg-(--stone-2) p-4 text-left flex items-start gap-3">
               <Dumbbell size={18} className="text-(--primary) shrink-0 mt-0.5" aria-hidden />
               <p className="text-sm"><b>Next: practise {b.topic}.</b> Practice is what builds mastery — each question adapts to how well you&apos;re doing.</p>

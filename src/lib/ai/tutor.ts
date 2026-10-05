@@ -37,7 +37,7 @@ simple dashes for lists instead of Markdown formatting.`;
 export function buildMistakeContext(params: {
   prompt: string; chosenLabel: string | null; correctLabel: string; explanation: string; topicName: string;
 }): string {
-  return `The learner is asking about a ${params.topicName} question they just got wrong in Practice.\n` +
+  return `The learner is asking about a ${params.topicName} question they got wrong in practice or a test.\n` +
     `Question: ${params.prompt}\n` +
     `Their answer: ${params.chosenLabel ?? "(no answer selected)"}\n` +
     `Correct answer: ${params.correctLabel}\n` +

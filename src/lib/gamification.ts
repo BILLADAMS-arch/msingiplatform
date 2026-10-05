@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { profiles, achievements, userAchievements } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { notify } from "@/lib/notify";
 
 function utcDateString(d: Date) {
@@ -39,20 +39,30 @@ export async function touchStreak(userId: string): Promise<number> {
   return nextStreak;
 }
 
+// Both helpers below use a single atomic UPDATE (col = col + n) rather than a
+// read-then-write pair: one round trip instead of two, and concurrent awards
+// can't overwrite each other. Same values as before; a missing profile is
+// still a no-op.
 export async function awardXp(userId: string, amount: number): Promise<void> {
-  const [profile] = await db.select({ xp: profiles.xp }).from(profiles).where(eq(profiles.userId, userId)).limit(1);
-  if (!profile) return;
-  await db.update(profiles).set({ xp: profile.xp + amount }).where(eq(profiles.userId, userId));
+  await db.update(profiles).set({ xp: sql`${profiles.xp} + ${amount}` }).where(eq(profiles.userId, userId));
 }
 
 /** Increments the running answered/correct counters, returns the new totals. */
 export async function recordQuestionAnswered(userId: string, isCorrect: boolean): Promise<{ answered: number; correct: number }> {
-  const [profile] = await db.select({ questionsAnswered: profiles.questionsAnswered, questionsCorrect: profiles.questionsCorrect })
-    .from(profiles).where(eq(profiles.userId, userId)).limit(1);
-  const answered = (profile?.questionsAnswered ?? 0) + 1;
-  const correct = (profile?.questionsCorrect ?? 0) + (isCorrect ? 1 : 0);
-  await db.update(profiles).set({ questionsAnswered: answered, questionsCorrect: correct }).where(eq(profiles.userId, userId));
-  return { answered, correct };
+  const [row] = await db.update(profiles).set({
+    questionsAnswered: sql`${profiles.questionsAnswered} + 1`,
+    questionsCorrect: sql`${profiles.questionsCorrect} + ${isCorrect ? 1 : 0}`,
+  }).where(eq(profiles.userId, userId)).returning({ answered: profiles.questionsAnswered, correct: profiles.questionsCorrect });
+  return row ?? { answered: 1, correct: isCorrect ? 1 : 0 };
+}
+
+/** Adds several answered questions at once (one atomic update), returns the new totals. */
+export async function recordQuestionsAnswered(userId: string, answered: number, correct: number): Promise<{ answered: number; correct: number }> {
+  const [row] = await db.update(profiles).set({
+    questionsAnswered: sql`${profiles.questionsAnswered} + ${answered}`,
+    questionsCorrect: sql`${profiles.questionsCorrect} + ${correct}`,
+  }).where(eq(profiles.userId, userId)).returning({ answered: profiles.questionsAnswered, correct: profiles.questionsCorrect });
+  return row ?? { answered, correct };
 }
 
 /** Unlocks an achievement by code if not already unlocked. Returns whether it was newly unlocked. */

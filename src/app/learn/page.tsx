@@ -3,8 +3,9 @@ import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/shell";
-import { FoundationBar } from "@/components/ui";
+import { FoundationBar, ErrorState, Skeleton, LoadingState } from "@/components/ui";
 import { subjectAccent } from "@/lib/subject-colors";
+import { getProfile, getSubjects } from "@/lib/client-data";
 import { CheckCircle2, Target, Lock, Layers } from "lucide-react";
 
 type Subject = { id: string; name: string };
@@ -16,24 +17,37 @@ function LearnInner() {
 
   const [gradeName, setGradeName] = useState<string | null>(null);
   const [subjects, setSubjects] = useState<Subject[] | null>(null);
-  const [roadmap, setRoadmap] = useState<RoadmapTopic[] | null>(null);
+  const [subjectsError, setSubjectsError] = useState(false);
+  const [subjectsAttempt, setSubjectsAttempt] = useState(0);
+  // Keyed by subject so switching subjects never shows the previous roadmap.
+  const [roadmapState, setRoadmapState] = useState<{ subjectId: string; roadmap: RoadmapTopic[] | null; error: boolean } | null>(null);
+  const [roadmapAttempt, setRoadmapAttempt] = useState(0);
 
   const requestedSubject = params.get("subject");
   const activeSubject = subjects?.find((s) => s.name === requestedSubject) ?? subjects?.[0] ?? null;
 
   useEffect(() => {
-    fetch("/api/profile").then((r) => r.json()).then(async (p) => {
-      setGradeName(p.gradeName);
-      if (!p.gradeName) return;
-      const subjRes = await fetch(`/api/curriculum/subjects?grade=${encodeURIComponent(p.gradeName)}`).then((r) => r.json());
-      setSubjects(subjRes.subjects ?? []);
-    });
-  }, []);
+    getProfile()
+      .then(async (p) => {
+        setGradeName(p.gradeName);
+        // No grade on the account → nothing to load (previously this stayed on "Loading…").
+        const subjRes = p.gradeName ? await getSubjects(p.gradeName) : { subjects: [] };
+        setSubjects(subjRes.subjects ?? []);
+      })
+      .catch(() => setSubjectsError(true));
+  }, [subjectsAttempt]);
 
   useEffect(() => {
     if (!activeSubject) return;
-    fetch(`/api/curriculum/roadmap?subjectId=${activeSubject.id}`).then((r) => r.json()).then((d) => setRoadmap(d.roadmap));
-  }, [activeSubject?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    const subjectId = activeSubject.id;
+    fetch(`/api/curriculum/roadmap?subjectId=${subjectId}`)
+      .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
+      .then((d) => setRoadmapState({ subjectId, roadmap: d.roadmap ?? [], error: false }))
+      .catch(() => setRoadmapState({ subjectId, roadmap: null, error: true }));
+  }, [activeSubject?.id, roadmapAttempt]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const roadmapForSubject = roadmapState && roadmapState.subjectId === activeSubject?.id ? roadmapState : null;
+  const roadmap = roadmapForSubject?.roadmap ?? null;
 
   const overall = roadmap?.length ? Math.round(roadmap.reduce((a, t) => a + t.masteryPct, 0) / roadmap.length) : 0;
 
@@ -97,12 +111,16 @@ function LearnInner() {
 
         <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
           <h3 className="disp font-bold mb-4">Learning Roadmap</h3>
-          {!subjects ? (
-            <p className="text-sm text-(--ink-soft)">Loading…</p>
+          {subjectsError ? (
+            <ErrorState compact title="We couldn't load your subjects" onRetry={() => { setSubjectsError(false); setSubjectsAttempt((a) => a + 1); }} />
+          ) : !subjects ? (
+            <LoadingState label="Loading subjects"><div className="flex flex-wrap gap-3">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-36" />)}</div></LoadingState>
           ) : subjects.length === 0 ? (
-            <p className="text-sm text-(--ink-soft)">No subjects have been set up for your grade yet.</p>
+            <p className="text-sm text-(--ink-soft)">{gradeName ? "No subjects have been set up for your grade yet." : "Your account doesn't have a grade yet, so there are no subjects to show."}</p>
+          ) : roadmapForSubject?.error ? (
+            <ErrorState compact title="We couldn't load this roadmap" onRetry={() => { setRoadmapState(null); setRoadmapAttempt((a) => a + 1); }} />
           ) : !roadmap ? (
-            <p className="text-sm text-(--ink-soft)">Loading roadmap…</p>
+            <LoadingState label="Loading roadmap"><div className="flex flex-wrap gap-3">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-12 w-40" />)}</div></LoadingState>
           ) : roadmap.length === 0 ? (
             <p className="text-sm text-(--ink-soft)">No topics have been added for this subject yet.</p>
           ) : (

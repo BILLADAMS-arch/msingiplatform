@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Shell } from "@/components/shell";
 import { Card, EmptyState, ErrorState, Skeleton, LoadingState } from "@/components/ui";
 import { subjectAccent } from "@/lib/subject-colors";
+import { getProfile, getSubjects } from "@/lib/client-data";
 import { ClipboardCheck, Clock, Target, ChevronRight } from "lucide-react";
 
 type Test = { id: string; title: string; type: string; timeLimitSeconds: number | null; passingThreshold: number; subjectName: string };
@@ -18,16 +19,20 @@ async function getJson<T>(url: string): Promise<T> {
 export default function TestsPage() {
   const [load, setLoad] = useState<Load>({ status: "loading" });
 
-  // Published tests for every subject in the learner's grade (same requests as before).
+  // Published tests for every subject in the learner's grade.
   const fetchTests = useCallback(() => {
     (async () => {
-      const p = await getJson<{ gradeName: string | null }>("/api/profile");
+      const p = await getProfile<{ gradeName: string | null }>();
       if (!p.gradeName) return setLoad({ status: "ready", tests: [], gradeName: null });
-      const { subjects } = await getJson<{ subjects: { id: string; name: string }[] }>(`/api/curriculum/subjects?grade=${encodeURIComponent(p.gradeName)}`);
-      const perSubject = await Promise.all(subjects.map((s) =>
-        getJson<{ tests: Omit<Test, "subjectName">[] }>(`/api/tests?subjectId=${s.id}`).then((d) => (d.tests ?? []).map((t) => ({ ...t, subjectName: s.name }))),
-      ));
-      setLoad({ status: "ready", tests: perSubject.flat(), gradeName: p.gradeName });
+      const { subjects } = await getSubjects(p.gradeName);
+      if (subjects.length === 0) return setLoad({ status: "ready", tests: [], gradeName: p.gradeName });
+      // One batched request for every subject (was one request per subject).
+      const { tests } = await getJson<{ tests: (Omit<Test, "subjectName"> & { subjectId: string })[] }>(`/api/tests?subjectIds=${subjects.map((s) => s.id).join(",")}`);
+      const nameById = new Map(subjects.map((s) => [s.id, s.name]));
+      const order = new Map(subjects.map((s, i) => [s.id, i]));
+      const list = [...tests].sort((a, b) => (order.get(a.subjectId) ?? 0) - (order.get(b.subjectId) ?? 0))
+        .map((t) => ({ ...t, subjectName: nameById.get(t.subjectId) ?? "" }));
+      setLoad({ status: "ready", tests: list, gradeName: p.gradeName });
     })().catch(() => setLoad({ status: "error" }));
   }, []);
   useEffect(() => { fetchTests(); }, [fetchTests]);

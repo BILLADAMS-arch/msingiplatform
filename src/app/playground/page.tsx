@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Shell } from "@/components/shell";
-import { Pill } from "@/components/ui";
+import { Pill, ErrorState, EmptyState, Skeleton, LoadingState } from "@/components/ui";
+import { useApi } from "@/lib/use-api";
 import { PLAYGROUND_REGISTRY } from "@/components/playground/registry";
 
 type Activity = { id: string; area: string; title: string; description: string; slug: string | null };
@@ -53,9 +54,8 @@ function PlaygroundHero() {
 }
 
 export default function PlaygroundPage() {
-  const [activities, setActivities] = useState<Activity[] | null>(null);
-
-  useEffect(() => { fetch("/api/playground").then((r) => r.json()).then((d) => setActivities(d.activities)); }, []);
+  const { data, loading, error, reload } = useApi<{ activities: Activity[] }>("/api/playground");
+  const activities = data?.activities ?? null;
 
   const byArea = AREA_ORDER.map((area) => ({ area, items: activities?.filter((a) => a.area === area) ?? [] })).filter((g) => g.items.length);
 
@@ -70,8 +70,12 @@ export default function PlaygroundPage() {
         </div>
 
         <div className="rounded-3xl p-4 sm:p-6 space-y-8" style={{ background: "var(--stone-2)" }}>
-          {!activities ? (
-            <p className="text-sm text-(--ink-soft)">Loading…</p>
+          {loading ? (
+            <LoadingState label="Loading activities"><div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-40 rounded-2xl" />)}</div></LoadingState>
+          ) : error || !activities ? (
+            <ErrorState compact title="We couldn't load the Playground" onRetry={reload} />
+          ) : byArea.length === 0 ? (
+            <EmptyState compact title="No activities yet" description="Playground activities haven't been published yet. Check back soon." />
           ) : (
             byArea.map(({ area, items }) => (
               <div key={area}>

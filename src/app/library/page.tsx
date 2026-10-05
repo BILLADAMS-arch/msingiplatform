@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Shell } from "@/components/shell";
-import { Pill } from "@/components/ui";
+import { Pill, Card, ErrorState, Skeleton, LoadingState } from "@/components/ui";
 import { Library, Bookmark, FileText, X, Lock } from "lucide-react";
 
 type Resource = {
@@ -19,6 +19,7 @@ const TYPE_LABEL: Record<string, string> = {
 
 export default function LibraryPage() {
   const [resources, setResources] = useState<Resource[] | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [type, setType] = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
@@ -29,18 +30,22 @@ export default function LibraryPage() {
     if (type) qs.set("type", type);
     if (difficulty) qs.set("difficulty", difficulty);
     if (bookmarkedOnly) qs.set("bookmarkedOnly", "1");
-    fetch(`/api/resources?${qs.toString()}`).then((r) => r.json()).then((d) => setResources(d.resources));
+    fetch(`/api/resources?${qs.toString()}`)
+      .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
+      .then((d) => { setResources(d.resources ?? []); setLoadError(false); })
+      .catch(() => setLoadError(true));
   };
 
   useEffect(load, [type, difficulty, bookmarkedOnly]);
 
   async function toggleBookmark(r: Resource) {
-    await fetch(`/api/resources/${r.id}/bookmark`, { method: r.bookmarked ? "DELETE" : "POST" });
+    const res = await fetch(`/api/resources/${r.id}/bookmark`, { method: r.bookmarked ? "DELETE" : "POST" }).catch(() => null);
+    if (!res?.ok) return; // leave the bookmark as it was if the request failed
     setResources((rs) => rs?.map((x) => (x.id === r.id ? { ...x, bookmarked: !x.bookmarked } : x)) ?? null);
   }
 
   const filterSelect = (value: string, onChange: (v: string) => void, options: string[], placeholder: string, labels?: Record<string, string>) => (
-    <select value={value} onChange={(e) => onChange(e.target.value)} className="border rounded-xl px-3 py-2 text-sm" style={{ borderColor: "var(--slate)" }}>
+    <select value={value} onChange={(e) => onChange(e.target.value)} aria-label={placeholder.replace(/^All /, "Filter by ")} className="border rounded-xl px-3 py-2 min-h-10 text-sm bg-white" style={{ borderColor: "var(--slate)" }}>
       <option value="">{placeholder}</option>
       {options.map((o) => <option key={o} value={o}>{labels?.[o] ?? o}</option>)}
     </select>
@@ -57,7 +62,7 @@ export default function LibraryPage() {
           <div className="flex items-center gap-2 flex-wrap">
             {filterSelect(type, setType, TYPES, "All types", TYPE_LABEL)}
             {filterSelect(difficulty, setDifficulty, DIFFICULTIES, "All difficulties")}
-            <button onClick={() => setBookmarkedOnly((b) => !b)}
+            <button type="button" aria-pressed={bookmarkedOnly} onClick={() => setBookmarkedOnly((b) => !b)}
               className={`tap flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border ${bookmarkedOnly ? "text-white" : ""}`}
               style={{ borderColor: "var(--primary)", background: bookmarkedOnly ? "var(--primary)" : "white" }}>
               <Bookmark size={14} /> Bookmarked
@@ -65,8 +70,10 @@ export default function LibraryPage() {
           </div>
         </div>
 
-        {!resources ? (
-          <p className="text-sm text-(--ink-soft)">Loading library…</p>
+        {loadError ? (
+          <Card><ErrorState title="We couldn't load the library" onRetry={load} /></Card>
+        ) : !resources ? (
+          <LoadingState label="Loading library"><div className="grid gap-3 sm:grid-cols-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div></LoadingState>
         ) : resources.length === 0 ? (
           <div className="text-center py-20 max-w-sm mx-auto">
             <FileText size={36} className="mx-auto text-(--ink-soft) mb-3" />

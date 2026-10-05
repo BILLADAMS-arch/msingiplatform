@@ -25,38 +25,35 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   const { questionId, chosenOptionId, answerText, answerNumeric } = parsed.data;
 
-  const [question] = await db.select().from(questions).where(eq(questions.id, questionId)).limit(1);
+  // Round trips to the remote DB are the cost here, so independent work runs
+  // in parallel. The grading, mastery, XP, streak, achievement and daily
+  // challenge rules are exactly the same as before.
+  const [[question], options] = await Promise.all([
+    db.select().from(questions).where(eq(questions.id, questionId)).limit(1),
+    db.select().from(questionOptions).where(eq(questionOptions.questionId, questionId)),
+  ]);
   if (!question) return NextResponse.json({ error: "Question not found" }, { status: 404 });
 
-  const options = await db.select().from(questionOptions).where(eq(questionOptions.questionId, questionId));
   const { isCorrect, correctLabel } = gradeAnswer(question, options, { chosenOptionId, answerText, answerNumeric });
 
-  if (!isCorrect) {
-    await db.insert(mistakes).values({
+  const [, nextMastery, , streak, { answered }] = await Promise.all([
+    isCorrect ? Promise.resolve() : db.insert(mistakes).values({
       userId, questionId, topicId: question.topicId,
       chosenOptionId: chosenOptionId ?? null,
       chosenText: answerText ?? (answerNumeric !== undefined ? String(answerNumeric) : null),
-    });
-  }
+    }).then(() => undefined),
+    updateTopicMastery(userId, question.topicId, isCorrect),
+    awardXp(userId, isCorrect ? 10 : 2),
+    touchStreak(userId),
+    recordQuestionAnswered(userId, isCorrect),
+    advanceDailyChallenge(userId, isCorrect),
+  ]);
 
-  const [existingProgress] = await db.select().from(topicProgress)
-    .where(and(eq(topicProgress.userId, userId), eq(topicProgress.topicId, question.topicId))).limit(1);
-  const nextMastery = clamp((existingProgress?.masteryPct ?? 0) + (isCorrect ? 6 : -3), 0, 100);
-  if (existingProgress) {
-    await db.update(topicProgress).set({ masteryPct: nextMastery, attemptsCount: existingProgress.attemptsCount + 1, updatedAt: new Date() }).where(eq(topicProgress.id, existingProgress.id));
-  } else {
-    await db.insert(topicProgress).values({ userId, topicId: question.topicId, masteryPct: clamp(nextMastery, 0, 100), attemptsCount: 1 });
-  }
-  if (nextMastery >= 90) await unlockAchievement(userId, "topicmaster");
-
-  await awardXp(userId, isCorrect ? 10 : 2);
-  const streak = await touchStreak(userId);
-  if (streak >= 7) await unlockAchievement(userId, "streak7");
-
-  const { answered } = await recordQuestionAnswered(userId, isCorrect);
-  if (answered >= 100) await unlockAchievement(userId, "q100");
-
-  await advanceDailyChallenge(userId, isCorrect);
+  await Promise.all([
+    nextMastery >= 90 ? unlockAchievement(userId, "topicmaster") : null,
+    streak >= 7 ? unlockAchievement(userId, "streak7") : null,
+    answered >= 100 ? unlockAchievement(userId, "q100") : null,
+  ]);
 
   return NextResponse.json({
     isCorrect,
@@ -67,6 +64,19 @@ export async function POST(req: Request) {
 }
 
 function clamp(n: number, min: number, max: number) { return Math.max(min, Math.min(max, n)); }
+
+/** Practice nudges topic mastery +6 / -3 (unchanged rule). Returns the new value. */
+async function updateTopicMastery(userId: string, topicId: string, isCorrect: boolean): Promise<number> {
+  const [existingProgress] = await db.select().from(topicProgress)
+    .where(and(eq(topicProgress.userId, userId), eq(topicProgress.topicId, topicId))).limit(1);
+  const nextMastery = clamp((existingProgress?.masteryPct ?? 0) + (isCorrect ? 6 : -3), 0, 100);
+  if (existingProgress) {
+    await db.update(topicProgress).set({ masteryPct: nextMastery, attemptsCount: existingProgress.attemptsCount + 1, updatedAt: new Date() }).where(eq(topicProgress.id, existingProgress.id));
+  } else {
+    await db.insert(topicProgress).values({ userId, topicId, masteryPct: nextMastery, attemptsCount: 1 });
+  }
+  return nextMastery;
+}
 
 /** Advances (or resets) today's "answer N in a row" daily challenge. Awards +100 XP once, on completion. */
 async function advanceDailyChallenge(userId: string, isCorrect: boolean) {

@@ -2,7 +2,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Shell } from "@/components/shell";
-import { Pill } from "@/components/ui";
+import { Pill, Card, ErrorState, Skeleton, LoadingState } from "@/components/ui";
 import { Shuffle, Layers } from "lucide-react";
 
 type Card = { id: string; front: string; back: string; status: string };
@@ -24,12 +24,16 @@ function FlashcardsInner() {
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
   useEffect(() => {
     if (!topic) return;
     fetch(`/api/flashcards?topic=${encodeURIComponent(topic)}`)
-      .then((r) => r.json())
-      .then((d) => setCards(d.cards ?? []));
-  }, [topic]);
+      .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
+      .then((d) => setCards(d.cards ?? []))
+      .catch(() => setLoadError(true));
+  }, [topic, attempt]);
 
   async function rate(status: "easy" | "difficult" | "review_later") {
     if (!cards) return;
@@ -49,7 +53,12 @@ function FlashcardsInner() {
     setFlipped(false);
   }
 
-  if (topic && !cards) return <Shell><p className="text-sm text-(--ink-soft)">Loading flashcards…</p></Shell>;
+  if (topic && loadError) {
+    return <Shell><Card className="max-w-md mx-auto"><ErrorState title="We couldn't load these flashcards" onRetry={() => { setLoadError(false); setAttempt((a) => a + 1); }} /></Card></Shell>;
+  }
+  if (topic && !cards) {
+    return <Shell><LoadingState label="Loading flashcards"><div className="max-w-md mx-auto space-y-4"><Skeleton className="h-8 w-2/3" /><Skeleton className="h-64 rounded-2xl" /></div></LoadingState></Shell>;
+  }
 
   if (!cards || cards.length === 0) {
     return (
