@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { lessons, topics, resources, flashcards, tests } from "@/db/schema";
-import { and, eq, ilike } from "drizzle-orm";
+import { and, eq, ilike, inArray } from "drizzle-orm";
 import { requireRole } from "@/lib/api-guard";
 
 // GET /api/search?q=fractions — searches lessons, topics, resources,
@@ -26,7 +26,8 @@ export async function GET(req: Request) {
 
   const topicNameById = new Map<string, string>();
   if (flashcardRows.length) {
-    const relatedTopics = await db.select().from(topics);
+    const relatedTopics = await db.select({ id: topics.id, name: topics.name }).from(topics)
+      .where(inArray(topics.id, [...new Set(flashcardRows.map((f) => f.topicId))]));
     for (const t of relatedTopics) topicNameById.set(t.id, t.name);
   }
 
@@ -34,7 +35,7 @@ export async function GET(req: Request) {
     lessons: lessonRows.map((l) => ({ id: l.id, title: l.title })),
     topics: topicRows.map((t) => ({ id: t.id, name: t.name })),
     resources: resourceRows.map((r) => ({ id: r.id, title: r.title, type: r.type })),
-    flashcards: flashcardRows.map((f) => ({ topicName: topicNameById.get(f.topicId) ?? "", front: f.flashcard.front })),
+    flashcards: flashcardRows.map((f) => ({ topicId: f.topicId, topicName: topicNameById.get(f.topicId) ?? "", front: f.flashcard.front })),
     tests: testRows.map((t) => ({ id: t.id, title: t.title })),
   });
 }

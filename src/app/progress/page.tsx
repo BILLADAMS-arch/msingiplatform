@@ -20,13 +20,13 @@ type Attempt = { date: string; score: number; testTitle: string; testId: string;
 type ProgressResponse = {
   profile: { name: string; xp: number; streak: number } | null;
   topics: TopicRow[];
-  subjectMastery: Record<string, number>;
+  subjects: { id: string; masteryPct: number }[];
   testHistory: Attempt[];
   achievements: { unlocked: { code: string; label: string; icon: string }[]; all: { code: string; label: string; icon: string }[] };
   openMistakeCount: number;
 };
-type ProfileResponse = { profile: { lastActiveAt: string | null; streak: number } | null; gradeName: string | null };
-type Mistake = { id: string; topic: string };
+type ProfileResponse = { profile: { lastActiveAt: string | null; streak: number } | null; gradeId: string | null; gradeName: string | null };
+type Mistake = { id: string; topic: string; topicId: string };
 type Subject = { id: string; name: string };
 type Load<T> = { status: "loading" } | { status: "error" } | { status: "ready"; data: T };
 
@@ -57,8 +57,8 @@ export default function ProgressPage() {
       .then(([progress, profile]) => setCore({ status: "ready", data: { progress, profile } }))
       .catch((e: { status?: number }) => (e.status === 403 ? setForbidden(true) : setCore({ status: "error" })));
   }, []);
-  const fetchSubjects = useCallback((gradeName: string) => {
-    getSubjects<{ subjects: Subject[] }>(gradeName)
+  const fetchSubjects = useCallback((gradeId: string) => {
+    getSubjects<{ subjects: Subject[] }>(gradeId)
       .then((d) => setSubjects({ status: "ready", data: d.subjects ?? [] }))
       .catch(() => setSubjects({ status: "error" }));
   }, []);
@@ -69,9 +69,9 @@ export default function ProgressPage() {
   }, []);
 
   useEffect(() => { fetchCore(); fetchMistakes(); }, [fetchCore, fetchMistakes]);
-  const gradeName = core.status === "ready" ? core.data.profile.gradeName : undefined;
-  useEffect(() => { if (gradeName) fetchSubjects(gradeName); }, [gradeName, fetchSubjects]);
-  const subjectsView: Load<Subject[] | null> = gradeName === null ? { status: "ready", data: null } : subjects;
+  const gradeId = core.status === "ready" ? core.data.profile.gradeId : undefined;
+  useEffect(() => { if (gradeId) fetchSubjects(gradeId); }, [gradeId, fetchSubjects]);
+  const subjectsView: Load<Subject[] | null> = gradeId === null ? { status: "ready", data: null } : subjects;
 
   if (forbidden) {
     return <Shell><EmptyState icon={<Layers size={22} />} title="Progress is for student accounts" description="Use the navigation to find the right page for your role." /></Shell>;
@@ -104,13 +104,13 @@ export default function ProgressPage() {
 
         <div className="grid grid-cols-1 gap-8 xl:grid-cols-3 xl:gap-6">
           <div className="xl:col-span-2"><FocusAreas topics={progress.topics} /></div>
-          <SubjectProgress subjects={subjectsView} gradeName={profile.gradeName} subjectMastery={progress.subjectMastery} topics={progress.topics}
-            onRetry={() => { if (gradeName) { setSubjects({ status: "loading" }); fetchSubjects(gradeName); } }} />
+          <SubjectProgress subjects={subjectsView} gradeName={profile.gradeName} subjectMastery={Object.fromEntries(progress.subjects.map((s) => [s.id, s.masteryPct]))} topics={progress.topics}
+            onRetry={() => { if (gradeId) { setSubjects({ status: "loading" }); fetchSubjects(gradeId); } }} />
         </div>
 
         <div className="grid grid-cols-1 gap-8 xl:grid-cols-3 xl:gap-6">
           <div className="xl:col-span-2"><TestHistory attempts={progress.testHistory} /></div>
-          <Revision mistakes={mistakes} topics={progress.topics} onRetry={() => { setMistakes({ status: "loading" }); fetchMistakes(); }} />
+          <Revision mistakes={mistakes} onRetry={() => { setMistakes({ status: "loading" }); fetchMistakes(); }} />
         </div>
 
         <Achievements achievements={progress.achievements} />
@@ -285,7 +285,7 @@ function SubjectProgress({ subjects, gradeName, subjectMastery, topics, onRetry 
         ) : (
           <ul className="divide-y divide-(--stone-2)">
             {subjects.data.map((s) => {
-              const mastery = subjectMastery[s.name];
+              const mastery = subjectMastery[s.id];
               const started = topics.filter((t) => t.subjectId === s.id);
               const strong = started.filter((t) => t.masteryPct >= MASTERED).length;
               const accent = subjectAccent(s.name);
@@ -308,7 +308,7 @@ function SubjectProgress({ subjects, gradeName, subjectMastery, topics, onRetry 
                       {started.length > 0 && <> · {started.length} topic{started.length === 1 ? "" : "s"} started{strong ? `, ${strong} strong` : ""}</>}
                     </p>
                   </div>
-                  <Button href={`/learn?subject=${encodeURIComponent(s.name)}`} size="sm" variant="ghost" aria-label={`Learn ${s.name}`}>Learn</Button>
+                  <Button href={`/learn?subjectId=${s.id}`} size="sm" variant="ghost" aria-label={`Learn ${s.name}`}>Learn</Button>
                 </li>
               );
             })}
@@ -395,14 +395,18 @@ function TestHistory({ attempts }: { attempts: Attempt[] }) {
 /* Revision — Mistake Book summary                                          */
 /* ---------------------------------------------------------------------- */
 
-function Revision({ mistakes, topics, onRetry }: { mistakes: Load<Mistake[]>; topics: TopicRow[]; onRetry: () => void }) {
+function Revision({ mistakes, onRetry }: { mistakes: Load<Mistake[]>; onRetry: () => void }) {
+  // Grouped by topic id (names can repeat across grades); the name is display only.
   const byTopic = useMemo(() => {
     if (mistakes.status !== "ready") return [];
-    const counts = new Map<string, number>();
-    for (const m of mistakes.data) counts.set(m.topic, (counts.get(m.topic) ?? 0) + 1);
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    const groups = new Map<string, { id: string; name: string; n: number }>();
+    for (const m of mistakes.data) {
+      const g = groups.get(m.topicId) ?? { id: m.topicId, name: m.topic, n: 0 };
+      g.n++;
+      groups.set(m.topicId, g);
+    }
+    return [...groups.values()].sort((a, b) => b.n - a.n);
   }, [mistakes]);
-  const idByName = useMemo(() => new Map(topics.map((t) => [t.name, t.id])), [topics]);
 
   return (
     <Section id="revision" title="Revision" description="Questions you got wrong, ready to revisit.">
@@ -421,10 +425,10 @@ function Revision({ mistakes, topics, onRetry }: { mistakes: Load<Mistake[]>; to
               <p className="text-xs text-(--ink-soft) mt-1">Review why each answer was wrong, then practise the topic and retest.</p>
             </div>
             <ul className="divide-y divide-(--stone-2) mt-3 border-t border-(--stone-2)">
-              {byTopic.slice(0, 5).map(([topic, n]) => (
-                <li key={topic} className="px-4 py-2.5 flex items-center justify-between gap-2 text-sm">
+              {byTopic.slice(0, 5).map(({ id, name: topic, n }) => (
+                <li key={id} className="px-4 py-2.5 flex items-center justify-between gap-2 text-sm">
                   <span className="min-w-0 truncate"><b>{topic}</b> <span className="text-(--ink-soft)">· {n} mistake{n === 1 ? "" : "s"}</span></span>
-                  <Button href={practiceHref({ id: idByName.get(topic), name: topic })} size="sm" variant="ghost" aria-label={`Practise ${topic}`}><Dumbbell size={14} aria-hidden /> Practise</Button>
+                  <Button href={practiceHref({ id, name: topic })} size="sm" variant="ghost" aria-label={`Practise ${topic}`}><Dumbbell size={14} aria-hidden /> Practise</Button>
                 </li>
               ))}
             </ul>

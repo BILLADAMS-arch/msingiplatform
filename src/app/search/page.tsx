@@ -10,7 +10,7 @@ type Results = {
   lessons: { id: string; title: string }[];
   topics: { id: string; name: string }[];
   resources: { id: string; title: string; type: string }[];
-  flashcards: { topicName: string; front: string }[];
+  flashcards: { topicId: string; topicName: string; front: string }[];
   tests: { id: string; title: string }[];
 };
 
@@ -95,7 +95,7 @@ function SearchInner() {
                 <h3 className="text-xs font-bold text-(--ink-soft) uppercase mb-2">Flashcards</h3>
                 <div className="space-y-1.5">
                   {results.flashcards.map((f, i) => (
-                    <Link key={i} href={`/flashcards?topic=${encodeURIComponent(f.topicName)}`} className="tap block bg-white rounded-xl px-4 py-2.5 text-sm border" style={{ borderColor: "var(--slate)" }}>{f.front}</Link>
+                    <Link key={i} href={`/flashcards?topicId=${f.topicId}`} className="tap block bg-white rounded-xl px-4 py-2.5 text-sm border" style={{ borderColor: "var(--slate)" }}>{f.front}</Link>
                   ))}
                 </div>
               </section>

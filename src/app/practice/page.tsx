@@ -28,11 +28,12 @@ function PracticeInner() {
     if (hasRequested) return;
     (async () => {
       const p = await fetch("/api/progress/me").then((r) => { if (!r.ok) throw new Error(); return r.json(); });
-      const weakest = Object.entries(p.topicMastery as Record<string, number>).filter(([, v]) => v > 0 && v < 70).sort((a, b) => a[1] - b[1])[0];
-      if (weakest) return setFallback({ status: "idle", topic: { id: null, name: weakest[0] } });
+      const weakest = (p.topics as { id: string; name: string; masteryPct: number }[])
+        .filter((t) => t.masteryPct > 0 && t.masteryPct < 70).sort((a, b) => a.masteryPct - b.masteryPct)[0];
+      if (weakest) return setFallback({ status: "idle", topic: { id: weakest.id, name: weakest.name } });
       const profile = await getProfile();
-      if (!profile.gradeName) return setFallback({ status: "none" });
-      const subjRes = await getSubjects(profile.gradeName);
+      if (!profile.gradeId) return setFallback({ status: "none" });
+      const subjRes = await getSubjects(profile.gradeId);
       const firstSubject = subjRes.subjects?.[0];
       if (!firstSubject) return setFallback({ status: "none" });
       const roadmap = await fetch(`/api/curriculum/roadmap?subjectId=${firstSubject.id}`).then((r) => r.json());

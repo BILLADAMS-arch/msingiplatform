@@ -69,21 +69,21 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
   const qRows = await db.select().from(questions).where(inArray(questions.id, questionIds));
   const optionRows = await db.select().from(questionOptions).where(inArray(questionOptions.questionId, questionIds));
 
-  // Topic names for the by-topic breakdown.
+  // Topic names are fetched for display only; the breakdown is keyed by topic id.
   const topicIds = [...new Set(qRows.map((q) => q.topicId))];
   const topicRows = await db.select().from(topics).where(inArray(topics.id, topicIds));
-  const topicNameById = Object.fromEntries(topicRows.map((t) => [t.id, t.name]));
+  const topicNameById = new Map(topicRows.map((t) => [t.id, t.name]));
 
   // Grade in memory (same rules as before).
   let correctCount = 0;
-  const byTopic: Record<string, { correct: number; total: number; topicId: string }> = {};
+  const byTopicId = new Map<string, { correct: number; total: number }>();
   const missed: { questionId: string; topicId: string; chosenOptionId: string | null; chosenText: string | null }[] = [];
   const answerRows: (typeof testAnswers.$inferInsert)[] = [];
 
   for (const q of qRows) {
-    const topicName = topicNameById[q.topicId];
-    byTopic[topicName] = byTopic[topicName] || { correct: 0, total: 0, topicId: q.topicId };
-    byTopic[topicName].total++;
+    const tally = byTopicId.get(q.topicId) ?? { correct: 0, total: 0 };
+    byTopicId.set(q.topicId, tally);
+    tally.total++;
 
     const answer = answers.find((a) => a.questionId === q.id);
     const questionOptions = optionRows.filter((o) => o.questionId === q.id);
@@ -91,7 +91,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
       chosenOptionId: answer?.chosenOptionId, answerText: answer?.answerText, answerNumeric: answer?.answerNumeric,
     });
     const chosenText = answer?.answerText ?? (answer?.answerNumeric !== undefined && answer?.answerNumeric !== null ? String(answer.answerNumeric) : null);
-    if (isCorrect) { correctCount++; byTopic[topicName].correct++; }
+    if (isCorrect) { correctCount++; tally.correct++; }
     else missed.push({ questionId: q.id, topicId: q.topicId, chosenOptionId: answer?.chosenOptionId ?? null, chosenText });
 
     answerRows.push({ attemptId, questionId: q.id, chosenOptionId: answer?.chosenOptionId ?? null, chosenText, isCorrect });
@@ -120,8 +120,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
       }
 
       // Update topic mastery from this attempt's per-topic accuracy.
-      for (const [topicName, v] of Object.entries(byTopic)) {
-        const topicId = topicRows.find((t) => t.name === topicName)!.id;
+      for (const [topicId, v] of byTopicId) {
         const pct = Math.round((v.correct / v.total) * 100);
         topicPcts.push({ topicId, pct });
         const [existing] = await tx.select().from(topicProgress).where(and(eq(topicProgress.userId, userId), eq(topicProgress.topicId, topicId))).limit(1);
@@ -150,7 +149,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
   }
   if (subjectId && nextSubjectMastery !== null) {
     const [subjectRow] = await db.select().from(subjects).where(eq(subjects.id, subjectId)).limit(1);
-    if (subjectRow?.name === "Mathematics" && nextSubjectMastery >= 80 && await unlockAchievement(userId, "mathmaster")) unlockedCount++;
+    if (subjectRow?.code === "MATHEMATICS" && nextSubjectMastery >= 80 && await unlockAchievement(userId, "mathmaster")) unlockedCount++;
   }
 
   // XP, streak and running question counters.
@@ -171,9 +170,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ attemp
   if (score === 100 && await unlockAchievement(userId, "first100")) unlockedCount++;
   if (improvement >= 25 && await unlockAchievement(userId, "bigimprove")) unlockedCount++;
 
+  const topicResults = [...byTopicId].map(([topicId, v]) => ({ topicId, name: topicNameById.get(topicId) ?? "", correct: v.correct, total: v.total }));
+  // Deprecated name-keyed view for older clients (names can repeat across grades; use `topics`).
+  const byTopic = Object.fromEntries(topicResults.map((t) => [t.name, { correct: t.correct, total: t.total, topicId: t.topicId }]));
+
   return NextResponse.json({
     score, correct: correctCount, total: qRows.length, timeTaken: formatTime(timeTakenSeconds),
-    byTopic, previousScore, improvement: previousScore !== null ? improvement : null,
+    topics: topicResults, byTopic, previousScore, improvement: previousScore !== null ? improvement : null,
     xpAwarded: gainedXp, achievementsUnlocked: unlockedCount,
   });
 }

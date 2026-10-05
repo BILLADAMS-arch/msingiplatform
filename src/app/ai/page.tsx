@@ -88,8 +88,8 @@ function AiInner() {
     fetch("/api/billing/status").then((r) => (r.ok ? r.json() : null)).then((d) => d?.ai && setQuota(d.ai)).catch(() => {});
     fetch("/api/progress/me").then((r) => (r.ok ? r.json() : null)).then((d) => {
       if (!d) return;
-      const weakest = Object.entries((d.topicMastery ?? {}) as Record<string, number>).filter(([, v]) => v < 70).sort((a, b) => a[1] - b[1])[0];
-      setLearner({ weakestTopic: weakest?.[0] ?? null, hasMistakes: (d.openMistakeCount ?? 0) > 0 });
+      const weakest = ((d.topics ?? []) as { name: string; masteryPct: number }[]).filter((t) => t.masteryPct < 70).sort((a, b) => a.masteryPct - b.masteryPct)[0];
+      setLearner({ weakestTopic: weakest?.name ?? null, hasMistakes: (d.openMistakeCount ?? 0) > 0 });
     }).catch(() => {});
   }, [fetchConversation]);
 

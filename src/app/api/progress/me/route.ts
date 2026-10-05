@@ -46,12 +46,15 @@ export async function GET() {
 
   return NextResponse.json({
     profile: profile ? { name: profile.name, xp: profile.xp, streak: profile.streak, goal: profile.goal, leaderboardOptOut: profile.leaderboardOptOut } : null,
+    // Deprecated name-keyed maps (kept for older clients; names can repeat).
+    // Use `topics` and `subjects`, which are keyed by id.
     topicMastery: Object.fromEntries(topicRows.map((r) => [r.topic.name, r.progress.masteryPct])),
     topics: topicRows.map((r) => ({
       id: r.topic.id, name: r.topic.name, masteryPct: r.progress.masteryPct,
       subjectId: r.subjectId, subjectName: r.subjectName, lessonId: lessonByTopic.get(r.topic.id) ?? null,
     })),
     subjectMastery: Object.fromEntries(subjectRows.map((r) => [r.subject.name, r.progress.masteryPct])),
+    subjects: subjectRows.map((r) => ({ id: r.subject.id, code: r.subject.code, name: r.subject.name, masteryPct: r.progress.masteryPct })),
     testHistory: attempts.filter((a) => a.attempt.submittedAt).map((a) => ({
       date: a.attempt.submittedAt, score: a.attempt.score, testTitle: a.test.title,
       testId: a.test.id, passingThreshold: a.test.passingThreshold,

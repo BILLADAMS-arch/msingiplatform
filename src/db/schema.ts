@@ -1,8 +1,8 @@
 import {
   pgTable, uuid, varchar, text, integer, boolean, timestamp, jsonb,
-  pgEnum, unique, primaryKey, doublePrecision,
+  pgEnum, unique, primaryKey, doublePrecision, date, index, uniqueIndex, check,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 /* ---------------------------------------------------------------------- */
 /* Enums                                                                   */
@@ -62,16 +62,23 @@ export const parentChildren = pgTable("parent_children", {
 export const grades = pgTable("grades", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: varchar("name", { length: 40 }).notNull().unique(),
+  // Stable identity (PP1, PP2, G1 … G12). Names are display values only.
+  code: varchar("code", { length: 20 }).unique(),
   group: varchar("group", { length: 40 }).notNull(), // Early Years / Lower Primary / ...
   order: integer("order").notNull(),
 });
 
+// Msingi's learning-content subjects (what learners navigate). The official
+// KICD learning areas live separately in curriculum_subjects and are linked
+// through curriculum_mappings.
 export const subjects = pgTable("subjects", {
   id: uuid("id").defaultRandom().primaryKey(),
   gradeId: uuid("grade_id").notNull().references(() => grades.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 80 }).notNull(),
+  // Stable code (e.g. MATHEMATICS) for logic such as achievements — never match on name.
+  code: varchar("code", { length: 80 }),
   description: text("description"),
-});
+}, (t) => [uniqueIndex("subjects_grade_code_unique").on(t.gradeId, t.code).where(sql`${t.code} is not null`)]);
 
 export const strands = pgTable("strands", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -398,6 +405,161 @@ export const payments = pgTable("payments", {
   providerRef: varchar("provider_ref", { length: 120 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+/* ---------------------------------------------------------------------- */
+/* Official curriculum (KICD) — structure & metadata only                   */
+/*                                                                          */
+/* Kept separate from Msingi's learning content (subjects/strands/          */
+/* sub_strands/topics/lessons/questions). No KICD learning-outcome text or  */
+/* other substantial KICD prose is stored here pending licensing — only     */
+/* official names, numbering, lesson counts and source traceability.        */
+/* ---------------------------------------------------------------------- */
+export const curriculumStatusEnum = pgEnum("curriculum_status", ["draft", "active", "archived"]);
+export const sourceAccessEnum = pgEnum("source_access", ["viewable", "restricted", "downloadable", "unknown"]);
+export const curriculumSubjectCategoryEnum = pgEnum("curriculum_subject_category", ["core", "pathway", "optional", "general"]);
+export const curriculumMatchStatusEnum = pgEnum("curriculum_match_status", ["exact", "probable", "needs_review", "no_match"]);
+
+const stamps = {
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+};
+
+export const curriculumFrameworks = pgTable("curriculum_frameworks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  code: varchar("code", { length: 40 }).notNull().unique(),
+  name: varchar("name", { length: 160 }).notNull(),
+  authority: varchar("authority", { length: 160 }).notNull(),
+  ...stamps,
+});
+
+// A published edition of a framework. Revisions become new versions; old
+// versions are archived, never overwritten.
+export const curriculumVersions = pgTable("curriculum_versions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  frameworkId: uuid("framework_id").notNull().references(() => curriculumFrameworks.id, { onDelete: "restrict" }),
+  code: varchar("code", { length: 80 }).notNull(),
+  label: varchar("label", { length: 200 }).notNull(),
+  status: curriculumStatusEnum("status").notNull().default("draft"),
+  effectiveFrom: date("effective_from"),
+  notes: text("notes"),
+  ...stamps,
+}, (t) => [unique("curriculum_versions_framework_code_unique").on(t.frameworkId, t.code)]);
+
+export const curriculumLevels = pgTable("curriculum_levels", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  versionId: uuid("version_id").notNull().references(() => curriculumVersions.id, { onDelete: "restrict" }),
+  code: varchar("code", { length: 40 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  ...stamps,
+}, (t) => [unique("curriculum_levels_version_code_unique").on(t.versionId, t.code)]);
+
+export const curriculumGradeLevels = pgTable("curriculum_grade_levels", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  versionId: uuid("version_id").notNull().references(() => curriculumVersions.id, { onDelete: "restrict" }),
+  levelId: uuid("level_id").notNull().references(() => curriculumLevels.id, { onDelete: "restrict" }),
+  gradeId: uuid("grade_id").notNull().references(() => grades.id, { onDelete: "restrict" }),
+  ...stamps,
+}, (t) => [unique("curriculum_grade_levels_version_grade_unique").on(t.versionId, t.gradeId), index("curriculum_grade_levels_level_idx").on(t.levelId)]);
+
+export const curriculumPathways = pgTable("curriculum_pathways", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  versionId: uuid("version_id").notNull().references(() => curriculumVersions.id, { onDelete: "restrict" }),
+  levelId: uuid("level_id").notNull().references(() => curriculumLevels.id, { onDelete: "restrict" }),
+  code: varchar("code", { length: 60 }).notNull(),
+  name: varchar("name", { length: 160 }).notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  ...stamps,
+}, (t) => [unique("curriculum_pathways_version_code_unique").on(t.versionId, t.code)]);
+
+// One row per official KICD document (traceability). Files are referenced,
+// not stored: KICD publishes them view-only.
+export const sourceDocuments = pgTable("source_documents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  versionId: uuid("version_id").notNull().references(() => curriculumVersions.id, { onDelete: "restrict" }),
+  kicdPageUrl: text("kicd_page_url").notNull(),
+  driveFileId: varchar("drive_file_id", { length: 100 }),
+  officialTitle: text("official_title"),
+  learningAreaLabel: varchar("learning_area_label", { length: 200 }),
+  isbn: varchar("isbn", { length: 32 }),
+  firstPublished: varchar("first_published", { length: 40 }),
+  revisionLabel: varchar("revision_label", { length: 80 }),
+  retrievedAt: timestamp("retrieved_at").notNull(),
+  accessStatus: sourceAccessEnum("access_status").notNull().default("unknown"),
+  downloadAllowed: boolean("download_allowed"), // null = not checked
+  isDraft: boolean("is_draft"), // null = not verified
+  notes: text("notes"),
+  ...stamps,
+}, (t) => [unique("source_documents_version_drive_unique").on(t.versionId, t.driveFileId)]);
+
+export const sourceDocumentGrades = pgTable("source_document_grades", {
+  sourceDocumentId: uuid("source_document_id").notNull().references(() => sourceDocuments.id, { onDelete: "cascade" }),
+  gradeId: uuid("grade_id").notNull().references(() => grades.id, { onDelete: "restrict" }),
+}, (t) => [primaryKey({ columns: [t.sourceDocumentId, t.gradeId] })]);
+
+// Official learning area for one grade in one version.
+export const curriculumSubjects = pgTable("curriculum_subjects", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  versionId: uuid("version_id").notNull().references(() => curriculumVersions.id, { onDelete: "restrict" }),
+  gradeId: uuid("grade_id").notNull().references(() => grades.id, { onDelete: "restrict" }),
+  levelId: uuid("level_id").notNull().references(() => curriculumLevels.id, { onDelete: "restrict" }),
+  code: varchar("code", { length: 80 }).notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  category: curriculumSubjectCategoryEnum("category").notNull().default("general"),
+  pathwayId: uuid("pathway_id").references(() => curriculumPathways.id, { onDelete: "restrict" }),
+  isOptional: boolean("is_optional").notNull().default(false),
+  status: curriculumStatusEnum("status").notNull().default("active"),
+  sourceDocumentId: uuid("source_document_id").references(() => sourceDocuments.id, { onDelete: "set null" }),
+  sortOrder: integer("sort_order").notNull().default(0),
+  ...stamps,
+}, (t) => [unique("curriculum_subjects_version_grade_code_unique").on(t.versionId, t.gradeId, t.code), index("curriculum_subjects_grade_idx").on(t.gradeId)]);
+
+export const curriculumStrands = pgTable("curriculum_strands", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  curriculumSubjectId: uuid("curriculum_subject_id").notNull().references(() => curriculumSubjects.id, { onDelete: "restrict" }),
+  number: varchar("number", { length: 10 }).notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  sourcePage: varchar("source_page", { length: 10 }),
+  ...stamps,
+}, (t) => [unique("curriculum_strands_subject_number_unique").on(t.curriculumSubjectId, t.number)]);
+
+export const curriculumSubStrands = pgTable("curriculum_sub_strands", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  strandId: uuid("strand_id").notNull().references(() => curriculumStrands.id, { onDelete: "restrict" }),
+  number: varchar("number", { length: 10 }).notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  suggestedLessons: integer("suggested_lessons"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  sourcePage: varchar("source_page", { length: 10 }),
+  ...stamps,
+}, (t) => [unique("curriculum_sub_strands_strand_number_unique").on(t.strandId, t.number)]);
+
+// Links one piece of Msingi content to the official structure, by ID.
+// Exactly one Msingi column is set per row. Nothing is moved: the Msingi
+// record keeps its place, learner data is untouched.
+export const curriculumMappings = pgTable("curriculum_mappings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  versionId: uuid("version_id").notNull().references(() => curriculumVersions.id, { onDelete: "restrict" }),
+  subjectId: uuid("subject_id").references(() => subjects.id, { onDelete: "cascade" }),
+  strandId: uuid("strand_id").references(() => strands.id, { onDelete: "cascade" }),
+  subStrandId: uuid("sub_strand_id").references(() => subStrands.id, { onDelete: "cascade" }),
+  topicId: uuid("topic_id").references(() => topics.id, { onDelete: "cascade" }),
+  curriculumSubjectId: uuid("curriculum_subject_id").references(() => curriculumSubjects.id, { onDelete: "set null" }),
+  curriculumStrandId: uuid("curriculum_strand_id").references(() => curriculumStrands.id, { onDelete: "set null" }),
+  curriculumSubStrandId: uuid("curriculum_sub_strand_id").references(() => curriculumSubStrands.id, { onDelete: "set null" }),
+  matchStatus: curriculumMatchStatusEnum("match_status").notNull(),
+  notes: text("notes"),
+  reviewedBy: uuid("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+  reviewedAt: timestamp("reviewed_at"),
+  ...stamps,
+}, (t) => [
+  check("curriculum_mappings_one_target", sql`num_nonnulls(${t.subjectId}, ${t.strandId}, ${t.subStrandId}, ${t.topicId}) = 1`),
+  uniqueIndex("curriculum_mappings_subject_unique").on(t.versionId, t.subjectId).where(sql`${t.subjectId} is not null`),
+  uniqueIndex("curriculum_mappings_strand_unique").on(t.versionId, t.strandId).where(sql`${t.strandId} is not null`),
+  uniqueIndex("curriculum_mappings_sub_strand_unique").on(t.versionId, t.subStrandId).where(sql`${t.subStrandId} is not null`),
+  uniqueIndex("curriculum_mappings_topic_unique").on(t.versionId, t.topicId).where(sql`${t.topicId} is not null`),
+]);
 
 /* ---------------------------------------------------------------------- */
 /* Relations (for query API ergonomics)                                     */

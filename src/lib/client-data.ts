@@ -33,14 +33,14 @@ function cached<T>(get: () => Entry<unknown> | null | undefined, set: (e: Entry<
 }
 
 /** GET /api/profile, shared across components for a few seconds. */
-export function getProfile<T = { profile: Record<string, unknown> | null; gradeName: string | null }>(): Promise<T> {
+export function getProfile<T = { profile: Record<string, unknown> | null; gradeId: string | null; gradeName: string | null }>(): Promise<T> {
   return cached<T>(() => profileEntry, (e) => { profileEntry = e; }, PROFILE_TTL, "/api/profile");
 }
 
-/** GET /api/curriculum/subjects?grade=…, shared across components. */
-export function getSubjects<T = { subjects: { id: string; name: string }[] }>(gradeName: string): Promise<T> {
-  return cached<T>(() => subjectEntries.get(gradeName), (e) => { if (e) subjectEntries.set(gradeName, e); else subjectEntries.delete(gradeName); },
-    SUBJECTS_TTL, `/api/curriculum/subjects?grade=${encodeURIComponent(gradeName)}`);
+/** GET /api/curriculum/subjects?gradeId=…, shared across components. */
+export function getSubjects<T = { subjects: { id: string; name: string }[] }>(gradeId: string): Promise<T> {
+  return cached<T>(() => subjectEntries.get(gradeId), (e) => { if (e) subjectEntries.set(gradeId, e); else subjectEntries.delete(gradeId); },
+    SUBJECTS_TTL, `/api/curriculum/subjects?gradeId=${encodeURIComponent(gradeId)}`);
 }
 
 /** Call after the learner's profile changes, or on sign-out. */

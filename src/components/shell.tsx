@@ -74,7 +74,7 @@ let subjectsCache: Promise<Subject[]> | null = null;
 function loadSubjects(): Promise<Subject[]> {
   // getProfile/getSubjects share one request with the page that's rendering.
   subjectsCache ??= getProfile()
-    .then(async (p) => (p?.gradeName ? ((await getSubjects(p.gradeName)).subjects ?? []) : []))
+    .then(async (p) => (p?.gradeId ? ((await getSubjects(p.gradeId)).subjects ?? []) : []))
     .catch(() => {
       subjectsCache = null;
       return [];
@@ -89,16 +89,18 @@ function SubjectLinks({ onNavigate }: { onNavigate?: () => void }) {
   useEffect(() => { loadSubjects().then(setSubjects); }, []);
 
   if (!subjects || subjects.length === 0) return null;
-  const activeName = pathname === "/learn" ? params.get("subject") : null;
+  const onLearn = pathname === "/learn";
+  const activeId = onLearn ? params.get("subjectId") : null;
+  const activeName = onLearn && !activeId ? params.get("subject") : null; // legacy ?subject=<name> links
   return (
     <div>
       <div className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-(--muted)">My Subjects</div>
       <ul className="space-y-0.5">
         {subjects.map((s) => {
-          const active = activeName === s.name;
+          const active = activeId ? activeId === s.id : activeName === s.name;
           return (
             <li key={s.id}>
-              <Link href={`/learn?subject=${encodeURIComponent(s.name)}`} onClick={onNavigate} aria-current={active ? "page" : undefined}
+              <Link href={`/learn?subjectId=${s.id}`} onClick={onNavigate} aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-3 px-3 min-h-10 rounded-xl text-sm font-medium transition-colors ${active ? "bg-(--primary-soft) text-(--primary-deep)" : "text-(--ink-soft) hover:bg-(--stone-2) hover:text-(--ink)"}`}>
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ background: subjectAccent(s.name).color }} aria-hidden />
                 <span className="truncate">{s.name}</span>

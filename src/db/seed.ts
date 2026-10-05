@@ -1,9 +1,27 @@
 /**
- * Seed script — migrates the Phase-1 prototype's in-memory demo content
- * (GRADE_GROUPS, SUBJECT_LIBRARY, the Grade 7 Mathematics roadmap,
- * FRACTIONS_LESSON, QUESTION_BANK, ACHIEVEMENTS_CATALOG) into real rows.
+ * Seed script for an EMPTY development database. It refuses to run if grades
+ * already exist, so it can never duplicate rows in a populated (e.g.
+ * production) database.
+ *
+ * Two kinds of data, kept apart on purpose:
+ *
+ * 1. Platform reference data — the grade ladder with its official KICD grade
+ *    codes. Official curriculum structure (levels, learning areas, strands,
+ *    sub-strands, source documents) is NOT defined here: it lives in
+ *    curriculum/ and is loaded by `npm run curriculum:import` (dry run by
+ *    default) after seeding.
+ *
+ * 2. Msingi sample content — the Phase-1 prototype's demo subjects, Grade 7
+ *    Mathematics roadmap, lesson, question bank, test, flashcards and library
+ *    resources. This is Msingi-authored content, not KICD curriculum. Its
+ *    strand/sub-strand ("Numbers, Fractions & Ratios" / "Working with
+ *    Numbers") predates the official model and is classified against the
+ *    official structure in curriculum/mappings/. Do not add new invented
+ *    curriculum structures here.
+ *
  * Run with: npm run db:seed
  */
+import { count } from "drizzle-orm";
 import { db } from "./index";
 import {
   grades, subjects, strands, subStrands, topics, lessons, lessonSections,
@@ -11,6 +29,10 @@ import {
   achievements, playgroundActivities, flashcards, resources,
 } from "./schema";
 
+/* ---- 1. Platform reference data ---------------------------------------- */
+
+// Display group -> grade names. Each grade's stable `code` is derived below
+// ("PP1", "G7", ...) and matches the codes used in curriculum/.
 const GRADE_GROUPS: Record<string, string[]> = {
   "Early Years": ["PP1", "PP2"],
   "Lower Primary": ["Grade 1", "Grade 2", "Grade 3"],
@@ -19,16 +41,43 @@ const GRADE_GROUPS: Record<string, string[]> = {
   "Senior School": ["Grade 10", "Grade 11", "Grade 12"],
 };
 
-const SUBJECT_LIBRARY: Record<string, string[]> = {
-  "Grade 6": ["Mathematics", "English", "Kiswahili", "Science & Technology", "Social Studies"],
-  "Grade 7": ["Mathematics", "English", "Kiswahili", "Integrated Science", "Social Studies", "Pre-Technical Studies", "Agriculture"],
-  "Grade 8": ["Mathematics", "English", "Kiswahili", "Integrated Science", "Social Studies", "ICT", "Business Studies"],
-  "Grade 9": ["Mathematics", "English", "Kiswahili", "Integrated Science", "Social Studies", "ICT", "Agriculture"],
+const gradeCode = (name: string) => (/^PP ?[12]$/.test(name) ? name.replace(" ", "") : `G${name.replace(/\D/g, "")}`);
+
+/* ---- 2. Msingi sample content ------------------------------------------ */
+
+// Sample Msingi subjects per grade. `code` is the stable identifier the app
+// uses (e.g. the Mathematics Master achievement); `name` is display only.
+// ICT and Business Studies were removed: neither is a KICD Junior School
+// learning area (production rows that already exist are kept and are
+// classified as "no_match" in curriculum/mappings/).
+const SUBJECT_LIBRARY: Record<string, { code: string; name: string }[]> = {
+  "Grade 6": [
+    { code: "MATHEMATICS", name: "Mathematics" }, { code: "ENGLISH", name: "English" }, { code: "KISWAHILI", name: "Kiswahili" },
+    { code: "SCIENCE_AND_TECHNOLOGY", name: "Science & Technology" }, { code: "SOCIAL_STUDIES", name: "Social Studies" },
+  ],
+  "Grade 7": [
+    { code: "MATHEMATICS", name: "Mathematics" }, { code: "ENGLISH", name: "English" }, { code: "KISWAHILI", name: "Kiswahili" },
+    { code: "INTEGRATED_SCIENCE", name: "Integrated Science" }, { code: "SOCIAL_STUDIES", name: "Social Studies" },
+    { code: "PRE_TECHNICAL_STUDIES", name: "Pre-Technical Studies" }, { code: "AGRICULTURE", name: "Agriculture" },
+  ],
+  "Grade 8": [
+    { code: "MATHEMATICS", name: "Mathematics" }, { code: "ENGLISH", name: "English" }, { code: "KISWAHILI", name: "Kiswahili" },
+    { code: "INTEGRATED_SCIENCE", name: "Integrated Science" }, { code: "SOCIAL_STUDIES", name: "Social Studies" },
+  ],
+  "Grade 9": [
+    { code: "MATHEMATICS", name: "Mathematics" }, { code: "ENGLISH", name: "English" }, { code: "KISWAHILI", name: "Kiswahili" },
+    { code: "INTEGRATED_SCIENCE", name: "Integrated Science" }, { code: "SOCIAL_STUDIES", name: "Social Studies" },
+    { code: "AGRICULTURE", name: "Agriculture" },
+  ],
 };
 
 const ROADMAP_G7_MATH = ["Numbers", "Fractions", "Decimals", "Percentages", "Ratios", "Algebra"];
 
-const FRACTIONS_LESSON = {
+const FRACTIONS_LESSON: {
+  title: string;
+  sections: { kind: "learn" | "example" | "keypoint" | "vocab"; heading: string; body: string; note?: string }[];
+  quickCheck: { question: string; options: string[]; correctIndex: number; explanation: string };
+} = {
   title: "Adding Fractions",
   sections: [
     { kind: "learn", heading: "Learn", body: "To add fractions, the denominators (bottom numbers) must be the same. If they aren't, find the lowest common denominator first, then add the numerators (top numbers) and keep the denominator." },
@@ -122,28 +171,35 @@ const PLAYGROUND_TEASERS = [
 async function main() {
   console.log("Seeding Msingi...");
 
-  // 1. Grades
+  const [{ n: existingGrades }] = await db.select({ n: count() }).from(grades);
+  if (existingGrades > 0) {
+    console.error(`Refusing to seed: the database already has ${existingGrades} grades. This script is for an empty development database.`);
+    process.exit(1);
+  }
+
+  // 1. Grades (platform reference data)
   let order = 0;
   const gradeIdByName: Record<string, string> = {};
   for (const [group, names] of Object.entries(GRADE_GROUPS)) {
     for (const name of names) {
-      const [g] = await db.insert(grades).values({ name, group, order: order++ }).returning();
+      const [g] = await db.insert(grades).values({ name, code: gradeCode(name), group, order: order++ }).returning();
       gradeIdByName[name] = g.id;
     }
   }
   console.log(`  ${Object.keys(gradeIdByName).length} grades`);
 
-  // 2. Subjects (only for grades we have a library entry for)
+  // 2. Subjects (Msingi sample content, only for grades we have a library entry for)
   const mathSubjectIdByGrade: Record<string, string> = {};
-  for (const [gradeName, subjectNames] of Object.entries(SUBJECT_LIBRARY)) {
-    for (const name of subjectNames) {
-      const [s] = await db.insert(subjects).values({ gradeId: gradeIdByName[gradeName], name }).returning();
-      if (gradeName === "Grade 7" && name === "Mathematics") mathSubjectIdByGrade[gradeName] = s.id;
+  for (const [gradeName, subjectList] of Object.entries(SUBJECT_LIBRARY)) {
+    for (const { code, name } of subjectList) {
+      const [s] = await db.insert(subjects).values({ gradeId: gradeIdByName[gradeName], code, name }).returning();
+      if (gradeName === "Grade 7" && code === "MATHEMATICS") mathSubjectIdByGrade[gradeName] = s.id;
     }
   }
   console.log(`  subjects seeded for ${Object.keys(SUBJECT_LIBRARY).length} grades`);
 
-  // 3. Grade 7 Mathematics: full strand -> sub-strand -> topic depth
+  // 3. Grade 7 Mathematics sample roadmap (Msingi content; pre-dates the
+  //    official structure — see curriculum/mappings/ for how it relates).
   const g7MathId = mathSubjectIdByGrade["Grade 7"];
   const [numberStrand] = await db.insert(strands).values({ subjectId: g7MathId, name: "Numbers, Fractions & Ratios", order: 0 }).returning();
   const [numberSubStrand] = await db.insert(subStrands).values({ strandId: numberStrand.id, name: "Working with Numbers", order: 0 }).returning();
@@ -159,7 +215,7 @@ async function main() {
   const [lesson] = await db.insert(lessons).values({ topicId: topicIdByName["Fractions"], title: FRACTIONS_LESSON.title }).returning();
   for (let i = 0; i < FRACTIONS_LESSON.sections.length; i++) {
     const s = FRACTIONS_LESSON.sections[i];
-    await db.insert(lessonSections).values({ lessonId: lesson.id, kind: s.kind, heading: s.heading, body: s.body, note: (s as any).note ?? null, order: i });
+    await db.insert(lessonSections).values({ lessonId: lesson.id, kind: s.kind, heading: s.heading, body: s.body, note: s.note ?? null, order: i });
   }
   await db.insert(quickChecks).values({
     lessonId: lesson.id,
@@ -232,7 +288,7 @@ async function main() {
   );
   console.log(`  ${LIBRARY_RESOURCES_FRACTIONS.length} library resources (Fractions)`);
 
-  console.log("Seed complete.");
+  console.log("Seed complete. Next: `npm run curriculum:import` (dry run), then `npm run curriculum:import -- --apply` to load the official curriculum structure.");
   process.exit(0);
 }
 

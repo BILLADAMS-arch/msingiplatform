@@ -1,0 +1,38 @@
+{
+  "grade": "G7",
+  "level": "JUNIOR_SCHOOL",
+  "code": "MATHEMATICS",
+  "name": "Mathematics",
+  "category": "general",
+  "isOptional": false,
+  "status": "active",
+  "sourceDriveFileId": "12Vb6W1_Vzn9BEH2MsM2WmUwWL5OKoucK",
+  "sourceReference": "Summary of Strands and Sub-Strands, page xii (Mathematics Grade 7, revised 2024)",
+  "contentPolicy": "Official numbering, strand/sub-strand headings and suggested lesson counts only. No learning outcomes or other KICD text.",
+  "expectedTotalLessons": 150,
+  "strands": [
+    { "number": "1.0", "name": "Numbers", "sourcePage": "xii", "subStrands": [
+      { "number": "1.1", "name": "Whole Numbers", "suggestedLessons": 20 },
+      { "number": "1.2", "name": "Factors", "suggestedLessons": 7 },
+      { "number": "1.3", "name": "Fractions", "suggestedLessons": 9 },
+      { "number": "1.4", "name": "Decimals", "suggestedLessons": 6 },
+      { "number": "1.5", "name": "Squares and Square Roots", "suggestedLessons": 5 } ] },
+    { "number": "2.0", "name": "Algebra", "sourcePage": "xii", "subStrands": [
+      { "number": "2.1", "name": "Algebraic Expressions", "suggestedLessons": 5 },
+      { "number": "2.2", "name": "Linear Equations", "suggestedLessons": 6 },
+      { "number": "2.3", "name": "Linear Inequalities", "suggestedLessons": 8 } ] },
+    { "number": "3.0", "name": "Measurements", "sourcePage": "xii", "subStrands": [
+      { "number": "3.1", "name": "Pythagorean Relationship", "suggestedLessons": 4 },
+      { "number": "3.2", "name": "Length", "suggestedLessons": 6 },
+      { "number": "3.3", "name": "Area", "suggestedLessons": 8 },
+      { "number": "3.4", "name": "Volume and Capacity", "suggestedLessons": 8 },
+      { "number": "3.5", "name": "Time, Distance, and Speed", "suggestedLessons": 8 },
+      { "number": "3.6", "name": "Temperature", "suggestedLessons": 6 },
+      { "number": "3.7", "name": "Money", "suggestedLessons": 14 } ] },
+    { "number": "4.0", "name": "Geometry", "sourcePage": "xii", "subStrands": [
+      { "number": "4.1", "name": "Angles", "suggestedLessons": 8 },
+      { "number": "4.2", "name": "Geometrical Constructions", "suggestedLessons": 12 } ] },
+    { "number": "5.0", "name": "Data Handling and Probability", "sourcePage": "xii", "subStrands": [
+      { "number": "5.1", "name": "Data Handling", "suggestedLessons": 10 } ] }
+  ]
+}

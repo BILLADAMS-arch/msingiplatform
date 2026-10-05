@@ -14,7 +14,7 @@ type StartResp = { attemptId: string; test: { id: string; title: string; timeLim
 type TestMeta = { title: string; type: string; passingThreshold: number; timeLimitSeconds: number | null; questionCount: number; topics: string[] };
 type SubmitResult = {
   score: number; correct: number; total: number; timeTaken: string;
-  byTopic: Record<string, { correct: number; total: number; topicId?: string }>;
+  topics: { topicId: string; name: string; correct: number; total: number }[];
   previousScore: number | null; improvement: number | null; xpAwarded: number;
 };
 
@@ -358,8 +358,8 @@ function Results({ meta, threshold, stage, onRetake }: {
   const passed = result.score >= threshold;
   const wrong = result.total - result.correct;
   // Per-topic accuracy against the same pass mark the test uses.
-  const topics = Object.entries(result.byTopic)
-    .map(([name, v]) => ({ name, topicId: v.topicId ?? null, pct: Math.round((v.correct / v.total) * 100), correct: v.correct, total: v.total }))
+  const topics = result.topics
+    .map((v) => ({ name: v.name, topicId: v.topicId, pct: Math.round((v.correct / v.total) * 100), correct: v.correct, total: v.total }))
     .sort((a, b) => a.pct - b.pct);
   const weak = topics.filter((t) => t.pct < threshold);
   const weakest = weak[0];
@@ -428,7 +428,7 @@ function Results({ meta, threshold, stage, onRetake }: {
             {topics.map((t) => {
               const ok = t.pct >= threshold;
               return (
-                <li key={t.name} className="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center gap-2.5">
+                <li key={t.topicId} className="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center gap-2.5">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-sm">{t.name}</span>

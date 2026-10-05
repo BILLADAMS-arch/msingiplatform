@@ -9,7 +9,8 @@
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "curriculum:import": "tsx scripts/curriculum/import.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

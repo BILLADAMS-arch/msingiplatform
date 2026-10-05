@@ -1,0 +1,53 @@
+{
+  "version": "kicd-cbc-2026-10",
+  "description": "Auto-classification of existing Msingi content against the official KICD structure (audit of 2026-10-05). Identity is by Msingi record ID and by official natural key (grade code + subject code + official number). 'label' is for humans only and is never used for matching. Nothing is moved; learner data is untouched. All rows are unreviewed until an admin confirms them.",
+  "statusMeaning": {
+    "exact": "Same official node (name and placement agree).",
+    "probable": "Very likely the official node; content should be checked.",
+    "needs_review": "A candidate exists but the fit is uncertain.",
+    "no_match": "No official node found in the current version for this grade."
+  },
+  "mappings": [
+    { "kind": "subject", "id": "e2e127c4-0f73-46f4-a891-0796d7ec6de4", "label": "Grade 7 / Mathematics",
+      "status": "exact", "target": { "grade": "G7", "subject": "MATHEMATICS" } },
+    { "kind": "subject", "id": "6cac8952-f141-44e4-bb70-07adc97c46a9", "label": "Grade 7 / Integrated Science",
+      "status": "exact", "target": { "grade": "G7", "subject": "INTEGRATED_SCIENCE" } },
+
+    { "kind": "subject", "id": "c6c4c410-bd00-4d7d-886c-aa6bddb32dff", "label": "Grade 8 / ICT",
+      "status": "no_match", "notes": "ICT is not a Junior School learning area on KICD's Grade 8 designs page." },
+    { "kind": "subject", "id": "b811ba0e-7501-4413-b058-c0bde7c103a0", "label": "Grade 8 / Business Studies",
+      "status": "no_match", "notes": "Business Studies is not a Junior School learning area on KICD's Grade 8 designs page (it is a Senior School subject)." },
+    { "kind": "subject", "id": "cc126eaa-b389-4c3c-9e81-9dcdfb048c51", "label": "Grade 9 / ICT",
+      "status": "no_match", "notes": "ICT is not a Junior School learning area on KICD's Grade 9 designs page." },
+
+    { "kind": "strand", "id": "16a6dc45-fc8a-4d4a-b41a-83696a303272", "label": "Mathematics / Numbers, Fractions & Ratios",
+      "status": "no_match", "notes": "Msingi-created strand. Closest official strand is G7 Mathematics 1.0 Numbers; Ratios is not a Grade 7 sub-strand." },
+    { "kind": "sub_strand", "id": "4a87c3be-740b-4294-9936-50723a278a21", "label": "Numbers, Fractions & Ratios / Working with Numbers",
+      "status": "no_match", "notes": "Msingi-created sub-strand; not in the official Grade 7 Mathematics design." },
+
+    { "kind": "topic", "id": "df84caff-e549-451a-8709-71583ccdc20f", "label": "Mathematics / Numbers",
+      "status": "needs_review", "target": { "grade": "G7", "subject": "MATHEMATICS", "strand": "1.0", "subStrand": "1.1" },
+      "notes": "Questions cover place value and rounding, which fit 1.1 Whole Numbers." },
+    { "kind": "topic", "id": "23858c9d-a776-4b69-82d4-3928355a5f78", "label": "Mathematics / Fractions",
+      "status": "probable", "target": { "grade": "G7", "subject": "MATHEMATICS", "strand": "1.0", "subStrand": "1.3" } },
+    { "kind": "topic", "id": "309dd46d-de58-4b0e-afec-d1d565dbbb3c", "label": "Mathematics / Decimals",
+      "status": "exact", "target": { "grade": "G7", "subject": "MATHEMATICS", "strand": "1.0", "subStrand": "1.4" },
+      "notes": "Name and placement match; topic has no lesson or questions yet." },
+    { "kind": "topic", "id": "c7bbbb21-82d6-442a-83c4-6e621503cc3f", "label": "Mathematics / Percentages",
+      "status": "needs_review", "notes": "No Percentages sub-strand in Grade 7 Mathematics (revised 2024). A discount question may fit 3.7 Money; other content may belong to another grade." },
+    { "kind": "topic", "id": "c191cdeb-67b5-44cb-acb4-e95854536337", "label": "Mathematics / Ratios",
+      "status": "no_match", "notes": "No Ratios sub-strand in Grade 7 Mathematics (revised 2024). May belong to another grade." },
+    { "kind": "topic", "id": "8ab554ce-7717-42fd-9d4d-efbacc8605c9", "label": "Mathematics / Algebra",
+      "status": "probable", "target": { "grade": "G7", "subject": "MATHEMATICS", "strand": "2.0", "subStrand": "2.2" },
+      "notes": "Questions are 'Solve for x' (linear equations); the lesson 'Introduction to Algebra' may also touch 2.1 Algebraic Expressions." },
+
+    { "kind": "strand", "id": "90e3e885-da7b-4bcc-8363-af11a81313d5", "label": "Integrated Science / Human Nutrition",
+      "status": "no_match", "notes": "Not a strand in Grade 7 Integrated Science (July 2024). May belong to another grade." },
+    { "kind": "sub_strand", "id": "84bc5692-0319-4517-9480-3e7d776a86de", "label": "Human Nutrition / Classes of Food and Balanced Diet",
+      "status": "no_match", "notes": "Not in Grade 7 Integrated Science (July 2024)." },
+    { "kind": "topic", "id": "1ea57d78-8c1d-4164-b021-846908deef35", "label": "Integrated Science / Classes of Nutrients",
+      "status": "no_match", "notes": "Not in Grade 7 Integrated Science (July 2024). Keep as Msingi content." },
+    { "kind": "topic", "id": "100e5e70-0fd0-48ce-bfa0-6050a1bbd955", "label": "Integrated Science / Balanced Diet",
+      "status": "no_match", "notes": "Not in Grade 7 Integrated Science (July 2024). Keep as Msingi content." }
+  ]
+}

@@ -106,7 +106,7 @@ export default function LessonPage() {
   const { lesson } = load;
   const b = lesson.breadcrumb;
   const accent = subjectAccent(b.subject);
-  const subjectHref = `/learn?subject=${encodeURIComponent(b.subject)}`;
+  const subjectHref = `/learn?subjectId=${b.subjectId}`;
   const practiceHref = practiceLink({ id: lesson.topicId, name: lesson.topicName });
   const qc = lesson.quickCheck;
   const totalSteps = lesson.sections.length + (qc ? 1 : 0);

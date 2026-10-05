@@ -1,21 +1,32 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-const GRADES = ["Grade 6", "Grade 7", "Grade 8", "Grade 9"];
+type Grade = { id: string; name: string; hasSubjects: boolean };
 const GOALS = ["Improve my grades", "Prepare for exams", "Practise every day", "Master difficult topics", "Explore new subjects"];
 
 export default function RegisterPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState({ name: "", email: "", password: "", gradeName: "Grade 7", goal: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", gradeId: "", goal: "" });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Grades come from the database; only grades that have content are offered.
+  const [grades, setGrades] = useState<Grade[] | null | "error">(null);
+
+  function fetchGrades() {
+    fetch("/api/curriculum/grades")
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((d: { grades: Grade[] }) => setGrades(d.grades.filter((g) => g.hasSubjects)))
+      .catch(() => setGrades("error"));
+  }
+  useEffect(fetchGrades, []);
+  const retryGrades = () => { setGrades(null); fetchGrades(); };
 
   const steps = [
     { title: "Welcome to Msingi 👋", canNext: form.name.trim().length > 0 && form.email.includes("@") && form.password.length >= 8 },
-    { title: "What grade are you in?", canNext: !!form.gradeName },
+    { title: "What grade are you in?", canNext: !!form.gradeId },
     { title: "What's your goal?", canNext: !!form.goal },
   ];
   const isLast = step === steps.length - 1;
@@ -24,7 +35,7 @@ export default function RegisterPage() {
     setLoading(true); setError(null);
     const res = await fetch("/api/auth/register", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: form.email, password: form.password, name: form.name, role: "STUDENT", gradeName: form.gradeName, goal: form.goal }),
+      body: JSON.stringify({ email: form.email, password: form.password, name: form.name, role: "STUDENT", gradeId: form.gradeId, goal: form.goal }),
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -57,15 +68,23 @@ export default function RegisterPage() {
         )}
 
         {step === 1 && (
-          <div className="grid grid-cols-2 gap-2">
-            {GRADES.map((g) => (
-              <button key={g} onClick={() => setForm({ ...form, gradeName: g })}
-                className={`tap border rounded-xl px-4 py-3 text-sm font-medium text-left ${form.gradeName === g ? "text-white" : ""}`}
-                style={{ borderColor: form.gradeName === g ? "var(--primary)" : "var(--slate)", background: form.gradeName === g ? "var(--primary)" : "white" }}>
-                {g}
-              </button>
-            ))}
-          </div>
+          grades === null ? (
+            <p className="text-sm text-(--ink-soft)" role="status">Loading grades…</p>
+          ) : grades === "error" ? (
+            <p className="text-sm text-(--coral)">Couldn&apos;t load grades. <button onClick={retryGrades} className="font-semibold underline">Try again</button></p>
+          ) : grades.length === 0 ? (
+            <p className="text-sm text-(--ink-soft)">No grades are open for sign-up yet.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {grades.map((g) => (
+                <button key={g.id} onClick={() => setForm({ ...form, gradeId: g.id })}
+                  className={`tap border rounded-xl px-4 py-3 text-sm font-medium text-left ${form.gradeId === g.id ? "text-white" : ""}`}
+                  style={{ borderColor: form.gradeId === g.id ? "var(--primary)" : "var(--slate)", background: form.gradeId === g.id ? "var(--primary)" : "white" }}>
+                  {g.name}
+                </button>
+              ))}
+            </div>
+          )
         )}
 
         {step === 2 && (

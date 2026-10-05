@@ -10,7 +10,8 @@ const registerSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
   name: z.string().min(1).max(120),
   role: z.enum(["STUDENT", "TEACHER", "PARENT"]).default("STUDENT"), // admins are provisioned, not self-registered
-  gradeName: z.string().optional(), // required for students, e.g. "Grade 7"
+  gradeId: z.string().uuid().optional(), // required for students
+  gradeName: z.string().optional(), // deprecated: older clients; gradeId wins when both are sent
   goal: z.string().optional(),
 });
 
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
-  const { email, password, name, role, gradeName, goal } = parsed.data;
+  const { email, password, name, role, gradeId: requestedGradeId, gradeName, goal } = parsed.data;
 
   const [existing] = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
   if (existing) {
@@ -29,11 +30,12 @@ export async function POST(req: Request) {
 
   let gradeId: string | undefined;
   if (role === "STUDENT") {
-    if (!gradeName) {
+    if (!requestedGradeId && !gradeName) {
       return NextResponse.json({ error: "Grade is required for student accounts." }, { status: 400 });
     }
-    const [grade] = await db.select().from(grades).where(eq(grades.name, gradeName)).limit(1);
-    if (!grade) return NextResponse.json({ error: `Unknown grade: ${gradeName}` }, { status: 400 });
+    const [grade] = await db.select().from(grades)
+      .where(requestedGradeId ? eq(grades.id, requestedGradeId) : eq(grades.name, gradeName!)).limit(1);
+    if (!grade) return NextResponse.json({ error: "Unknown grade." }, { status: 400 });
     gradeId = grade.id;
   }
 

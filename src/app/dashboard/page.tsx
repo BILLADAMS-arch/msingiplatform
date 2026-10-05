@@ -17,16 +17,18 @@ import {
 
 type ProgressResponse = {
   profile: { name: string; xp: number; streak: number; goal: string | null } | null;
-  topicMastery: Record<string, number>;
-  subjectMastery: Record<string, number>;
-  testHistory: { date: string; score: number; testTitle: string }[];
+  topics: TopicMastery[];
+  subjects: { id: string; masteryPct: number }[];
+  testHistory: { date: string; score: number; testTitle: string; testId: string }[];
   achievements: { unlocked: { code: string }[]; all: { code: string }[] };
   openMistakeCount: number;
 };
 type ProfileResponse = {
   profile: { name: string; xp: number; streak: number; lastActiveAt: string | null; questionsAnswered: number; questionsCorrect: number } | null;
+  gradeId: string | null;
   gradeName: string | null;
 };
+type TopicMastery = { id: string; name: string; masteryPct: number };
 type Subject = { id: string; name: string };
 type RoadmapTopic = { id: string; name: string; order: number; lessonId: string | null; masteryPct: number };
 type Curriculum = { subjects: Subject[]; roadmaps: Record<string, RoadmapTopic[]> };
@@ -79,8 +81,8 @@ export default function DashboardPage() {
   // Subjects for the learner's grade and each subject's roadmap — the same
   // requests the previous dashboard made, fetched once and shared by the
   // Continue, Focus, Recommended and Subjects sections.
-  const fetchCurriculum = useCallback((gradeName: string) => {
-    getSubjects<{ subjects: Subject[] }>(gradeName)
+  const fetchCurriculum = useCallback((gradeId: string) => {
+    getSubjects<{ subjects: Subject[] }>(gradeId)
       .then(async ({ subjects }) => {
         const roadmaps = await Promise.all(subjects.map((s) => getJson<{ roadmap: RoadmapTopic[] }>(`/api/curriculum/roadmap?subjectId=${s.id}`)));
         setCurriculum({ status: "ready", data: { subjects, roadmaps: Object.fromEntries(subjects.map((s, i) => [s.id, roadmaps[i].roadmap ?? []])) } });
@@ -93,14 +95,14 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => { fetchCore(); fetchChallenge(); }, [fetchCore, fetchChallenge]);
-  const gradeName = core.status === "ready" ? core.data.profile.gradeName : undefined;
-  useEffect(() => { if (gradeName) fetchCurriculum(gradeName); }, [gradeName, fetchCurriculum]);
+  const gradeId = core.status === "ready" ? core.data.profile.gradeId : undefined;
+  useEffect(() => { if (gradeId) fetchCurriculum(gradeId); }, [gradeId, fetchCurriculum]);
 
   const retryCore = () => { setCore({ status: "loading" }); fetchCore(); };
-  const retryCurriculum = () => { if (gradeName) { setCurriculum({ status: "loading" }); fetchCurriculum(gradeName); } };
+  const retryCurriculum = () => { if (gradeId) { setCurriculum({ status: "loading" }); fetchCurriculum(gradeId); } };
   const retryChallenge = () => { setChallenge({ status: "loading" }); fetchChallenge(); };
   // No grade on the account → nothing to fetch; sections show a "no grade" state.
-  const curriculum: Load<Curriculum | null> = gradeName === null ? { status: "ready", data: null } : curriculumState;
+  const curriculum: Load<Curriculum | null> = gradeId === null ? { status: "ready", data: null } : curriculumState;
 
   if (forbidden) {
     return (
@@ -147,12 +149,12 @@ export default function DashboardPage() {
 
         <div className="grid gap-6 xl:grid-cols-3">
           <div className="xl:col-span-2">
-            <FocusAreas topicMastery={progress.topicMastery} curriculum={curriculum} />
+            <FocusAreas topics={progress.topics} curriculum={curriculum} />
           </div>
           <RecommendedNext progress={progress} curriculum={curriculum} challenge={challenge} onRetryChallenge={retryChallenge} />
         </div>
 
-        <MySubjects curriculum={curriculum} subjectMastery={progress.subjectMastery} gradeName={profile.gradeName} onRetry={retryCurriculum} />
+        <MySubjects curriculum={curriculum} subjectMastery={Object.fromEntries(progress.subjects.map((x) => [x.id, x.masteryPct]))} gradeName={profile.gradeName} onRetry={retryCurriculum} />
 
         <RecentProgress progress={progress} />
       </div>
@@ -284,15 +286,15 @@ function Snapshot({ profile, streak }: { profile: ProfileResponse["profile"]; st
 function topicLookup(curriculum: Load<Curriculum | null>) {
   const map = new Map<string, { subject: Subject; topic: RoadmapTopic }>();
   if (curriculum.status === "ready" && curriculum.data) {
-    for (const subject of curriculum.data.subjects) for (const topic of curriculum.data.roadmaps[subject.id] ?? []) map.set(topic.name, { subject, topic });
+    for (const subject of curriculum.data.subjects) for (const topic of curriculum.data.roadmaps[subject.id] ?? []) map.set(topic.id, { subject, topic });
   }
   return map;
 }
 
-function FocusAreas({ topicMastery, curriculum }: { topicMastery: Record<string, number>; curriculum: Load<Curriculum | null> }) {
+function FocusAreas({ topics, curriculum }: { topics: TopicMastery[]; curriculum: Load<Curriculum | null> }) {
   const lookup = useMemo(() => topicLookup(curriculum), [curriculum]);
-  const entries = Object.entries(topicMastery).sort((a, b) => a[1] - b[1]);
-  const toWork = entries.filter(([, v]) => v < MASTERED);
+  const entries = [...topics].sort((a, b) => a.masteryPct - b.masteryPct);
+  const toWork = entries.filter((t) => t.masteryPct < MASTERED);
   const strongCount = entries.length - toWork.length;
   const shown = toWork.slice(0, 4);
 
@@ -311,11 +313,11 @@ function FocusAreas({ topicMastery, curriculum }: { topicMastery: Record<string,
         ) : (
           <>
             <ul className="divide-y divide-(--stone-2)">
-              {shown.map(([name, pct]) => {
+              {shown.map(({ id, name, masteryPct: pct }) => {
                 const band = bandFor(pct);
-                const where = lookup.get(name);
+                const where = lookup.get(id);
                 return (
-                  <li key={name} className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center gap-3">
+                  <li key={id} className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold">{name}</span>
@@ -338,7 +340,7 @@ function FocusAreas({ topicMastery, curriculum }: { topicMastery: Record<string,
                           <BookOpen size={14} aria-hidden /> Lesson
                         </Button>
                       )}
-                      <Button href={practiceHref({ id: where?.topic.id, name })} size="sm" aria-label={`Practise ${name}`}>
+                      <Button href={practiceHref({ id, name })} size="sm" aria-label={`Practise ${name}`}>
                         <Dumbbell size={14} aria-hidden /> Practise
                       </Button>
                     </div>
@@ -373,11 +375,11 @@ function RecommendedNext({ progress, curriculum, challenge, onRetryChallenge }: 
   // focus topic's subject, else their continue-learning subject).
   const lookup = useMemo(() => topicLookup(curriculum), [curriculum]);
   const targetSubject = useMemo(() => {
-    const weakest = Object.entries(progress.topicMastery).filter(([, v]) => v < MASTERED).sort((a, b) => a[1] - b[1])[0];
-    const fromFocus = weakest ? lookup.get(weakest[0])?.subject : undefined;
+    const weakest = progress.topics.filter((t) => t.masteryPct < MASTERED).sort((a, b) => a.masteryPct - b.masteryPct)[0];
+    const fromFocus = weakest ? lookup.get(weakest.id)?.subject : undefined;
     if (fromFocus) return fromFocus;
     return curriculum.status === "ready" && curriculum.data ? pickContinue(curriculum.data).pick?.subject ?? null : null;
-  }, [progress.topicMastery, lookup, curriculum]);
+  }, [progress.topics, lookup, curriculum]);
 
   const [tests, setTests] = useState<Load<Test[]> | null>(null);
   useEffect(() => {
@@ -397,10 +399,10 @@ function RecommendedNext({ progress, curriculum, challenge, onRetryChallenge }: 
   }
   if (targetSubject && tests?.status === "ready") {
     // testHistory is newest-first, so the first match is the latest attempt.
-    const latestScore = (title: string) => progress.testHistory.find((t) => t.testTitle === title)?.score;
-    const untaken = tests.data.find((t) => latestScore(t.title) === undefined);
+    const latestScore = (testId: string) => progress.testHistory.find((t) => t.testId === testId)?.score;
+    const untaken = tests.data.find((t) => latestScore(t.id) === undefined);
     const toRetake = tests.data
-      .map((t) => ({ t, score: latestScore(t.title) }))
+      .map((t) => ({ t, score: latestScore(t.id) }))
       .filter((x): x is { t: Test; score: number } => x.score !== undefined && x.score < x.t.passingThreshold)
       .sort((a, b) => a.score - b.score)[0];
     if (toRetake) {
@@ -483,11 +485,11 @@ function MySubjects({ curriculum, subjectMastery, gradeName, onRetry }: {
             const topics = curriculum.data!.roadmaps[s.id] ?? [];
             const mastered = topics.filter((t) => t.masteryPct >= MASTERED).length;
             const current = topics.find((t) => t.masteryPct > 0 && t.masteryPct < MASTERED);
-            const testMastery = subjectMastery[s.name];
+            const testMastery = subjectMastery[s.id];
             const accent = subjectAccent(s.name);
             return (
               <li key={s.id}>
-                <Link href={`/learn?subject=${encodeURIComponent(s.name)}`} className="group block h-full rounded-2xl">
+                <Link href={`/learn?subjectId=${s.id}`} className="group block h-full rounded-2xl">
                   <Card interactive padding="sm" className="h-full group-hover:border-(--primary)">
                     <div className="flex items-start gap-3">
                       <div className="min-w-0 flex-1">

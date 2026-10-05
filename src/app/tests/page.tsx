@@ -22,9 +22,9 @@ export default function TestsPage() {
   // Published tests for every subject in the learner's grade.
   const fetchTests = useCallback(() => {
     (async () => {
-      const p = await getProfile<{ gradeName: string | null }>();
-      if (!p.gradeName) return setLoad({ status: "ready", tests: [], gradeName: null });
-      const { subjects } = await getSubjects(p.gradeName);
+      const p = await getProfile<{ gradeId: string | null; gradeName: string | null }>();
+      if (!p.gradeId) return setLoad({ status: "ready", tests: [], gradeName: null });
+      const { subjects } = await getSubjects(p.gradeId);
       if (subjects.length === 0) return setLoad({ status: "ready", tests: [], gradeName: p.gradeName });
       // One batched request for every subject (was one request per subject).
       const { tests } = await getJson<{ tests: (Omit<Test, "subjectName"> & { subjectId: string })[] }>(`/api/tests?subjectIds=${subjects.map((s) => s.id).join(",")}`);

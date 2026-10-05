@@ -24,7 +24,7 @@ export async function GET() {
     return {
       id: r.mistake.id,
       question: r.question.prompt,
-      topic: r.topic.name,
+      topic: r.topic.name, topicId: r.topic.id,
       chosen: usesOptions ? (opts.find((o) => o.id === r.mistake.chosenOptionId)?.label ?? "(no answer)") : (r.mistake.chosenText ?? "(no answer)"),
       correct: usesOptions ? opts.find((o) => o.isCorrect)?.label : (r.question.answerText?.split("|")[0] ?? r.question.answerNumeric?.toString()),
       explanation: r.question.explanation,

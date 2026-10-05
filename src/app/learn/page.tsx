@@ -23,15 +23,18 @@ function LearnInner() {
   const [roadmapState, setRoadmapState] = useState<{ subjectId: string; roadmap: RoadmapTopic[] | null; error: boolean } | null>(null);
   const [roadmapAttempt, setRoadmapAttempt] = useState(0);
 
-  const requestedSubject = params.get("subject");
-  const activeSubject = subjects?.find((s) => s.name === requestedSubject) ?? subjects?.[0] ?? null;
+  // ?subjectId= is the identity; ?subject=<name> is still honoured for old links.
+  const requestedSubjectId = params.get("subjectId");
+  const requestedSubjectName = params.get("subject");
+  const activeSubject = (requestedSubjectId ? subjects?.find((s) => s.id === requestedSubjectId) : subjects?.find((s) => s.name === requestedSubjectName))
+    ?? subjects?.[0] ?? null;
 
   useEffect(() => {
     getProfile()
       .then(async (p) => {
         setGradeName(p.gradeName);
         // No grade on the account → nothing to load (previously this stayed on "Loading…").
-        const subjRes = p.gradeName ? await getSubjects(p.gradeName) : { subjects: [] };
+        const subjRes = p.gradeId ? await getSubjects(p.gradeId) : { subjects: [] };
         setSubjects(subjRes.subjects ?? []);
       })
       .catch(() => setSubjectsError(true));
@@ -99,7 +102,7 @@ function LearnInner() {
               const active = s.id === activeSubject?.id;
               const accent = subjectAccent(s.name);
               return (
-                <button key={s.id} onClick={() => router.push(`/learn?subject=${encodeURIComponent(s.name)}`)}
+                <button key={s.id} onClick={() => router.push(`/learn?subjectId=${s.id}`)}
                   className="tap px-4 py-2 rounded-full border text-sm font-semibold"
                   style={{ borderColor: active ? accent.color : "var(--slate)", background: active ? accent.color : "white", color: active ? "white" : "var(--ink)" }}>
                   {s.name}
@@ -145,7 +148,7 @@ function LearnInner() {
                       style={{ borderColor: "var(--primary)", background: "var(--primary)" }}>
                       {content}
                     </Link>
-                    <Link href={`/flashcards?topic=${encodeURIComponent(t.name)}`} title={`${t.name} flashcards`}
+                    <Link href={`/flashcards?topicId=${t.id}`} title={`${t.name} flashcards`}
                       className="tap w-10 h-10 rounded-xl border flex items-center justify-center" style={{ borderColor: "var(--slate)" }}>
                       <Layers size={16} />
                     </Link>

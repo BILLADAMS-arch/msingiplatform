@@ -1,0 +1,77 @@
+{
+  "framework": {
+    "code": "CBC",
+    "name": "Competency Based Curriculum",
+    "authority": "Kenya Institute of Curriculum Development (KICD)"
+  },
+  "version": {
+    "code": "kicd-cbc-2026-10",
+    "label": "KICD CBC curriculum designs as published on kicd.ac.ke (retrieved 2026-10-05)",
+    "status": "active",
+    "effectiveFrom": null,
+    "notes": "Structure/metadata only. No KICD learning-outcome text or other substantial KICD prose is stored pending licensing. Senior School designs are KICD drafts."
+  },
+  "levels": [
+    {
+      "code": "PRE_PRIMARY",
+      "name": "Pre-Primary",
+      "grades": [
+        "PP1",
+        "PP2"
+      ]
+    },
+    {
+      "code": "LOWER_PRIMARY",
+      "name": "Lower Primary",
+      "grades": [
+        "G1",
+        "G2",
+        "G3"
+      ]
+    },
+    {
+      "code": "UPPER_PRIMARY",
+      "name": "Upper Primary",
+      "grades": [
+        "G4",
+        "G5",
+        "G6"
+      ]
+    },
+    {
+      "code": "JUNIOR_SCHOOL",
+      "name": "Junior School",
+      "grades": [
+        "G7",
+        "G8",
+        "G9"
+      ]
+    },
+    {
+      "code": "SENIOR_SCHOOL",
+      "name": "Senior School",
+      "grades": [
+        "G10",
+        "G11",
+        "G12"
+      ]
+    }
+  ],
+  "pathways": [
+    {
+      "code": "ARTS_SPORTS_SCIENCE",
+      "name": "Arts & Sports Science",
+      "level": "SENIOR_SCHOOL"
+    },
+    {
+      "code": "SOCIAL_SCIENCES",
+      "name": "Social Sciences",
+      "level": "SENIOR_SCHOOL"
+    },
+    {
+      "code": "STEM",
+      "name": "Science, Technology, Engineering & Mathematics (STEM)",
+      "level": "SENIOR_SCHOOL"
+    }
+  ]
+}
