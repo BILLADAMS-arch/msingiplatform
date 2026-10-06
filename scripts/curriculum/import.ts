@@ -80,7 +80,7 @@ const MappingFile = z.object({
   version: z.string(),
   mappings: z.array(z.object({
     kind: z.enum(["subject", "strand", "sub_strand", "topic"]), id: z.string().uuid(), label: z.string(),
-    status: z.enum(["exact", "probable", "needs_review", "no_match"]),
+    status: z.enum(["exact", "probable", "needs_review", "no_match", "supplementary"]),
     target: z.object({ grade: GradeCode, subject: Code, strand: Num.optional(), subStrand: Num.optional() }).optional(),
     notes: z.string().optional(),
   })),

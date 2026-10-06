@@ -417,7 +417,9 @@ export const payments = pgTable("payments", {
 export const curriculumStatusEnum = pgEnum("curriculum_status", ["draft", "active", "archived"]);
 export const sourceAccessEnum = pgEnum("source_access", ["viewable", "restricted", "downloadable", "unknown"]);
 export const curriculumSubjectCategoryEnum = pgEnum("curriculum_subject_category", ["core", "pathway", "optional", "general"]);
-export const curriculumMatchStatusEnum = pgEnum("curriculum_match_status", ["exact", "probable", "needs_review", "no_match"]);
+// supplementary = Msingi-authored content that is deliberately not part of the
+// official curriculum (an admin's decision, never set by the importer).
+export const curriculumMatchStatusEnum = pgEnum("curriculum_match_status", ["exact", "probable", "needs_review", "no_match", "supplementary"]);
 
 const stamps = {
   createdAt: timestamp("created_at").defaultNow().notNull(),

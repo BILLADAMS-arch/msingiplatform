@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AdminShell } from "@/components/admin-shell";
 import { ChevronRight, Plus, Trash2, Pencil, Check, X } from "lucide-react";
 
@@ -84,6 +85,11 @@ export default function AdminCurriculumPage() {
 
   return (
     <AdminShell title="Curriculum">
+      <div className="flex justify-end mb-3">
+        <Link href="/admin/curriculum/mappings" className="tap inline-flex items-center gap-1.5 text-sm font-semibold text-(--primary)">
+          Review how this lines up with the official curriculum <ChevronRight size={14} aria-hidden />
+        </Link>
+      </div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
         <select value={gradeId} onChange={(e) => selectGrade(e.target.value)} className="border rounded-xl px-3 py-2 text-sm font-medium" style={{ borderColor: "var(--slate)" }}>
           {grades?.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
