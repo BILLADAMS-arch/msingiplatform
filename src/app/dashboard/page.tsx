@@ -6,6 +6,7 @@ import { Button, Card, Section, EmptyState, ErrorState, Skeleton, LoadingState, 
 import { subjectAccent } from "@/lib/subject-colors";
 import { practiceHref } from "@/lib/links";
 import { MASTERED, bandFor, liveStreak } from "@/lib/mastery";
+import { levelProgress } from "@/lib/levels";
 import { getProfile, getSubjects } from "@/lib/client-data";
 import {
   Flame, Star, Target, CheckCircle2, ArrowRight, BookOpen, Dumbbell, BookMarked, ClipboardCheck, Zap, Trophy, Layers, Settings,
@@ -28,7 +29,7 @@ type ProfileResponse = {
   gradeId: string | null;
   gradeName: string | null;
 };
-type TopicMastery = { id: string; name: string; masteryPct: number };
+type TopicMastery = { id: string; name: string; masteryPct: number; subjectName?: string };
 type Subject = { id: string; name: string };
 type RoadmapTopic = { id: string; name: string; order: number; lessonId: string | null; masteryPct: number };
 type Curriculum = { subjects: Subject[]; roadmaps: Record<string, RoadmapTopic[]> };
@@ -64,6 +65,8 @@ export default function DashboardPage() {
   const [forbidden, setForbidden] = useState(false);
   const [curriculumState, setCurriculum] = useState<Load<Curriculum>>({ status: "loading" });
   const [challenge, setChallenge] = useState<Load<Challenge>>({ status: "loading" });
+  // Grade rank from the existing leaderboard API; stays null (and hidden) unless it is real.
+  const [rank, setRank] = useState<{ rank: number; total: number } | null>(null);
   // Read from the learner's clock on the client; null during prerender.
   const greeting = useSyncExternalStore(noopSubscribe, () => greetingFor(new Date().getHours()), () => null);
 
@@ -94,7 +97,13 @@ export default function DashboardPage() {
     getJson<Challenge>("/api/challenges/today").then((data) => setChallenge({ status: "ready", data })).catch(() => setChallenge({ status: "error" }));
   }, []);
 
-  useEffect(() => { fetchCore(); fetchChallenge(); }, [fetchCore, fetchChallenge]);
+  const fetchRank = useCallback(() => {
+    getJson<{ rows: unknown[]; myRank: number | null; optedOut?: boolean }>("/api/leaderboard")
+      .then((d) => setRank(d.myRank && d.rows.length >= 2 && !d.optedOut ? { rank: d.myRank, total: d.rows.length } : null))
+      .catch(() => setRank(null));
+  }, []);
+
+  useEffect(() => { fetchCore(); fetchChallenge(); fetchRank(); }, [fetchCore, fetchChallenge, fetchRank]);
   const gradeId = core.status === "ready" ? core.data.profile.gradeId : undefined;
   useEffect(() => { if (gradeId) fetchCurriculum(gradeId); }, [gradeId, fetchCurriculum]);
 
@@ -144,12 +153,13 @@ export default function DashboardPage() {
           <div className="xl:col-span-2">
             <ContinueLearning curriculum={curriculum} gradeName={profile.gradeName} onRetry={retryCurriculum} />
           </div>
-          <Snapshot profile={p} streak={streak} />
+          <Snapshot profile={p} streak={streak} rank={rank} />
         </div>
 
         <div className="grid gap-6 xl:grid-cols-3">
-          <div className="xl:col-span-2">
+          <div className="xl:col-span-2 space-y-6">
             <FocusAreas topics={progress.topics} curriculum={curriculum} />
+            <YourMastery topics={progress.topics} />
           </div>
           <RecommendedNext progress={progress} curriculum={curriculum} challenge={challenge} onRetryChallenge={retryChallenge} />
         </div>
@@ -260,22 +270,86 @@ function ContinueLearning({ curriculum, gradeName, onRetry }: { curriculum: Load
 /* Snapshot                                                                 */
 /* ---------------------------------------------------------------------- */
 
-function Snapshot({ profile, streak }: { profile: ProfileResponse["profile"]; streak: { days: number; activeToday: boolean } }) {
+function Snapshot({ profile, streak, rank }: { profile: ProfileResponse["profile"]; streak: { days: number; activeToday: boolean }; rank: { rank: number; total: number } | null }) {
   const answered = profile?.questionsAnswered ?? 0;
   const correct = profile?.questionsCorrect ?? 0;
   const accuracy = answered > 0 ? Math.round((correct / answered) * 100) : null;
+  const lv = levelProgress(profile?.xp ?? 0);
   return (
     <section aria-labelledby="snapshot-heading">
-      <h2 id="snapshot-heading" className="sr-only">Your learning snapshot</h2>
+      <h2 id="snapshot-heading" className="sr-only">Your level and learning snapshot</h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-2 gap-3 h-full">
+        {/* Level: your XP and how far to the next level (existing rule: 500 XP per level) */}
+        <div className="col-span-2 rounded-2xl p-4 border" style={{ borderColor: "var(--amber-soft)", background: "linear-gradient(135deg, var(--amber-soft), #fff 78%)", boxShadow: "var(--shadow-card)" }}>
+          <div className="flex items-center gap-3">
+            <span className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center bg-white text-(--gold-deep)" aria-hidden><Star size={22} /></span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-(--gold-deep)">Level {lv.number}</div>
+              <div className="disp text-xl font-extrabold leading-tight">{lv.name}</div>
+            </div>
+            <div className="text-right shrink-0">
+              <div className="disp text-xl font-extrabold tabular-nums leading-tight">{lv.xp}</div>
+              <div className="text-[11px] text-(--ink-soft)">XP</div>
+            </div>
+          </div>
+          <div className="mt-3"><FoundationBar pct={lv.pct} tone="gold" height={8} label={lv.isMax ? "Top level reached" : `${lv.xpToNext} XP to ${lv.nextName}`} /></div>
+          <div className="mt-2 flex items-center justify-between gap-3 text-xs text-(--ink-soft)">
+            <span>{lv.isMax ? "Top level reached" : <><b className="text-(--ink) tabular-nums">{lv.xpToNext} XP</b> to {lv.nextName}</>}</span>
+            {rank && (
+              <Link href="/leaderboard" className="font-semibold text-(--primary-deep) hover:underline inline-flex items-center gap-1 shrink-0 py-3 -my-3">
+                <Trophy size={12} aria-hidden /> #{rank.rank} of {rank.total >= 50 ? "50+" : rank.total} in your grade
+              </Link>
+            )}
+          </div>
+        </div>
         <StatCard icon={<Flame size={18} />} tone="gold" label="Day streak" value={streak.days}
           hint={streak.activeToday ? "Active today" : streak.days > 0 ? "Learn today to keep it" : "Learn today to start one"} />
         <StatCard icon={<Target size={18} />} tone="blue" label="Overall accuracy" value={accuracy !== null ? `${accuracy}%` : "—"}
           hint={accuracy !== null ? `${correct} of ${answered} correct` : "Answer a question to see this"} />
-        <StatCard icon={<CheckCircle2 size={18} />} tone="green" label="Questions answered" value={answered} hint="All time" />
-        <StatCard icon={<Star size={18} />} tone="gold" label="XP earned" value={profile?.xp ?? 0} hint="All time" />
       </div>
     </section>
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Your mastery — topics the learner has actually mastered (or is strongest in) */
+/* ---------------------------------------------------------------------- */
+
+function YourMastery({ topics }: { topics: TopicMastery[] }) {
+  const mastered = topics.filter((t) => t.masteryPct >= MASTERED).sort((a, b) => b.masteryPct - a.masteryPct);
+  const strongest = topics.filter((t) => t.masteryPct > 0).sort((a, b) => b.masteryPct - a.masteryPct);
+  const list = mastered.length > 0 ? mastered : strongest;
+  if (list.length === 0) return null; // nothing real to show yet
+  const shown = list.slice(0, 3);
+  return (
+    <Section id="mastery" title="Your mastery" description={mastered.length > 0 ? "Topics you've mastered." : "Your strongest topics so far."}
+      action={list.length > shown.length ? <Button href="/progress" variant="ghost" size="sm">All topics <ArrowRight size={14} aria-hidden /></Button> : undefined}>
+      <Card padding="none">
+        <ul className="divide-y divide-(--stone-2)">
+          {shown.map((t) => {
+            const band = bandFor(t.masteryPct);
+            return (
+              <li key={t.id}>
+                <Link href={`/learn/topic/${t.id}`} className="flex items-center gap-3 p-4 hover:bg-(--stone-2)">
+                  <span className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center bg-(--green-soft) text-(--green)" aria-hidden>
+                    {t.masteryPct >= MASTERED ? <CheckCircle2 size={18} /> : <Star size={18} />}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold text-sm truncate">{t.name}</span>
+                    {t.subjectName && <span className="block text-xs text-(--ink-soft) truncate">{t.subjectName}</span>}
+                    <span className="block mt-1.5 max-w-xs"><FoundationBar pct={t.masteryPct} tone={band.tone} height={6} label={`${t.name} mastery`} /></span>
+                  </span>
+                  <span className="shrink-0 text-right">
+                    <span className="block text-sm font-bold tabular-nums">{t.masteryPct}%</span>
+                    <Pill tone={band.tone}>{band.label}</Pill>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </Card>
+    </Section>
   );
 }
 
@@ -320,7 +394,7 @@ function FocusAreas({ topics, curriculum }: { topics: TopicMastery[]; curriculum
                   <li key={id} className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold">{name}</span>
+                        <Link href={`/learn/topic/${id}`} className="font-semibold hover:text-(--primary-deep) hover:underline underline-offset-2 inline-block py-2 -my-2">{name}</Link>
                         <Pill tone={band.tone}>{band.label}</Pill>
                       </div>
                       {where && (
@@ -507,10 +581,10 @@ function MySubjects({ curriculum, subjectMastery, gradeName, onRetry }: {
                           <ProgressRing pct={testMastery} size={52} stroke={5} tone={bandFor(testMastery).tone} label={`${s.name} test mastery`}>
                             <span className="text-xs font-bold">{testMastery}%</span>
                           </ProgressRing>
-                          <div className="text-[10px] text-(--muted) mt-0.5">Test mastery</div>
+                          <div className="text-[10px] text-(--ink-soft) mt-0.5">Test mastery</div>
                         </div>
                       ) : (
-                        <span className="text-[11px] text-(--muted) shrink-0 text-right leading-tight">No test<br />taken yet</span>
+                        <span className="text-[11px] text-(--ink-soft) shrink-0 text-right leading-tight">No test<br />taken yet</span>
                       )}
                     </div>
                     {topics.length > 0 && (

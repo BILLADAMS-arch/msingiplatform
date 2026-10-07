@@ -3,13 +3,23 @@ import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/shell";
-import { FoundationBar, ErrorState, Skeleton, LoadingState } from "@/components/ui";
+import { Button, Card, FoundationBar, ErrorState, EmptyState, Pill, Skeleton, LoadingState, type Tone } from "@/components/ui";
 import { subjectAccent } from "@/lib/subject-colors";
 import { getProfile, getSubjects } from "@/lib/client-data";
-import { CheckCircle2, Target, Lock, Layers } from "lucide-react";
+import { bandFor, MASTERED } from "@/lib/mastery";
+import { practiceHref } from "@/lib/links";
+import { BookOpen, Dumbbell, Layers, Hourglass, ArrowRight, ChevronRight, Map } from "lucide-react";
 
 type Subject = { id: string; name: string };
 type RoadmapTopic = { id: string; name: string; order: number; lessonId: string | null; masteryPct: number };
+
+/** Where a topic stands, from data the roadmap already returns. */
+function topicStatus(t: RoadmapTopic): { label: string; tone: Tone; bar: Tone } {
+  if (t.masteryPct <= 0 && !t.lessonId) return { label: "Coming soon", tone: "blue", bar: "blue" };
+  if (t.masteryPct <= 0) return { label: "Not started", tone: "blue", bar: "blue" };
+  const b = bandFor(t.masteryPct);
+  return { label: b.label, tone: b.tone, bar: b.tone };
+}
 
 function LearnInner() {
   const params = useSearchParams();
@@ -53,58 +63,31 @@ function LearnInner() {
   const roadmap = roadmapForSubject?.roadmap ?? null;
 
   const overall = roadmap?.length ? Math.round(roadmap.reduce((a, t) => a + t.masteryPct, 0) / roadmap.length) : 0;
+  const accent = subjectAccent(activeSubject?.name);
+
+  // The learner's next step: the first topic with a lesson that isn't Strong yet,
+  // otherwise the first topic with a lesson (so there is always one clear action).
+  const withLesson = roadmap?.filter((t) => t.lessonId) ?? [];
+  const next = withLesson.find((t) => t.masteryPct < MASTERED) ?? withLesson[0] ?? null;
+  const nextVerb = next ? (next.masteryPct <= 0 ? "Start" : next.masteryPct >= MASTERED ? "Review" : "Continue") : "";
 
   return (
     <Shell>
-      <div className="fade-in space-y-6">
-        <div className="relative mb-2">
-          <div className="relative rounded-3xl overflow-hidden border shadow-sm" style={{ borderColor: "var(--slate)" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/hero-journey-1.jpeg" alt="Your learning journey — from lessons and practice to quizzes and mastery" className="w-full h-44 sm:h-56 md:h-64 object-cover" />
-            <div className="absolute inset-0 flex items-end p-5" style={{ background: "linear-gradient(0deg, rgba(16,27,74,0.65), rgba(16,27,74,0) 60%)" }}>
-              <div className="text-white">
-                <div className="disp font-bold text-lg sm:text-xl">Your learning journey</div>
-                <div className="text-xs sm:text-sm opacity-90 mt-0.5">From lessons to mastery, one topic at a time.</div>
-              </div>
-            </div>
-          </div>
-          <div className="hidden lg:block absolute -top-4 -left-4 w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg rotate-[-8deg]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/hero-journey-0.jpeg" alt="" className="w-full h-full object-cover" />
-          </div>
-          <div className="hidden lg:block absolute -top-4 right-10 w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg rotate-[6deg]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/hero-journey-2.jpeg" alt="" className="w-full h-full object-cover" />
-          </div>
-          <div className="hidden lg:block absolute top-1/3 -right-4 w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg rotate-[10deg]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/hero-journey-3.jpeg" alt="" className="w-full h-full object-cover" />
-          </div>
-          <div className="hidden lg:block absolute -bottom-4 left-12 w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg rotate-[-5deg]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/hero-journey-4.jpeg" alt="" className="w-full h-full object-cover" />
-          </div>
-          <div className="hidden lg:block absolute -bottom-4 right-1/3 w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg rotate-[7deg]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/hero-journey-5.jpeg" alt="" className="w-full h-full object-cover" />
-          </div>
-        </div>
-
-        <div>
-          <h1 className="disp text-3xl font-bold">{activeSubject?.name ?? "Learn"}</h1>
-          <p className="text-sm text-(--ink-soft)">{gradeName || "…"} · {overall}% mastery</p>
-          <div className="max-w-sm mt-2"><FoundationBar pct={overall} tone="green" /></div>
-        </div>
+      <div className="fade-in space-y-5 max-w-3xl">
+        <header>
+          <div className="text-xs font-bold uppercase tracking-wider text-(--ink-soft)">{gradeName ? `${gradeName} · Learn` : "Learn"}</div>
+          <h1 className="disp text-3xl font-bold mt-0.5">{activeSubject?.name ?? "Your learning journey"}</h1>
+        </header>
 
         {subjects && subjects.length > 1 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2 overflow-x-auto sm:flex-wrap pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label="Choose a subject">
             {subjects.map((s) => {
               const active = s.id === activeSubject?.id;
-              const accent = subjectAccent(s.name);
+              const a = subjectAccent(s.name);
               return (
-                <button key={s.id} onClick={() => router.push(`/learn?subjectId=${s.id}`)}
-                  className="tap px-4 py-2 rounded-full border text-sm font-semibold"
-                  style={{ borderColor: active ? accent.color : "var(--slate)", background: active ? accent.color : "white", color: active ? "white" : "var(--ink)" }}>
+                <button key={s.id} onClick={() => router.push(`/learn?subjectId=${s.id}`)} aria-pressed={active}
+                  className="tap shrink-0 min-h-11 px-4 rounded-full border text-sm font-semibold"
+                  style={{ borderColor: active ? a.color : "var(--slate)", background: active ? a.color : "white", color: active ? "white" : "var(--ink)" }}>
                   {s.name}
                 </button>
               );
@@ -112,52 +95,97 @@ function LearnInner() {
           </div>
         )}
 
-        <div className="brick bg-white rounded-2xl p-5 border" style={{ borderColor: "var(--slate)" }}>
-          <h3 className="disp font-bold mb-4">Learning Roadmap</h3>
-          {subjectsError ? (
-            <ErrorState compact title="We couldn't load your subjects" onRetry={() => { setSubjectsError(false); setSubjectsAttempt((a) => a + 1); }} />
-          ) : !subjects ? (
-            <LoadingState label="Loading subjects"><div className="flex flex-wrap gap-3">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-36" />)}</div></LoadingState>
-          ) : subjects.length === 0 ? (
-            <p className="text-sm text-(--ink-soft)">{gradeName ? "No subjects have been set up for your grade yet." : "Your account doesn't have a grade yet, so there are no subjects to show."}</p>
-          ) : roadmapForSubject?.error ? (
-            <ErrorState compact title="We couldn't load this roadmap" onRetry={() => { setRoadmapState(null); setRoadmapAttempt((a) => a + 1); }} />
-          ) : !roadmap ? (
-            <LoadingState label="Loading roadmap"><div className="flex flex-wrap gap-3">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-12 w-40" />)}</div></LoadingState>
-          ) : roadmap.length === 0 ? (
-            <p className="text-sm text-(--ink-soft)">No topics have been added for this subject yet.</p>
-          ) : (
-            <div className="flex flex-wrap gap-3">
-              {roadmap.map((t) => {
-                const mastered = t.masteryPct >= 70;
+        {subjectsError ? (
+          <Card><ErrorState compact title="We couldn't load your subjects" onRetry={() => { setSubjectsError(false); setSubjectsAttempt((a) => a + 1); }} /></Card>
+        ) : !subjects ? (
+          <LoadingState label="Loading subjects"><div className="space-y-3"><Skeleton className="h-28 rounded-2xl" /><Skeleton className="h-24 rounded-2xl" /><Skeleton className="h-24 rounded-2xl" /></div></LoadingState>
+        ) : subjects.length === 0 ? (
+          <Card><EmptyState compact icon={<Map size={22} />} title={gradeName ? "No subjects yet" : "Choose your grade first"}
+            description={gradeName ? "No subjects have been set up for your grade yet." : "Your account doesn't have a grade yet, so there are no subjects to show."}
+            action={!gradeName ? <Button href="/profile" size="sm">Open profile</Button> : undefined} /></Card>
+        ) : roadmapForSubject?.error ? (
+          <Card><ErrorState compact title="We couldn't load this roadmap" onRetry={() => { setRoadmapState(null); setRoadmapAttempt((a) => a + 1); }} /></Card>
+        ) : !roadmap ? (
+          <LoadingState label="Loading roadmap"><div className="space-y-3"><Skeleton className="h-28 rounded-2xl" /><Skeleton className="h-24 rounded-2xl" /><Skeleton className="h-24 rounded-2xl" /></div></LoadingState>
+        ) : roadmap.length === 0 ? (
+          <Card><EmptyState compact icon={<Map size={22} />} title="Topics are on the way"
+            description={`No topics have been added for ${activeSubject?.name ?? "this subject"} yet. Check back soon, or try another subject.`} /></Card>
+        ) : (
+          <>
+            <Card padding="lg" style={{ borderColor: accent.soft, background: `linear-gradient(135deg, ${accent.soft}, #fff 70%)` }}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-(--ink-soft)">Your mastery in {activeSubject?.name}</div>
+                  <div className="disp text-3xl font-extrabold">{overall}%</div>
+                </div>
+                {next && (
+                  <Button href={`/learn/lesson/${next.lessonId}`} size="lg" className="shrink-0">
+                    {nextVerb} <ArrowRight size={16} aria-hidden />
+                  </Button>
+                )}
+              </div>
+              <div className="mt-3"><FoundationBar pct={overall} tone={overall >= MASTERED ? "green" : "blue"} height={8} label={`${activeSubject?.name} mastery`} /></div>
+              {next && <p className="text-xs text-(--ink-soft) mt-2.5">{nextVerb === "Start" ? "Up next" : nextVerb === "Continue" ? "Pick up where you left off" : "Keep it fresh"}: <b className="text-(--ink)">{next.name}</b></p>}
+            </Card>
+
+            <ol className="space-y-3" aria-label="Topics">
+              {roadmap.map((t, i) => {
+                const st = topicStatus(t);
+                const isNext = next?.id === t.id;
                 const started = t.masteryPct > 0;
-                const content = (
-                  <>
-                    {mastered ? <CheckCircle2 size={14} /> : t.lessonId ? <Target size={14} /> : <Lock size={14} />}
-                    {t.name}
-                    {started && <span className="text-xs opacity-80">({t.masteryPct}%)</span>}
-                  </>
-                );
-                if (!t.lessonId) {
-                  return <div key={t.id} className="flex items-center gap-2 rounded-xl px-4 py-3 border text-sm font-medium opacity-50 cursor-not-allowed" style={{ borderColor: "var(--slate)" }}>{content}</div>;
-                }
+                const primaryLabel = t.masteryPct <= 0 ? "Start lesson" : t.masteryPct >= MASTERED ? "Review lesson" : "Continue";
                 return (
-                  <div key={t.id} className="flex items-center gap-1">
-                    <Link href={`/learn/lesson/${t.lessonId}`}
-                      className="tap flex items-center gap-2 rounded-xl px-4 py-3 border text-sm font-medium text-white"
-                      style={{ borderColor: "var(--primary)", background: "var(--primary)" }}>
-                      {content}
-                    </Link>
-                    <Link href={`/flashcards?topicId=${t.id}`} title={`${t.name} flashcards`}
-                      className="tap w-10 h-10 rounded-xl border flex items-center justify-center" style={{ borderColor: "var(--slate)" }}>
-                      <Layers size={16} />
-                    </Link>
-                  </div>
+                  <li key={t.id}>
+                    <Card padding="none" className={isNext ? "ring-2 ring-(--primary)" : ""}>
+                      <div className="p-4 sm:p-5">
+                        <div className="flex items-start gap-3">
+                          <span className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-sm font-bold"
+                            style={{ background: accent.soft, color: accent.color }} aria-hidden>{i + 1}</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h2 className="font-bold text-base break-words">
+                                <Link href={`/learn/topic/${t.id}`} className="inline-flex items-center gap-0.5 hover:text-(--primary-deep) hover:underline underline-offset-2" aria-label={`Open ${t.name} topic overview`}>
+                                  {t.name}<ChevronRight size={16} className="text-(--ink-soft)" aria-hidden />
+                                </Link>
+                              </h2>
+                              <Pill tone={st.tone}>{st.label === "Coming soon" ? <><Hourglass size={12} aria-hidden /> Coming soon</> : st.label}</Pill>
+                              {isNext && <Pill tone="gold">Up next</Pill>}
+                            </div>
+                            {started || t.lessonId ? (
+                              <div className="flex items-center gap-3 mt-2.5">
+                                <div className="flex-1 max-w-xs"><FoundationBar pct={t.masteryPct} tone={st.bar} height={6} label={`${t.name} mastery`} /></div>
+                                <span className="text-xs font-semibold tabular-nums text-(--ink-soft)">{t.masteryPct}%</span>
+                              </div>
+                            ) : (
+                              <p className="text-xs text-(--ink-soft) mt-1.5">Lessons for this topic are not published yet.</p>
+                            )}
+                          </div>
+                        </div>
+                        {(t.lessonId || started) && (
+                          <div className="flex flex-wrap items-center gap-2 mt-3.5 sm:pl-11">
+                            {t.lessonId && (
+                              <Button href={`/learn/lesson/${t.lessonId}`} size="md" variant={isNext || t.masteryPct <= 0 ? "primary" : "secondary"}>
+                                <BookOpen size={16} aria-hidden /> {primaryLabel}
+                              </Button>
+                            )}
+                            <Button href={practiceHref({ id: t.id, name: t.name })} size="md" variant="secondary" aria-label={`Practise ${t.name}`}>
+                              <Dumbbell size={16} aria-hidden /> Practise
+                            </Button>
+                            {t.lessonId && (
+                              <Button href={`/flashcards?topicId=${t.id}`} size="md" variant="ghost" aria-label={`${t.name} flashcards`}>
+                                <Layers size={16} aria-hidden /> Flashcards
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  </li>
                 );
               })}
-            </div>
-          )}
-        </div>
+            </ol>
+          </>
+        )}
       </div>
     </Shell>
   );

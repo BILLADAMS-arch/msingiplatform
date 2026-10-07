@@ -1,0 +1,164 @@
+{
+ "generatedOn": "2026-10-06",
+ "notes": [
+  "KICD register = 220 documents retrieved 2026-10-05 from kicd.ac.ke (metadata only). G1–G3 are covered by combined KICD documents (8 each).",
+  "Mirror repo snapshot is dated 2026-05-05; revision status after that date is unknown.",
+  "Msingi subjects exist for G6–G9 only; topics exist only for G7 Mathematics (6) and G7 Integrated Science (2)."
+ ],
+ "coverage": [
+  {
+   "grade": "PP1",
+   "kicdOfficialDesigns": 1,
+   "mirrorRepoFiles": 0,
+   "mirrorRepoCompletenessVsKicd": "0/1",
+   "innodemsMathsTextbook": "none found",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none",
+   "msingiSubjects": 0,
+   "msingiTopics": 0
+  },
+  {
+   "grade": "PP2",
+   "kicdOfficialDesigns": 1,
+   "mirrorRepoFiles": 0,
+   "mirrorRepoCompletenessVsKicd": "0/1",
+   "innodemsMathsTextbook": "none found",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none",
+   "msingiSubjects": 0,
+   "msingiTopics": 0
+  },
+  {
+   "grade": "G1",
+   "kicdOfficialDesigns": 8,
+   "mirrorRepoFiles": "8 combined G1–3 docs + 7 split files",
+   "mirrorRepoCompletenessVsKicd": "combined docs only (8/8 learning areas)",
+   "innodemsMathsTextbook": "none found",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none",
+   "msingiSubjects": 0,
+   "msingiTopics": 0
+  },
+  {
+   "grade": "G2",
+   "kicdOfficialDesigns": 8,
+   "mirrorRepoFiles": "8 combined G1–3 docs + 6 split files",
+   "mirrorRepoCompletenessVsKicd": "combined docs only (8/8 learning areas)",
+   "innodemsMathsTextbook": "none found",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none",
+   "msingiSubjects": 0,
+   "msingiTopics": 0
+  },
+  {
+   "grade": "G3",
+   "kicdOfficialDesigns": 8,
+   "mirrorRepoFiles": "8 combined G1–3 docs + 2 split files",
+   "mirrorRepoCompletenessVsKicd": "combined docs only (8/8 learning areas)",
+   "innodemsMathsTextbook": "none found",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none",
+   "msingiSubjects": 0,
+   "msingiTopics": 0
+  },
+  {
+   "grade": "G4",
+   "kicdOfficialDesigns": 15,
+   "mirrorRepoFiles": 15,
+   "mirrorRepoCompletenessVsKicd": "15/15",
+   "innodemsMathsTextbook": "none found",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none",
+   "msingiSubjects": 0,
+   "msingiTopics": 0
+  },
+  {
+   "grade": "G5",
+   "kicdOfficialDesigns": 15,
+   "mirrorRepoFiles": 15,
+   "mirrorRepoCompletenessVsKicd": "15/15",
+   "innodemsMathsTextbook": "none found",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none",
+   "msingiSubjects": 0,
+   "msingiTopics": 0
+  },
+  {
+   "grade": "G6",
+   "kicdOfficialDesigns": 15,
+   "mirrorRepoFiles": 15,
+   "mirrorRepoCompletenessVsKicd": "15/15",
+   "innodemsMathsTextbook": "none found",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none",
+   "msingiSubjects": 5,
+   "msingiTopics": 0
+  },
+  {
+   "grade": "G7",
+   "kicdOfficialDesigns": 16,
+   "mirrorRepoFiles": 16,
+   "mirrorRepoCompletenessVsKicd": "16/16",
+   "innodemsMathsTextbook": "CBC-Grade-7-Maths (CC BY-NC-SA 4.0)",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "Maths + Integrated Science structure (metadata only)",
+   "msingiSubjects": 7,
+   "msingiTopics": 8
+  },
+  {
+   "grade": "G8",
+   "kicdOfficialDesigns": 16,
+   "mirrorRepoFiles": 16,
+   "mirrorRepoCompletenessVsKicd": "16/16",
+   "innodemsMathsTextbook": "CBC-Grade-8-Maths (README: CC BY-NC; LICENSE file MIT template)",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none",
+   "msingiSubjects": 7,
+   "msingiTopics": 0
+  },
+  {
+   "grade": "G9",
+   "kicdOfficialDesigns": 16,
+   "mirrorRepoFiles": 16,
+   "mirrorRepoCompletenessVsKicd": "16/16",
+   "innodemsMathsTextbook": "CBC-Grade-9-Maths (README: CC BY-NC; no LICENSE file)",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none",
+   "msingiSubjects": 7,
+   "msingiTopics": 0
+  },
+  {
+   "grade": "G10",
+   "kicdOfficialDesigns": 39,
+   "mirrorRepoFiles": 7,
+   "mirrorRepoCompletenessVsKicd": "7/39",
+   "innodemsMathsTextbook": "CBC-Grade-10-Maths (CC BY-NC-SA 4.0)",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none (only subject names for G10–G12 as drafts; G7 pilot as noted)",
+   "msingiSubjects": 0,
+   "msingiTopics": 0
+  },
+  {
+   "grade": "G11",
+   "kicdOfficialDesigns": 39,
+   "mirrorRepoFiles": 8,
+   "mirrorRepoCompletenessVsKicd": "8/39",
+   "innodemsMathsTextbook": "CBC-Grade-11-Maths (CC BY-NC-SA 4.0)",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none (only subject names for G10–G12 as drafts; G7 pilot as noted)",
+   "msingiSubjects": 0,
+   "msingiTopics": 0
+  },
+  {
+   "grade": "G12",
+   "kicdOfficialDesigns": 39,
+   "mirrorRepoFiles": 2,
+   "mirrorRepoCompletenessVsKicd": "2/39",
+   "innodemsMathsTextbook": "repo exists but empty",
+   "otherOpenLicensedMaterial": "Siyavula (CAPS-aligned, CC BY unbranded) Maths G7+/Sciences G4–9; OpenStax/CK-12/Khan are NonCommercial",
+   "msingiOfficialStructureImported": "none (only subject names for G10–G12 as drafts; G7 pilot as noted)",
+   "msingiSubjects": 0,
+   "msingiTopics": 0
+  }
+ ]
+}

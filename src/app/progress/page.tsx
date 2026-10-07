@@ -4,6 +4,7 @@ import { Shell } from "@/components/shell";
 import { Button, Card, Section, Pill, FoundationBar, ProgressRing, EmptyState, ErrorState, Skeleton, LoadingState } from "@/components/ui";
 import { LineChart } from "@/components/charts";
 import { subjectAccent } from "@/lib/subject-colors";
+import { levelForXP } from "@/lib/levels";
 import { practiceHref } from "@/lib/links";
 import { MASTERED, bandFor, liveStreak, type Band } from "@/lib/mastery";
 import { getProfile, getSubjects } from "@/lib/client-data";
@@ -36,9 +37,6 @@ async function getJson<T>(url: string): Promise<T> {
   return r.json();
 }
 
-// Existing level display (unchanged rule: one level per 500 XP).
-const LEVELS = ["Beginner", "Explorer", "Learner", "Scholar", "Expert", "Master"];
-function levelForXP(xp: number) { return LEVELS[Math.min(LEVELS.length - 1, Math.floor(xp / 500))]; }
 
 const fmtDate = (d: string) => new Date(d).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 
@@ -463,7 +461,7 @@ function Achievements({ achievements }: { achievements: ProgressResponse["achiev
                 <Card padding="sm" className={`h-full text-center ${got ? "border-(--gold)!" : ""}`} style={got ? { background: "var(--amber-soft)" } : undefined}>
                   <div className={`text-3xl ${got ? "" : "grayscale opacity-40"}`} aria-hidden>{a.icon}</div>
                   <div className="text-xs font-semibold mt-1.5 leading-snug">{a.label}</div>
-                  <div className={`mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold ${got ? "text-(--gold-deep)" : "text-(--muted)"}`}>
+                  <div className={`mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold ${got ? "text-(--gold-deep)" : "text-(--ink-soft)"}`}>
                     {got ? <><CheckCircle2 size={12} aria-hidden /> Unlocked</> : <><Lock size={12} aria-hidden /> Locked</>}
                   </div>
                 </Card>

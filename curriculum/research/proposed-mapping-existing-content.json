@@ -1,0 +1,509 @@
+{
+ "generatedOn": "2026-10-06",
+ "status": "PROPOSAL ONLY — nothing here has been written to the database. Statuses require admin review in /admin/curriculum/mappings.",
+ "principles": [
+  "Never move or delete Msingi topics; map by id.",
+  "Topics with learner references keep their ids and links regardless of mapping outcome.",
+  "Third-party-mirror observations must be verified against KICD's own documents before they are recorded."
+ ],
+ "subjectLevel": [
+  {
+   "grade": "G6",
+   "subject": "ENGLISH",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G6",
+   "subject": "KISWAHILI",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G6",
+   "subject": "MATHEMATICS",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G6",
+   "subject": "SCIENCE_AND_TECHNOLOGY",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G6",
+   "subject": "SOCIAL_STUDIES",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G7",
+   "subject": "AGRICULTURE",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G7",
+   "subject": "ENGLISH",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G7",
+   "subject": "INTEGRATED_SCIENCE",
+   "proposedStatus": "EXACT_MATCH (already recorded; official structure imported)",
+   "note": "",
+   "hasMsingiTopics": true,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G7",
+   "subject": "KISWAHILI",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G7",
+   "subject": "MATHEMATICS",
+   "proposedStatus": "EXACT_MATCH (already recorded; official structure imported)",
+   "note": "",
+   "hasMsingiTopics": true,
+   "learnerReferences": {
+    "attempts": 8,
+    "subjectProgress": 3
+   }
+  },
+  {
+   "grade": "G7",
+   "subject": "PRE_TECHNICAL_STUDIES",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G7",
+   "subject": "SOCIAL_STUDIES",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G8",
+   "subject": "BUSINESS_STUDIES",
+   "proposedStatus": "NO_OFFICIAL_MATCH (already recorded)",
+   "note": "",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G8",
+   "subject": "ENGLISH",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G8",
+   "subject": "ICT",
+   "proposedStatus": "NO_OFFICIAL_MATCH (already recorded)",
+   "note": "",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G8",
+   "subject": "INTEGRATED_SCIENCE",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G8",
+   "subject": "KISWAHILI",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G8",
+   "subject": "MATHEMATICS",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G8",
+   "subject": "SOCIAL_STUDIES",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G9",
+   "subject": "AGRICULTURE",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G9",
+   "subject": "ENGLISH",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G9",
+   "subject": "ICT",
+   "proposedStatus": "NO_OFFICIAL_MATCH (already recorded)",
+   "note": "",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G9",
+   "subject": "INTEGRATED_SCIENCE",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G9",
+   "subject": "KISWAHILI",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G9",
+   "subject": "MATHEMATICS",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  },
+  {
+   "grade": "G9",
+   "subject": "SOCIAL_STUDIES",
+   "proposedStatus": "EXACT_MATCH (learning area exists in KICD's list for this grade)",
+   "note": "Learning-area level only; strands/sub-strands for this subject are not imported.",
+   "hasMsingiTopics": false,
+   "learnerReferences": {
+    "attempts": 0,
+    "subjectProgress": 0
+   }
+  }
+ ],
+ "officialLearningAreasMissingFromMsingi": {
+  "G6": [
+   "Agriculture",
+   "Arabic",
+   "CRE",
+   "Creative Arts",
+   "French",
+   "German",
+   "HRE",
+   "IRE",
+   "Indigenous Language",
+   "Mandarin"
+  ],
+  "G7": [
+   "Arabic",
+   "CRE",
+   "Creative Arts",
+   "French",
+   "German",
+   "HRE",
+   "IRE",
+   "Indigenous Language",
+   "Mandarin"
+  ],
+  "G8": [
+   "Agriculture",
+   "Arabic",
+   "CRE",
+   "Creative Arts",
+   "French",
+   "German",
+   "HRE",
+   "IRE",
+   "Indigenous Language",
+   "Mandarin",
+   "Pre-Technical Studies"
+  ],
+  "G9": [
+   "Arabic",
+   "CRE",
+   "Creative Arts",
+   "French",
+   "German",
+   "HRE",
+   "IRE",
+   "Indigenous Language",
+   "Mandarin",
+   "Pre-Technical Studies"
+  ]
+ },
+ "topicLevel": [
+  {
+   "topic": "Numbers",
+   "grade": "G7",
+   "msingiSubject": "MATHEMATICS",
+   "proposedStatus": "NEEDS_REVIEW",
+   "officialCandidate": "G7 Maths 1.1 Whole Numbers (20 lessons)",
+   "basis": "Questions cover place value/rounding. Name differs.",
+   "action": "admin review",
+   "learnerReferences": {
+    "lessons": 0,
+    "completions": 0,
+    "questions": 2,
+    "topic_progress": 0,
+    "mistakes": 0,
+    "flashcards": 0,
+    "flashcard_progress": 0,
+    "resources": 0
+   },
+   "safeToMoveAutomatically": false
+  },
+  {
+   "topic": "Fractions",
+   "grade": "G7",
+   "msingiSubject": "MATHEMATICS",
+   "proposedStatus": "PROBABLE_MATCH",
+   "officialCandidate": "G7 Maths 1.3 Fractions (9 lessons)",
+   "basis": "Name and placement agree; check content depth (Grade 6 has 1.4 Fractions, Grade 8 has 1.2 Fractions).",
+   "action": "admin review",
+   "learnerReferences": {
+    "lessons": 1,
+    "completions": 1,
+    "questions": 8,
+    "topic_progress": 3,
+    "mistakes": 19,
+    "flashcards": 8,
+    "flashcard_progress": 1,
+    "resources": 3
+   },
+   "safeToMoveAutomatically": false
+  },
+  {
+   "topic": "Decimals",
+   "grade": "G7",
+   "msingiSubject": "MATHEMATICS",
+   "proposedStatus": "EXACT_MATCH",
+   "officialCandidate": "G7 Maths 1.4 Decimals (6 lessons)",
+   "basis": "Name and placement agree; topic has no lesson/questions yet.",
+   "action": "admin confirm",
+   "learnerReferences": {
+    "lessons": 0,
+    "completions": 0,
+    "questions": 0,
+    "topic_progress": 0,
+    "mistakes": 0,
+    "flashcards": 0,
+    "flashcard_progress": 0,
+    "resources": 0
+   },
+   "safeToMoveAutomatically": false
+  },
+  {
+   "topic": "Percentages",
+   "grade": "G7",
+   "msingiSubject": "MATHEMATICS",
+   "proposedStatus": "NEEDS_REVIEW",
+   "officialCandidate": "None in Grade 7. Appears officially in G8 Maths 1.5 'Rates, Ratio, Proportions and Percentages' (14 lessons).",
+   "basis": "Grade 8 placement read from a third-party mirror of the KICD design; verify against KICD's own G8 document before recording.",
+   "action": "decision: move to Grade 8 content later, or keep as Msingi supplementary for Grade 7",
+   "learnerReferences": {
+    "lessons": 0,
+    "completions": 0,
+    "questions": 3,
+    "topic_progress": 3,
+    "mistakes": 6,
+    "flashcards": 0,
+    "flashcard_progress": 0,
+    "resources": 0
+   },
+   "safeToMoveAutomatically": false
+  },
+  {
+   "topic": "Ratios",
+   "grade": "G7",
+   "msingiSubject": "MATHEMATICS",
+   "proposedStatus": "NO_OFFICIAL_MATCH (Grade 7)",
+   "officialCandidate": "G8 Maths 1.5 Rates, Ratio, Proportions and Percentages (same caveat); G9 1.4 Compound Proportions and Rates of Work is related",
+   "basis": "Not a Grade 7 sub-strand.",
+   "action": "decision as for Percentages",
+   "learnerReferences": {
+    "lessons": 0,
+    "completions": 0,
+    "questions": 4,
+    "topic_progress": 3,
+    "mistakes": 9,
+    "flashcards": 0,
+    "flashcard_progress": 0,
+    "resources": 0
+   },
+   "safeToMoveAutomatically": false
+  },
+  {
+   "topic": "Algebra",
+   "grade": "G7",
+   "msingiSubject": "MATHEMATICS",
+   "proposedStatus": "PROBABLE_MATCH",
+   "officialCandidate": "G7 Maths 2.2 Linear Equations (6 lessons); lesson may also touch 2.1 Algebraic Expressions",
+   "basis": "Questions are 'solve for x'.",
+   "action": "admin review",
+   "learnerReferences": {
+    "lessons": 1,
+    "completions": 0,
+    "questions": 3,
+    "topic_progress": 2,
+    "mistakes": 7,
+    "flashcards": 0,
+    "flashcard_progress": 0,
+    "resources": 0
+   },
+   "safeToMoveAutomatically": false
+  },
+  {
+   "topic": "Classes of Nutrients",
+   "grade": "G7",
+   "msingiSubject": "INTEGRATED_SCIENCE",
+   "proposedStatus": "MSINGI_SUPPLEMENTARY (admin decision) — currently NO_OFFICIAL_MATCH",
+   "officialCandidate": "None in Grade 7. Nearest official headings seen: G4 Science & Technology 1.3 Human Digestive System; G9 Integrated Science 2.1 Nutrition in plants / 2.2 Nutrition in animals (via mirror; verify).",
+   "basis": "No 'classes of food' or 'balanced diet' sub-strand found in G4–G7 headings.",
+   "action": "decision",
+   "learnerReferences": {
+    "lessons": 1,
+    "completions": 0,
+    "questions": 8,
+    "topic_progress": 0,
+    "mistakes": 0,
+    "flashcards": 0,
+    "flashcard_progress": 0,
+    "resources": 0
+   },
+   "safeToMoveAutomatically": false
+  },
+  {
+   "topic": "Balanced Diet",
+   "grade": "G7",
+   "msingiSubject": "INTEGRATED_SCIENCE",
+   "proposedStatus": "MSINGI_SUPPLEMENTARY (admin decision) — currently NO_OFFICIAL_MATCH",
+   "officialCandidate": "as above",
+   "basis": "as above",
+   "action": "decision",
+   "learnerReferences": {
+    "lessons": 0,
+    "completions": 0,
+    "questions": 0,
+    "topic_progress": 0,
+    "mistakes": 0,
+    "flashcards": 0,
+    "flashcard_progress": 0,
+    "resources": 0
+   },
+   "safeToMoveAutomatically": false
+  }
+ ]
+}

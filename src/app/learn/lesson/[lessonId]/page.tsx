@@ -34,6 +34,8 @@ export default function LessonPage() {
   const [chosen, setChosen] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
   const [completion, setCompletion] = useState<Completion>({ status: "idle" });
+  // The next topic that has a lesson, read from the subject's real roadmap order.
+  const [nextLesson, setNextLesson] = useState<{ id: string; name: string } | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   const fetchLesson = useCallback(() => {
@@ -46,6 +48,24 @@ export default function LessonPage() {
       .catch(() => setLoad({ status: "error" }));
   }, [lessonId]);
   useEffect(() => { fetchLesson(); }, [fetchLesson]);
+
+  const doneSubjectId = completion.status === "done" && load.status === "ready" ? load.lesson.breadcrumb.subjectId : null;
+  const doneTopicId = load.status === "ready" ? load.lesson.topicId : null;
+  useEffect(() => {
+    if (!doneSubjectId || !doneTopicId) return;
+    let cancelled = false;
+    fetch(`/api/curriculum/roadmap?subjectId=${doneSubjectId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { roadmap?: { id: string; name: string; order: number; lessonId: string | null }[] } | null) => {
+        if (cancelled || !d?.roadmap) return;
+        const list = [...d.roadmap].sort((a, b) => a.order - b.order);
+        const here = list.findIndex((t) => t.id === doneTopicId);
+        const next = here >= 0 ? list.slice(here + 1).find((t) => t.lessonId) : undefined;
+        setNextLesson(next?.lessonId ? { id: next.lessonId, name: next.name } : null);
+      })
+      .catch(() => { /* the extra suggestion is optional; Practise stays the main action */ });
+    return () => { cancelled = true; };
+  }, [doneSubjectId, doneTopicId]);
 
   function goTo(next: number) {
     setIdx(next);
@@ -127,6 +147,11 @@ export default function LessonPage() {
           <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent.color }} aria-hidden /> Lesson · {b.subject}
         </div>
         <h1 className="disp text-2xl sm:text-3xl mt-1 leading-tight">{lesson.title}</h1>
+        {lesson.sections.length > 0 && (() => {
+          const words = lesson.sections.reduce((n, x) => n + `${x.heading} ${x.body} ${x.note ?? ""}`.split(/\s+/).filter(Boolean).length, 0) + (lesson.quickCheck ? 40 : 0);
+          const mins = Math.max(1, Math.round(words / 180));
+          return <p className="text-xs text-(--ink-soft) mt-1.5">{lesson.sections.length} part{lesson.sections.length === 1 ? "" : "s"}{lesson.quickCheck ? " + quick check" : ""} · about {mins} min</p>;
+        })()}
       </div>
     </div>
   );
@@ -152,7 +177,9 @@ export default function LessonPage() {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
               <Button href={practiceHref} size="lg">Practise {b.topic} <ArrowRight size={18} aria-hidden /></Button>
-              <Button href={subjectHref} size="lg" variant="secondary">Back to {b.subject}</Button>
+              {nextLesson && <Button href={`/learn/lesson/${nextLesson.id}`} size="lg" variant="secondary">Next lesson: {nextLesson.name}</Button>}
+              <Button href={`/learn/topic/${lesson.topicId}`} size="lg" variant="ghost">Topic overview</Button>
+              <Button href={subjectHref} size="lg" variant="ghost">Back to {b.subject}</Button>
             </div>
           </Card>
         </div>

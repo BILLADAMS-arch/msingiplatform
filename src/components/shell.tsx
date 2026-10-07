@@ -94,7 +94,7 @@ function SubjectLinks({ onNavigate }: { onNavigate?: () => void }) {
   const activeName = onLearn && !activeId ? params.get("subject") : null; // legacy ?subject=<name> links
   return (
     <div>
-      <div className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-(--muted)">My Subjects</div>
+      <div className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-(--ink-soft)">My Subjects</div>
       <ul className="space-y-0.5">
         {subjects.map((s) => {
           const active = activeId ? activeId === s.id : activeName === s.name;
@@ -154,7 +154,7 @@ function Logo({ home, withWordmark = true }: { home: string; withWordmark?: bool
   return (
     <Link href={home} className="flex items-center gap-2.5 rounded-xl" aria-label="Msingi home">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo-icon.png" alt="" className="w-11 h-11 object-contain" />
+      <img src="/logo-icon-sm.png" alt="" className="w-11 h-11 object-contain" />
       {withWordmark && (
         <span className="leading-tight">
           <span className="disp block text-lg">Msingi</span>

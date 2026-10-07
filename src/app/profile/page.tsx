@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Shell } from "@/components/shell";
 import { StatCard, Pill, Button, EmptyState, Skeleton, LoadingState } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { levelForXP } from "@/lib/levels";
 import { clearClientData } from "@/lib/client-data";
 import { Flame, Star, Layers, Trophy, LogOut } from "lucide-react";
 
@@ -15,8 +16,6 @@ type ProgressResponse = {
 };
 type BasicProfile = { profile: { name: string } | null };
 
-const LEVELS = ["Beginner", "Explorer", "Learner", "Scholar", "Expert", "Master"];
-function levelForXP(xp: number) { return LEVELS[Math.min(LEVELS.length - 1, Math.floor(xp / 500))]; }
 
 const GOALS = ["Improve my grades", "Prepare for exams", "Practise every day", "Master difficult topics", "Explore new subjects"];
 

@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode, ComponentProps, CSSProperties } from "react";
+import { ReactNode, ComponentProps, CSSProperties, useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, RotateCw, ChevronRight } from "lucide-react";
 
@@ -34,7 +34,7 @@ export function StatCard({ icon, label, value, tone = "gold", hint }: { icon: Re
       <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2" style={{ background: bg[tone], color: fg[tone] }}>{icon}</div>
       <div className="disp text-2xl font-bold">{value}</div>
       <div className="text-xs text-(--ink-soft)">{label}</div>
-      {hint && <div className="text-[11px] text-(--muted) mt-0.5">{hint}</div>}
+      {hint && <div className="text-[11px] text-(--ink-soft) mt-0.5">{hint}</div>}
     </div>
   );
 }
@@ -145,12 +145,18 @@ export function Skeleton({ className = "", style }: { className?: string; style?
   return <div aria-hidden className={`skeleton rounded-xl ${className}`} style={style} />;
 }
 
-/** Wraps skeletons so screen readers hear one "Loading…" instead of nothing. */
+/** Wraps skeletons so screen readers hear one "Loading…". After a while it also tells the learner the wait is longer than usual. */
 export function LoadingState({ label = "Loading…", children }: { label?: string; children: ReactNode }) {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setSlow(true), 10_000);
+    return () => clearTimeout(t);
+  }, []);
   return (
     <div role="status" aria-live="polite">
       <span className="sr-only">{label}</span>
       {children}
+      {slow && <p className="text-xs text-(--ink-soft) mt-3 text-center">This is taking longer than usual. Check your connection — it will keep trying.</p>}
     </div>
   );
 }
@@ -207,7 +213,7 @@ export function Breadcrumbs({ items }: { items: { label: string; href?: string; 
           return (
             <li key={i} className={`${item.mobile === false ? "hidden sm:flex" : "flex"} items-center gap-1.5 min-w-0`}>
               {item.href && !last ? (
-                <Link href={item.href} className="hover:text-(--primary-deep) underline-offset-2 hover:underline py-1">{item.label}</Link>
+                <Link href={item.href} className="hover:text-(--primary-deep) underline-offset-2 hover:underline py-2.5 -my-1">{item.label}</Link>
               ) : (
                 <span className={last ? "text-(--ink) font-semibold" : ""} aria-current={last ? "page" : undefined}>{item.label}</span>
               )}

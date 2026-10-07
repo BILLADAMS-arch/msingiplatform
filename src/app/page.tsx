@@ -31,7 +31,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-4">
           <Link href="/" aria-label="Msingi home" className="shrink-0 rounded-xl">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-full.png" alt="Msingi — Learn. Practise. Grow." className="h-11 sm:h-14 w-auto object-contain" />
+            <img src="/logo-full-sm.png" alt="Msingi — Learn. Practise. Grow." className="h-11 sm:h-14 w-auto object-contain" />
           </Link>
           <nav aria-label="Page sections" className="hidden md:flex items-center gap-1 text-sm font-semibold text-(--ink-soft)">
             <a href="#how-it-works" className="px-3 py-2 rounded-lg hover:text-(--ink)">How it works</a>
@@ -89,7 +89,7 @@ export default function Landing() {
                           <Icon size={18} />
                         </span>
                         <div className="flex items-baseline gap-2 lg:block">
-                          <span className="text-[11px] font-bold text-(--muted)">{String(i + 1).padStart(2, "0")}</span>
+                          <span className="text-[11px] font-bold text-(--ink-soft)">{String(i + 1).padStart(2, "0")}</span>
                           <h3 className="disp text-base leading-tight">{step.title}</h3>
                         </div>
                       </div>
@@ -202,7 +202,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-(--ink-soft)">
           <div className="flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-icon.png" alt="" className="w-8 h-8 object-contain" />
+            <img src="/logo-icon-sm.png" alt="" className="w-8 h-8 object-contain" />
             <span><b className="disp text-(--ink)">Msingi</b> · Learn. Practise. Grow.</span>
           </div>
           <nav aria-label="Footer" className="flex items-center gap-4 font-semibold">
@@ -237,7 +237,7 @@ function ProductPreview() {
         {/* window chrome */}
         <div className="flex items-center gap-1.5 px-1 pb-3">
           <span className="w-2.5 h-2.5 rounded-full bg-(--slate)" /><span className="w-2.5 h-2.5 rounded-full bg-(--slate)" /><span className="w-2.5 h-2.5 rounded-full bg-(--slate)" />
-          <span className="ml-3 text-[11px] font-semibold text-(--muted)">Your Msingi dashboard</span>
+          <span className="ml-3 text-[11px] font-semibold text-(--ink-soft)">Your Msingi dashboard</span>
         </div>
 
         <div className="space-y-3">
@@ -247,7 +247,7 @@ function ProductPreview() {
           </div>
 
           <Card padding="sm">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-(--muted) mb-2">Continue learning</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-(--ink-soft) mb-2">Continue learning</div>
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-semibold flex items-center gap-1.5" style={{ color: maths.color }}>
@@ -261,7 +261,7 @@ function ProductPreview() {
           </Card>
 
           <Card padding="sm">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-(--muted) mb-2">Focus areas</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-(--ink-soft) mb-2">Focus areas</div>
             <ul className="space-y-2.5">
               {focus.map((f) => (
                 <li key={f.topic} className="flex items-center gap-3">
@@ -297,7 +297,7 @@ function ProductPreview() {
       </div>
       </div>
 
-      <figcaption className="mt-4 sm:mt-9 text-xs text-(--muted) text-center">
+      <figcaption className="mt-4 sm:mt-9 text-xs text-(--ink-soft) text-center">
         Illustration of the learner dashboard with example topics — not real learner data.
       </figcaption>
     </figure>

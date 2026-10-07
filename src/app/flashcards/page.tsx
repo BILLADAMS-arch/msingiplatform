@@ -2,10 +2,12 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Shell } from "@/components/shell";
-import { Pill, Card, ErrorState, Skeleton, LoadingState } from "@/components/ui";
-import { Shuffle, Layers } from "lucide-react";
+import { Pill, Card, Button, ErrorState, Skeleton, LoadingState } from "@/components/ui";
+import { practiceHref } from "@/lib/links";
+import { Shuffle, Layers, Dumbbell, RotateCcw, ArrowLeft, PartyPopper } from "lucide-react";
 
-type Card = { id: string; front: string; back: string; status: string };
+type FlashCard = { id: string; front: string; back: string; status: string };
+type Rating = "easy" | "difficult" | "review_later";
 
 function shuffle<T>(arr: T[]): T[] {
   const copy = [...arr];
@@ -24,9 +26,12 @@ function FlashcardsInner() {
   const topic = topicId ?? legacyTopicName; // whether a topic was requested at all
   const [topicName, setTopicName] = useState<string | null>(legacyTopicName);
 
-  const [cards, setCards] = useState<Card[] | null>(null);
+  const [cards, setCards] = useState<FlashCard[] | null>(null);
+  const [resolvedTopicId, setResolvedTopicId] = useState<string | null>(topicId);
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  // What the learner rated in THIS run through the deck (real actions only).
+  const [ratings, setRatings] = useState<Record<string, Rating>>({});
 
   const [loadError, setLoadError] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -35,13 +40,14 @@ function FlashcardsInner() {
     if (!topic) return;
     fetch(topicId ? `/api/flashcards?topicId=${encodeURIComponent(topicId)}` : `/api/flashcards?topic=${encodeURIComponent(topic)}`)
       .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
-      .then((d) => { setTopicName(d.topic ?? null); setCards(d.cards ?? []); })
+      .then((d) => { setTopicName(d.topic ?? null); setResolvedTopicId(d.topicId ?? topicId); setCards(d.cards ?? []); })
       .catch(() => setLoadError(true));
   }, [topic, topicId, attempt]);
 
-  async function rate(status: "easy" | "difficult" | "review_later") {
+  async function rate(status: Rating) {
     if (!cards) return;
     const card = cards[idx];
+    setRatings((r) => ({ ...r, [card.id]: status }));
     await fetch("/api/flashcards/progress", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ flashcardId: card.id, status }),
@@ -55,6 +61,18 @@ function FlashcardsInner() {
     setCards(shuffle(cards));
     setIdx(0);
     setFlipped(false);
+    setRatings({});
+  }
+
+  // Go round again with only the cards the learner just marked difficult.
+  function reviewDifficult() {
+    if (!cards) return;
+    const hard = cards.filter((c) => ratings[c.id] === "difficult");
+    if (hard.length === 0) return;
+    setCards(shuffle(hard));
+    setIdx(0);
+    setFlipped(false);
+    setRatings({});
   }
 
   if (topic && loadError) {
@@ -79,15 +97,29 @@ function FlashcardsInner() {
   }
 
   if (idx >= cards.length) {
+    const count = (r: Rating) => cards.filter((c) => ratings[c.id] === r).length;
+    const easy = count("easy"), later = count("review_later"), hard = count("difficult");
     return (
       <Shell>
-        <div className="fade-in max-w-md mx-auto text-center space-y-4 py-10">
-          <Layers size={36} className="mx-auto text-(--primary)" />
-          <h1 className="disp text-3xl font-bold">Deck Complete!</h1>
-          <p className="text-(--ink-soft)">You reviewed all {cards.length} cards for {topicName}.</p>
-          <button onClick={reshuffle} className="tap px-6 py-3 rounded-full font-semibold text-white flex items-center gap-2 mx-auto" style={{ background: "var(--primary)" }}>
-            <Shuffle size={16} /> Review Again
-          </button>
+        <div className="fade-in max-w-md mx-auto">
+          <Card padding="lg" className="text-center">
+            <PartyPopper size={30} className="mx-auto text-(--gold-deep)" aria-hidden />
+            <h1 className="disp text-2xl sm:text-3xl mt-2">Deck complete</h1>
+            <p className="text-sm text-(--ink-soft) mt-1">You reviewed {cards.length} card{cards.length === 1 ? "" : "s"}{topicName ? <> for {topicName}</> : null}.</p>
+            <dl className="grid grid-cols-3 gap-2 mt-5 text-center">
+              <div className="rounded-xl py-3" style={{ background: "var(--green-soft)" }}><dd className="disp text-xl text-(--green)">{easy}</dd><dt className="text-[11px] text-(--ink-soft)">Easy</dt></div>
+              <div className="rounded-xl py-3" style={{ background: "var(--stone-2)" }}><dd className="disp text-xl">{later}</dd><dt className="text-[11px] text-(--ink-soft)">Review later</dt></div>
+              <div className="rounded-xl py-3" style={{ background: "var(--coral-soft)" }}><dd className="disp text-xl text-(--coral)">{hard}</dd><dt className="text-[11px] text-(--ink-soft)">Difficult</dt></div>
+            </dl>
+            <div className="grid gap-2.5 mt-6">
+              {hard > 0 && <Button size="lg" onClick={reviewDifficult}><RotateCcw size={16} aria-hidden /> Review the {hard} difficult card{hard === 1 ? "" : "s"}</Button>}
+              {(resolvedTopicId || topicName) && (
+                <Button size="lg" variant={hard > 0 ? "secondary" : "primary"} href={practiceHref({ id: resolvedTopicId, name: topicName })}><Dumbbell size={16} aria-hidden /> Practise {topicName ?? "this topic"}</Button>
+              )}
+              <Button size="lg" variant="secondary" onClick={reshuffle}><Shuffle size={16} aria-hidden /> Go through the deck again</Button>
+              <Button size="lg" variant="ghost" href="/learn"><ArrowLeft size={16} aria-hidden /> Back to Learn</Button>
+            </div>
+          </Card>
         </div>
       </Shell>
     );

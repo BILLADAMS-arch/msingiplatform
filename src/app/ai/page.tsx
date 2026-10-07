@@ -230,7 +230,7 @@ function AiInner() {
           ) : list.length === 0 && streaming === null && !failed ? (
             <div className="py-6 sm:py-10 text-center max-w-lg mx-auto">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-icon.png" alt="" className="w-14 h-14 mx-auto object-contain" />
+              <img src="/logo-icon-sm.png" alt="" className="w-14 h-14 mx-auto object-contain" />
               <h2 className="disp text-xl sm:text-2xl mt-3">{topicParam ? `What would help with ${topicParam}?` : "What are you learning today?"}</h2>
               <p className="text-sm text-(--ink-soft) mt-2">
                 Ask about anything you&apos;re studying. Msingi explains, gives hints and asks you questions — so you work it out yourself.
@@ -260,7 +260,7 @@ function AiInner() {
                 return (
                   <li key={i}>
                     {showDay && (
-                      <div className="flex items-center gap-3 my-2 text-[11px] font-semibold text-(--muted)" aria-hidden>
+                      <div className="flex items-center gap-3 my-2 text-[11px] font-semibold text-(--ink-soft)" aria-hidden>
                         <span className="flex-1 border-t border-(--slate)" />{dayLabel(m.createdAt)}<span className="flex-1 border-t border-(--slate)" />
                       </div>
                     )}
@@ -316,7 +316,7 @@ function AiInner() {
                 <ArrowUp size={20} aria-hidden />
               </Button>
             </form>
-            <p id="ask-hint" className="text-[11px] text-(--muted) mt-1.5 flex justify-between gap-3">
+            <p id="ask-hint" className="text-[11px] text-(--ink-soft) mt-1.5 flex justify-between gap-3">
               <span>Msingi can make mistakes — check important facts against your lessons.</span>
               <span className="hidden sm:inline shrink-0">Enter to send · Shift+Enter for a new line</span>
             </p>
@@ -342,7 +342,7 @@ function ChatMessage({ role, content, streaming = false }: { role: "user" | "ass
       <span className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center ${isUser ? "bg-(--green) text-white" : "bg-white border border-(--slate)"}`} aria-hidden>
         {isUser ? <User size={16} /> : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src="/logo-icon.png" alt="" className="w-6 h-6 object-contain" />
+          <img src="/logo-icon-sm.png" alt="" className="w-6 h-6 object-contain" />
         )}
       </span>
       <div className={`min-w-0 max-w-[85%] sm:max-w-[75%] ${isUser ? "items-end text-right" : ""} flex flex-col`}>
